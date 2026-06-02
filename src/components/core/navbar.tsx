@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { FcGoogle } from "react-icons/fc";
 
 type View = "role" | "register" | "login";
 
@@ -78,6 +79,7 @@ export default function Navbar({ professional }: { professional?: boolean }) {
 
         <div className="hidden items-center gap-3 md:flex">
           <AuthDialog
+            defaultView="login"
             trigger={
               <Button
                 variant="outline"
@@ -89,6 +91,7 @@ export default function Navbar({ professional }: { professional?: boolean }) {
             }
           />
           <AuthDialog
+            defaultView="role"
             trigger={
               <Button size="sm" className="rounded-md px-5">
                 Create Account
@@ -131,6 +134,7 @@ export default function Navbar({ professional }: { professional?: boolean }) {
           ))}
           <div className=" grid grid-cols-2 gap-3 mt-4">
             <AuthDialog
+              defaultView="login"
               trigger={
                 <Button
                   variant="outline"
@@ -142,6 +146,7 @@ export default function Navbar({ professional }: { professional?: boolean }) {
               }
             />
             <AuthDialog
+              defaultView="role"
               trigger={
                 <Button size="sm" className="rounded-md px-5">
                   Create Account
@@ -155,8 +160,14 @@ export default function Navbar({ professional }: { professional?: boolean }) {
   );
 }
 
-export function AuthDialog({ trigger }: { trigger: React.ReactNode }) {
-  const [view, setView] = useState<View>("role");
+export function AuthDialog({
+  trigger,
+  defaultView = "role",
+}: {
+  trigger: React.ReactNode;
+  defaultView?: View;
+}) {
+  const [view, setView] = useState<View>(defaultView);
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -208,34 +219,20 @@ export function AuthDialog({ trigger }: { trigger: React.ReactNode }) {
 
         {/* VIEW 2: Create Account */}
         {view === "register" && (
-          <div className="flex flex-col gap-6 p-4">
-            <h2 className="text-2xl font-bold">Create account</h2>
-            <div className="flex flex-col gap-4">
-              <Input placeholder="Full name" />
-              <Input type="email" placeholder="Email" />
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-2.5 text-gray-400"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-            <Button className="w-full bg-teal-500 hover:bg-teal-600">
-              Create Account
+          <div className="flex flex-col gap-6 p-4 text-center">
+            <h2 className="text-2xl font-bold">Create your account</h2>
+            <p className="text-sm text-gray-500">
+              Sign up to get started with iBadi
+            </p>
+            <Button className="w-full" asChild>
+              <Link href="/auth/register">Create Account</Link>
             </Button>
             <p className="text-center text-sm">
-              Do you have an account?{" "}
+              Already have an account?{" "}
               {/** biome-ignore lint/a11y/noStaticElementInteractions: <explanation> */}
               {/** biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
               <span
-                className="cursor-pointer font-bold text-teal-600"
+                className="cursor-pointer font-bold text-primary"
                 onClick={() => setView("login")}
               >
                 Log in
@@ -248,21 +245,22 @@ export function AuthDialog({ trigger }: { trigger: React.ReactNode }) {
         {view === "login" && (
           <div className="flex flex-col gap-4 p-4">
             <h2 className="text-2xl font-bold">Log in</h2>
-            <Button variant="outline" className="w-full">
+            {/* <Button variant="outline" className="w-full">
               Continue with Apple
             </Button>
             <Button className="w-full bg-blue-600 hover:bg-blue-700">
               Continue with Facebook
-            </Button>
+            </Button> */}
             <Button variant="outline" className="w-full">
+              <FcGoogle />
               Continue with Google
             </Button>
             <div className="my-2 flex items-center gap-4 text-gray-400">
               <div className="h-px flex-1 bg-gray-200" /> or{" "}
               <div className="h-px flex-1 bg-gray-200" />
             </div>
-            <Button variant="outline" className="w-full">
-              Log in with email
+            <Button className="w-full" asChild>
+              <Link href="/auth/login">Log in with email</Link>
             </Button>
           </div>
         )}
