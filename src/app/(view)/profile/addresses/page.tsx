@@ -9,41 +9,38 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-interface Address {
-  id: string;
-  name: string;
-  street: string;
-  city: string;
-  country: string;
-  phone: string;
-}
+import { useQueryClient } from "@tanstack/react-query";
+import { useGetMyAddresses } from "@/hooks/api/address/use-address";
+import { apiClient } from "@/lib/api/client";
+import type { ApiResponse } from "@/lib/api/client";
+import { useCookies } from "react-cookie";
 
 export default function AddressesPage() {
   const router = useRouter();
-  const [addresses, setAddresses] = useState<Address[]>([
-    {
-      id: "1",
-      name: "Mr. Raju Home",
-      street: "3891 Pebel Rd, Albuquerque, New Mexico 31134",
-      city: "Albuquerque",
-      country: "United States",
-      phone: "(907) 555-0101",
-    },
-  ]);
+  const [cookies] = useCookies(["accessToken"]);
+  const queryClient = useQueryClient();
+  const { data: addresses, isLoading } = useGetMyAddresses();
 
   const [showMenuId, setShowMenuId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
-    null,
-  );
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDeleteAddress = () => {
-    if (selectedAddressId) {
-      setAddresses(addresses.filter((addr) => addr.id !== selectedAddressId));
+  const handleDeleteAddress = async () => {
+    if (!selectedAddressId) return;
+    setIsDeleting(true);
+    try {
+      await apiClient.delete<ApiResponse<unknown>>(
+        `/address/${selectedAddressId}`,
+        cookies.accessToken,
+      );
+      queryClient.invalidateQueries({ queryKey: ["address"] });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+      setShowMenuId(null);
+      setSelectedAddressId(null);
     }
-    setShowDeleteDialog(false);
-    setShowMenuId(null);
   };
 
   const handleEditAddress = (id: string) => {
@@ -67,24 +64,41 @@ export default function AddressesPage() {
 
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-8">
-        {/* Your Addresses Label */}
         <h2 className="text-sm font-semibold text-gray-700 mb-4">
           Your Addresses
         </h2>
 
-        {/* Addresses List */}
+        {isLoading && (
+          <p className="text-sm text-gray-500 text-center py-6">Loading addresses...</p>
+        )}
+
+        {!isLoading && addresses?.length === 0 && (
+          <p className="text-sm text-gray-500 text-center py-6">No addresses found</p>
+        )}
+
         <div className="space-y-3 mb-6">
-          {addresses.map((address) => (
+          {addresses?.map((address) => (
             <div
               key={address.id}
               className="flex items-start justify-between px-4 py-4 bg-white border border-gray-300 rounded-lg hover:border-gray-400 transition-colors relative"
             >
               <div className="flex-1 pr-2">
                 <h3 className="font-medium text-gray-900 mb-1">
-                  {address.name}
+                  {address.addressLine1}
                 </h3>
-                <p className="text-sm text-gray-600 mb-1">{address.street}</p>
-                <p className="text-xs text-gray-500">{address.phone}</p>
+                <p className="text-sm text-gray-600 mb-1">
+                  {[address.addressLine2, address.city, address.state, address.country]
+                    .filter(Boolean)
+                    .join(", ")}
+                </p>
+                {address.postalCode && (
+                  <p className="text-xs text-gray-500">{address.postalCode}</p>
+                )}
+                {address.isDefault && (
+                  <span className="inline-block mt-1 text-xs text-primary font-medium">
+                    Default
+                  </span>
+                )}
               </div>
               <div className="relative">
                 <button
@@ -97,7 +111,6 @@ export default function AddressesPage() {
                   <MoreVertical className="w-5 h-5 text-gray-600" />
                 </button>
 
-                {/* Dropdown Menu */}
                 {showMenuId === address.id && (
                   <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-md z-10 w-32">
                     <button
@@ -124,7 +137,6 @@ export default function AddressesPage() {
           ))}
         </div>
 
-        {/* Add New Address Button */}
         <button
           type="button"
           onClick={() => router.push("/profile/addresses/new")}
@@ -139,23 +151,24 @@ export default function AddressesPage() {
         <DialogContent className="max-w-sm">
           <DialogHeader className="text-center">
             <DialogTitle className="text-lg font-semibold">
-              Are you sure you want to delete ?
+              Are you sure you want to delete?
             </DialogTitle>
           </DialogHeader>
           <div className="flex gap-3 mt-6 flex-col sm:flex-row">
             <button
               type="button"
               onClick={handleDeleteAddress}
-              className="flex-1 px-4 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-medium rounded-lg transition-colors order-2 sm:order-1"
+              disabled={isDeleting}
+              className="flex-1 px-4 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-medium rounded-lg transition-colors order-2 sm:order-1 disabled:opacity-50"
             >
-              YES,DELETE
+              {isDeleting ? "Deleting..." : "YES, DELETE"}
             </button>
             <button
               type="button"
               onClick={() => setShowDeleteDialog(false)}
               className="flex-1 px-4 py-3 border-2 border-cyan-500 text-cyan-600 hover:bg-cyan-50 font-medium rounded-lg transition-colors order-1 sm:order-2"
             >
-              NO,DON&apos;T DELETE
+              NO, DON&apos;T DELETE
             </button>
           </div>
         </DialogContent>

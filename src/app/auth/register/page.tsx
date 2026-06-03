@@ -26,7 +26,10 @@ export default function RegisterPage() {
       {
         onSuccess: () => {
           // Redirect to verify OTP page with registration flag
-          router.push("/auth/verify-otp?mode=register");
+          router.push(
+            `/auth/verify-otp?mode=register&email=${encodeURIComponent(email)}`,
+          );
+          // router.push("/auth/login");
         },
       },
     );

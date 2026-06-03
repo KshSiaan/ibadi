@@ -3,48 +3,47 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useChangePassword } from "@/hooks/api/auth/use-change-password";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
+  const changePassword = useChangePassword();
+
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Validation
     if (!oldPassword || !newPassword || !confirmPassword) {
       setError("All fields are required");
       return;
     }
-
     if (newPassword !== confirmPassword) {
       setError("New passwords do not match");
       return;
     }
-
     if (newPassword.length < 6) {
       setError("New password must be at least 6 characters");
       return;
     }
 
-    setIsSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setIsSaving(false);
-
-    // Reset form
-    setOldPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    router.back();
+    try {
+      await changePassword.mutateAsync({
+        oldPassword,
+        newPassword,
+        confirmPassword,
+      });
+      router.back();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to change password");
+    }
   };
 
   return (
@@ -64,14 +63,13 @@ export default function ChangePasswordPage() {
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-8">
         <form onSubmit={handleChangePassword} className="space-y-6">
-          {/* Error Message */}
           {error && (
             <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
 
-          {/* Old Password Field */}
+          {/* Old Password */}
           <div>
             <label
               htmlFor="oldPassword"
@@ -93,16 +91,12 @@ export default function ChangePasswordPage() {
                 onClick={() => setShowOldPassword(!showOldPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
               >
-                {showOldPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showOldPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
 
-          {/* New Password Field */}
+          {/* New Password */}
           <div>
             <label
               htmlFor="newPassword"
@@ -124,16 +118,12 @@ export default function ChangePasswordPage() {
                 onClick={() => setShowNewPassword(!showNewPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
               >
-                {showNewPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
 
-          {/* Confirm Password Field */}
+          {/* Confirm Password */}
           <div>
             <label
               htmlFor="confirmPassword"
@@ -155,22 +145,17 @@ export default function ChangePasswordPage() {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
               >
-                {showConfirmPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
 
-          {/* Change Password Button */}
           <button
             type="submit"
-            disabled={isSaving}
-            className="w-full px-4 py-3  bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8"
+            disabled={changePassword.isPending}
+            className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8"
           >
-            {isSaving ? "Changing..." : "Change password"}
+            {changePassword.isPending ? "Changing..." : "Change password"}
           </button>
         </form>
       </div>

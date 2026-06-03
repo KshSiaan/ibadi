@@ -1,24 +1,93 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useDeleteMyAccount } from "@/hooks/api/user/use-delete-my-account";
+import { useMyProfile } from "@/hooks/api/user/use-my-profile";
+import { useUpdateProfile } from "@/hooks/api/user/use-update-profile";
+import { ArrowLeft, Camera, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export default function PersonalDetailsPage() {
   const router = useRouter();
-  const [name, setName] = useState("Mr. Raju");
-  const [email, setEmail] = useState("raju@gmail.com");
-  const [phone, setPhone] = useState("+880 1840-560614");
-  const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    // Simulate save delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setIsSaving(false);
-    // Could add toast notification here
+  const { data: profile, isLoading } = useMyProfile();
+  const updateProfile = useUpdateProfile();
+  const deleteAccount = useDeleteMyAccount();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [error, setError] = useState("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name ?? "");
+      setEmail(profile.email ?? "");
+      setPhone(profile.phoneNumber ?? "");
+    }
+  }, [profile]);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
   };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("phoneNumber", phone);
+    if (avatarFile) formData.append("profile", avatarFile);
+
+    try {
+      await updateProfile.mutateAsync(formData);
+      router.back();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount.mutateAsync();
+      router.push("/auth/login");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete account");
+      setShowDeleteDialog(false);
+    }
+  };
+
+  const avatarSrc =
+    avatarPreview ?? profile?.profile ?? "https://i.pravatar.cc/150?img=1";
+  const initials = (profile?.name ?? "U")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500 text-sm">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -31,9 +100,7 @@ export default function PersonalDetailsPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">
-          Personal details
-        </h1>
+        <h1 className="text-lg font-semibold text-gray-900">Personal details</h1>
       </div>
 
       {/* Main Content */}
@@ -42,27 +109,40 @@ export default function PersonalDetailsPage() {
         <div className="flex flex-col items-center justify-center mb-8">
           <div className="relative">
             <Avatar className="w-20 h-20">
-              <AvatarImage
-                src="https://i.pravatar.cc/150?img=1"
-                alt="Mr. Raju"
-              />
-              <AvatarFallback>MR</AvatarFallback>
+              <AvatarImage src={avatarSrc} alt={profile?.name ?? "User"} />
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
-            <div className="absolute bottom-0 right-0  bg-primary  rounded-full p-1 border-2 border-white">
-              <CheckCircle2 className="w-4 h-4 text-white" />
-            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-0 right-0 bg-primary rounded-full p-1 border-2 border-white"
+            >
+              <Camera className="w-4 h-4 text-white" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+            {profile?.isVerified && (
+              <div className="absolute -top-1 -right-1">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Error */}
+        {error && (
+          <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
         {/* Form */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSave();
-          }}
-          className="space-y-4 mb-8"
-        >
-          {/* Name Field */}
+        <form onSubmit={handleSave} className="space-y-4 mb-8">
           <div>
             <input
               type="text"
@@ -73,7 +153,6 @@ export default function PersonalDetailsPage() {
             />
           </div>
 
-          {/* Email Field */}
           <div>
             <input
               type="email"
@@ -84,7 +163,6 @@ export default function PersonalDetailsPage() {
             />
           </div>
 
-          {/* Phone Field */}
           <div>
             <input
               type="tel"
@@ -95,13 +173,12 @@ export default function PersonalDetailsPage() {
             />
           </div>
 
-          {/* Save Button */}
           <button
             type="submit"
-            disabled={isSaving}
-            className="w-full px-4 py-3  bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={updateProfile.isPending}
+            className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? "Saving..." : "Save"}
+            {updateProfile.isPending ? "Saving..." : "Save"}
           </button>
         </form>
 
@@ -109,15 +186,44 @@ export default function PersonalDetailsPage() {
         <div className="text-center">
           <button
             type="button"
-            onClick={() => {
-              // Handle delete account
-            }}
+            onClick={() => setShowDeleteDialog(true)}
             className="text-gray-700 text-sm font-medium hover:text-gray-900 underline transition-colors"
           >
             Delete account permanently
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-lg font-semibold">
+              Are you sure you want to delete your account?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-500 text-center">
+            This action is permanent and cannot be undone.
+          </p>
+          <div className="flex gap-3 mt-6 flex-col sm:flex-row">
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              disabled={deleteAccount.isPending}
+              className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 order-2 sm:order-1"
+            >
+              {deleteAccount.isPending ? "Deleting..." : "YES, DELETE"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteDialog(false)}
+              className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-600 hover:bg-gray-50 font-medium rounded-lg transition-colors order-1 sm:order-2"
+            >
+              NO, CANCEL
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

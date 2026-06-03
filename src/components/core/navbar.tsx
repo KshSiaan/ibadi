@@ -1,15 +1,16 @@
 "use client";
 
-import { Eye, EyeOff, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { FcGoogle } from "react-icons/fc";
+import { useCookies } from "react-cookie";
 
 type View = "role" | "register" | "login";
 
@@ -31,6 +32,9 @@ const professionalNavLinks = [
 export default function Navbar({ professional }: { professional?: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const [cookies] = useCookies(["accessToken", "user"]);
+  const isLoggedIn = !!cookies.accessToken;
+  const user = cookies.user as { name?: string; profile?: string } | undefined;
 
   const links = professional ? professionalNavLinks : navLinks;
   const activeColor = professional ? "text-cyan-600" : "text-primary";
@@ -78,26 +82,34 @@ export default function Navbar({ professional }: { professional?: boolean }) {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <AuthDialog
-            defaultView="login"
-            trigger={
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-md border-primary text-primary"
-              >
-                Log In
-              </Button>
-            }
-          />
-          <AuthDialog
-            defaultView="role"
-            trigger={
-              <Button size="sm" className="rounded-md px-5">
-                Create Account
-              </Button>
-            }
-          />
+          {isLoggedIn ? (
+            <Link href="/profile" className="flex items-center gap-2">
+              <Avatar className="size-8">
+                <AvatarImage src={user?.profile ?? ""} alt={user?.name ?? ""} />
+                <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() ?? "U"}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium text-gray-700">{user?.name}</span>
+            </Link>
+          ) : (
+            <>
+              <AuthDialog
+                defaultView="login"
+                trigger={
+                  <Button variant="outline" size="sm" className="rounded-md border-primary text-primary">
+                    Log In
+                  </Button>
+                }
+              />
+              <AuthDialog
+                defaultView="role"
+                trigger={
+                  <Button size="sm" className="rounded-md px-5">
+                    Create Account
+                  </Button>
+                }
+              />
+            </>
+          )}
         </div>
 
         <button
@@ -132,28 +144,34 @@ export default function Navbar({ professional }: { professional?: boolean }) {
               {link.label}
             </Link>
           ))}
-          <div className=" grid grid-cols-2 gap-3 mt-4">
-            <AuthDialog
-              defaultView="login"
-              trigger={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-md border-primary text-primary"
-                >
-                  Log In
-                </Button>
-              }
-            />
-            <AuthDialog
-              defaultView="role"
-              trigger={
-                <Button size="sm" className="rounded-md px-5">
-                  Create Account
-                </Button>
-              }
-            />
-          </div>
+          {isLoggedIn ? (
+            <Link href="/profile" className="flex items-center gap-2 mt-4 px-3 py-2">
+              <Avatar className="size-8">
+                <AvatarImage src={user?.profile ?? ""} alt={user?.name ?? ""} />
+                <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() ?? "U"}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium text-gray-700">{user?.name}</span>
+            </Link>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <AuthDialog
+                defaultView="login"
+                trigger={
+                  <Button variant="outline" size="sm" className="rounded-md border-primary text-primary">
+                    Log In
+                  </Button>
+                }
+              />
+              <AuthDialog
+                defaultView="role"
+                trigger={
+                  <Button size="sm" className="rounded-md px-5">
+                    Create Account
+                  </Button>
+                }
+              />
+            </div>
+          )}
         </nav>
       </div>
     </header>

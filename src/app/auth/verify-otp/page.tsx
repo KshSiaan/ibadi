@@ -9,16 +9,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useVerifyOtp } from "@/hooks/api/use-verify-otp";
 import { useVerifyOtpRegister } from "@/hooks/api/use-verify-otp-register";
+import { useResendOtp } from "@/hooks/api/otp/use-resend-otp";
 
 export default function VerifyOtpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = searchParams.get("mode") || "reset"; // "reset" or "register"
+  const email = searchParams.get("email") || "";
 
   const [otp, setOtp] = useState("");
 
   const resetMutation = useVerifyOtp();
   const registerMutation = useVerifyOtpRegister();
+  const resendOtp = useResendOtp();
 
   const isRegisterMode = mode === "register";
   const {
@@ -35,10 +38,8 @@ export default function VerifyOtpPage() {
       {
         onSuccess: () => {
           if (isRegisterMode) {
-            // Registration flow: go to login
             router.push("/auth/login");
           } else {
-            // Password reset flow: go to reset password
             router.push("/auth/reset-password");
           }
         },
@@ -47,11 +48,9 @@ export default function VerifyOtpPage() {
   };
 
   const handleResendOtp = () => {
-    if (isRegisterMode) {
-      // Redirect back to register to resend
-      router.push("/auth/register");
+    if (isRegisterMode && email) {
+      resendOtp.mutate({ email });
     } else {
-      // Redirect back to forgot password to resend
       router.push("/auth/forgot-password");
     }
   };

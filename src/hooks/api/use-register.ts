@@ -11,7 +11,7 @@ export function useRegister() {
   return useMutation<RegisterResponse, Error, RegisterRequest>({
     mutationFn: async (credentials: RegisterRequest) => {
       const response = await apiClient.post<ApiResponse<RegisterResponse>>(
-        "/auth/register",
+        "/users",
         credentials,
       );
 

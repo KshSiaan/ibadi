@@ -5,6 +5,10 @@ export interface ServiceBookingState {
   selectedService: string;
   setSelectedService: (service: string) => void;
 
+  /* ─── Address ─── */
+  serviceAddress: string;
+  setServiceAddress: (address: string) => void;
+
   /* ─── Schedule ─── */
   frequency: "once" | "weekly";
   setFrequency: (frequency: "once" | "weekly") => void;
@@ -49,6 +53,10 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
   /* ─── Service Selection ─── */
   selectedService: "Elderly care",
   setSelectedService: (service: string) => set({ selectedService: service }),
+
+  /* ─── Address ─── */
+  serviceAddress: "",
+  setServiceAddress: (address: string) => set({ serviceAddress: address }),
 
   /* ─── Schedule ─── */
   frequency: "once",
@@ -110,6 +118,7 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
   reset: () =>
     set({
       selectedService: "Elderly care",
+      serviceAddress: "",
       frequency: "once",
       selectedDay: 13,
       duration: [2],

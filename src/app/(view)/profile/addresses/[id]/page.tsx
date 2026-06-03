@@ -3,56 +3,101 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-
-interface AddressFormData {
-  name: string;
-  street: string;
-  city: string;
-  country: string;
-  phone: string;
-}
-
-const mockAddresses: Record<string, AddressFormData> = {
-  "1": {
-    name: "Mr. Raju Home",
-    street: "3891 Pebel Rd, Albuquerque, New Mexico 31134",
-    city: "Albuquerque",
-    country: "United States",
-    phone: "(907) 555-0101",
-  },
-};
+import {
+  useGetAddressById,
+  useCreateAddress,
+  useUpdateAddress,
+} from "@/hooks/api/address/use-address";
 
 export default function AddressFormPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
+  const isNew = id === "new";
 
-  const [form, setForm] = useState<AddressFormData>({
-    name: "",
-    street: "",
+  const { data: existingAddress, isLoading } = useGetAddressById(
+    isNew ? "" : id,
+  );
+  const createAddress = useCreateAddress();
+  const updateAddress = useUpdateAddress();
+
+  const [form, setForm] = useState({
+    addressLine1: "",
+    addressLine2: "",
     city: "",
+    state: "",
+    postalCode: "",
     country: "",
-    phone: "",
   });
-  const [isSaving, setIsSaving] = useState(false);
+  const [coords, setCoords] = useState<[number, number] | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (id && id !== "new" && mockAddresses[id]) {
-      setForm(mockAddresses[id]);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setCoords([pos.coords.longitude, pos.coords.latitude]),
+        () => setCoords([0, 0]),
+      );
+    } else {
+      setCoords([0, 0]);
     }
-  }, [id]);
+  }, []);
+
+  useEffect(() => {
+    if (existingAddress && !isNew) {
+      setForm({
+        addressLine1: existingAddress.addressLine1 ?? "",
+        addressLine2: existingAddress.addressLine2 ?? "",
+        city: existingAddress.city ?? "",
+        state: existingAddress.state ?? "",
+        postalCode: existingAddress.postalCode ?? "",
+        country: existingAddress.country ?? "",
+      });
+    }
+  }, [existingAddress, isNew]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setIsSaving(false);
-    router.back();
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    const payload = {
+      addressLine1: form.addressLine1,
+      addressLine2: form.addressLine2 || undefined,
+      city: form.city,
+      state: form.state,
+      postalCode: form.postalCode,
+      country: form.country,
+      location: {
+        type: "Point" as const,
+        coordinates: coords ?? [0, 0],
+      },
+    };
+
+    try {
+      if (isNew) {
+        await createAddress.mutateAsync(payload);
+      } else {
+        await updateAddress.mutateAsync({ id, ...payload });
+      }
+      router.back();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save address");
+    }
   };
+
+  const isPending = createAddress.isPending || updateAddress.isPending;
+
+  if (!isNew && isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500 text-sm">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,57 +110,57 @@ export default function AddressFormPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">Address</h1>
+        <h1 className="text-lg font-semibold text-gray-900">
+          {isNew ? "Add Address" : "Edit Address"}
+        </h1>
       </div>
 
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-8">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSave();
-          }}
-          className="space-y-4"
-        >
-          {/* Name Field */}
+        {error && (
+          <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label
-              htmlFor="name"
+              htmlFor="addressLine1"
               className="text-sm font-medium text-gray-700 mb-1 block"
             >
-              Name
+              Address Line 1
             </label>
             <input
-              id="name"
+              id="addressLine1"
               type="text"
-              name="name"
-              value={form.name}
+              name="addressLine1"
+              value={form.addressLine1}
               onChange={handleChange}
-              placeholder="Enter Your Name"
+              required
+              placeholder="Enter street address"
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
 
-          {/* Address Field */}
           <div>
             <label
-              htmlFor="street"
+              htmlFor="addressLine2"
               className="text-sm font-medium text-gray-700 mb-1 block"
             >
-              Address
+              Address Line 2 (optional)
             </label>
             <input
-              id="street"
+              id="addressLine2"
               type="text"
-              name="street"
-              value={form.street}
+              name="addressLine2"
+              value={form.addressLine2}
               onChange={handleChange}
-              placeholder="Enter Your Address"
+              placeholder="Apt, suite, unit, etc."
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
 
-          {/* City Field */}
           <div>
             <label
               htmlFor="city"
@@ -129,12 +174,50 @@ export default function AddressFormPage() {
               name="city"
               value={form.city}
               onChange={handleChange}
-              placeholder="Enter Your City"
+              required
+              placeholder="Enter your city"
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
 
-          {/* Country Field */}
+          <div>
+            <label
+              htmlFor="state"
+              className="text-sm font-medium text-gray-700 mb-1 block"
+            >
+              State / Province
+            </label>
+            <input
+              id="state"
+              type="text"
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+              required
+              placeholder="Enter your state"
+              className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="postalCode"
+              className="text-sm font-medium text-gray-700 mb-1 block"
+            >
+              Postal Code
+            </label>
+            <input
+              id="postalCode"
+              type="text"
+              name="postalCode"
+              value={form.postalCode}
+              onChange={handleChange}
+              required
+              placeholder="Enter postal code"
+              className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+            />
+          </div>
+
           <div>
             <label
               htmlFor="country"
@@ -148,37 +231,18 @@ export default function AddressFormPage() {
               name="country"
               value={form.country}
               onChange={handleChange}
-              placeholder="Enter Your Country"
+              required
+              placeholder="Enter your country"
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
 
-          {/* Phone Number Field */}
-          <div>
-            <label
-              htmlFor="phone"
-              className="text-sm font-medium text-gray-700 mb-1 block"
-            >
-              Phone Number
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              placeholder="9999"
-              className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-            />
-          </div>
-
-          {/* Save Button */}
           <button
             type="submit"
-            disabled={isSaving}
-            className="w-full px-4 py-3  bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+            disabled={isPending}
+            className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
           >
-            {isSaving ? "Saving..." : "Save"}
+            {isPending ? "Saving..." : "Save"}
           </button>
         </form>
       </div>

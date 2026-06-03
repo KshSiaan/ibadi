@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiClient, ApiResponse } from "@/lib/api/client";
+import { apiClient, ApiResponse, PaginatedResponse } from "@/lib/api/client";
 import {
   Address,
   CreateAddressRequest,
@@ -60,7 +60,10 @@ export function useGetMyAddresses() {
         cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);
-      return response.data;
+      const d = response.data as unknown;
+      if (Array.isArray(d)) return d as Address[];
+      const paginated = d as PaginatedResponse<Address>;
+      return Array.isArray(paginated?.data) ? paginated.data : [];
     },
     enabled: !!cookies.accessToken,
     staleTime: 1000 * 60 * 5,

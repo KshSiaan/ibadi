@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
+import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 
 interface MenuItem {
   label: string;
@@ -65,11 +66,7 @@ const menuItems: MenuItem[] = [
   },
 ];
 
-interface MenuItemProps {
-  item: MenuItem;
-}
-
-function MenuItem({ item }: MenuItemProps) {
+function MenuItem({ item }: { item: MenuItem }) {
   return (
     <Link
       href={item.href}
@@ -85,15 +82,29 @@ function MenuItem({ item }: MenuItemProps) {
 }
 
 export default function ProfilePage() {
+  const { data: profile } = useMyProfile();
+
+  const displayName = profile?.name ?? "User";
+  const avatarSrc = profile?.profile ?? "https://i.pravatar.cc/150?img=1";
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <div className="min-h-screen bg-white container mx-auto">
       {/* Profile Header */}
       <div className="flex flex-col items-center justify-center pt-8 pb-6">
         <Avatar className="w-16 h-16 mb-3">
-          <AvatarImage src="https://i.pravatar.cc/150?img=1" alt="Mr. Raju" />
-          <AvatarFallback>MR</AvatarFallback>
+          <AvatarImage src={avatarSrc} alt={displayName} />
+          <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
-        <h1 className="text-2xl font-semibold text-gray-900">Mr. Raju</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">{displayName}</h1>
+        {profile?.email && (
+          <p className="text-sm text-gray-500 mt-1">{profile.email}</p>
+        )}
       </div>
 
       {/* Switch to Professional Button */}

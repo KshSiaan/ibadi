@@ -9,13 +9,13 @@ import {
 import { useCookies } from "react-cookie";
 
 export function useVerifyOtpRegister() {
-  const [, , removeCookie] = useCookies(["registerOtpToken"]);
+  const [cookies, , removeCookie] = useCookies(["registerOtpToken"]);
 
   return useMutation<VerifyOtpForRegisterResponse, Error, VerifyOtpRequest>({
     mutationFn: async (credentials: VerifyOtpRequest) => {
       const response = await apiClient.post<
         ApiResponse<VerifyOtpForRegisterResponse>
-      >("/otp/verify-otp", credentials);
+      >("/otp/verify-otp", credentials, cookies.registerOtpToken);
 
       if (!response.success) {
         throw new Error(response.message || "Failed to verify OTP");
