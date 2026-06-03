@@ -1,78 +1,199 @@
 "use client";
 
-import { CalendarDays, CheckCircle2, Star } from "lucide-react";
+import { CalendarDays, Heart, Loader2, Star, CheckCircle2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useGetFavorites } from "@/hooks/api/favorites/use-favorites";
+import {
+  useGetFavorites,
+  useDeleteFavorite,
+} from "@/hooks/api/favorites/use-favorites";
+import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
+import type { Favorite } from "@/lib/api/types";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+
+function formatDate(dateString: string | undefined): string {
+  if (!dateString) return "Date unavailable";
+  if (typeof dateString !== "string") return "Invalid date format";
+  try {
+    const date = new Date(dateString);
+    const timestamp = date.getTime();
+    if (Number.isNaN(timestamp)) return "Invalid date";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return "Invalid date";
+  }
+}
+
+function FavoriteCard({
+  fav,
+  onRemove,
+  isDeletingFavorite,
+  deletingId,
+}: {
+  fav: Favorite;
+  onRemove: (id: string) => void;
+  isDeletingFavorite: boolean;
+  deletingId: string | null;
+}) {
+  const serviceProvider = (fav as unknown as Record<string, unknown>)
+    .serviceProvider as
+    | {
+        userId: string;
+        bio?: string;
+        perHourPrice: number;
+        createdAt?: string;
+        updatedAt?: string;
+      }
+    | undefined;
+
+  const providerId = serviceProvider?.userId ?? fav.serviceProviderId;
+  const { data: user, isLoading } = useGetUserById(providerId);
+
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="size-4 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Link href={`/user/${providerId}`}>
+      <div className="rounded-2xl bg-white p-4 shadow-sm transition-all hover:shadow-md">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Avatar className="size-12 shrink-0">
+              <AvatarImage src={user?.profile ?? undefined} alt={user?.name} />
+              <AvatarFallback>{user?.name?.[0] ?? "?"}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-bold text-gray-800 truncate">
+                  {user?.name}
+                </p>
+                {user?.isVerified && (
+                  <CheckCircle2 className="size-4 text-primary shrink-0" />
+                )}
+              </div>
+              {user?.avgRating ? (
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="size-3 fill-yellow-400 text-yellow-400" />
+                  <span className="text-xs font-semibold text-gray-700">
+                    {user.avgRating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    ({user.totalReview ?? 0})
+                  </span>
+                </div>
+              ) : null}
+              {serviceProvider?.perHourPrice ? (
+                <p className="mt-1 text-xs font-semibold text-primary">
+                  ${serviceProvider.perHourPrice.toFixed(0)}/h
+                </p>
+              ) : null}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              onRemove(fav.id);
+            }}
+            disabled={isDeletingFavorite && deletingId === fav.id}
+            className="flex size-8 items-center justify-center rounded-full text-red-500 transition-all hover:bg-red-50 disabled:opacity-50 shrink-0"
+          >
+            {isDeletingFavorite && deletingId === fav.id ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Heart className="size-4 fill-red-500" />
+            )}
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600">
+            <CalendarDays className="size-3.5 text-primary" />
+            Added {formatDate(serviceProvider?.createdAt)}
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function FavouritesPage() {
-  const { data: favourites, isLoading } = useGetFavorites("provider");
+  const { data: favourites, isLoading } = useGetFavorites("serviceProvider");
+  const { mutate: deleteFavorite, isPending: isDeletingFavorite } =
+    useDeleteFavorite();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleRemoveFavorite = (favoriteId: string) => {
+    setDeletingId(favoriteId);
+    deleteFavorite(favoriteId, {
+      onSuccess: () => {
+        toast.success("Removed from favorites");
+        setDeletingId(null);
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to remove from favorites");
+        setDeletingId(null);
+      },
+    });
+  };
 
   return (
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
-      <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
-        Favourites
-      </h1>
+      <div className="mx-auto max-w-lg">
+        <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
+          Favourites
+        </h1>
 
-      {isLoading && (
-        <p className="text-center text-sm text-gray-500 py-8">Loading...</p>
-      )}
+        {isLoading && (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="size-6 animate-spin text-gray-400" />
+          </div>
+        )}
 
-      {!isLoading && favourites?.length === 0 && (
-        <p className="text-center text-sm text-gray-500 py-8">No favourites yet</p>
-      )}
-
-      <div className="mx-auto max-w-lg flex flex-col gap-3">
-        {favourites?.map((fav) => {
-          const provider = (fav as unknown as Record<string, unknown>).provider as {
-            id: string;
-            name: string;
-            profile?: string;
-            avgRating?: number;
-            totalReview?: number;
-            isVerified?: boolean;
-          } | undefined;
-
-          const name = provider?.name ?? "Provider";
-          const avatar = provider?.profile ?? `https://i.pravatar.cc/56?u=${fav.id}`;
-          const rating = provider?.avgRating ?? 0;
-          const reviews = provider?.totalReview ?? 0;
-          const initials = name.slice(0, 2).toUpperCase();
-
-          return (
-            <div key={fav.id} className="rounded-2xl bg-white p-4 shadow-sm">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar className="size-12 shrink-0">
-                    <AvatarImage src={avatar} alt={name} />
-                    <AvatarFallback>{initials}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-bold text-gray-800">{name}</span>
-                      {provider?.isVerified && (
-                        <CheckCircle2 className="size-4 text-primary" />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Star className="size-3 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold text-gray-700">
-                        {rating.toFixed(1)}
-                      </span>
-                      <span>({reviews})</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                <div className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600">
-                  <CalendarDays className="size-3.5 text-primary" />
-                  Added {new Date(fav.createdAt).toLocaleDateString()}
-                </div>
-              </div>
+        {!isLoading && favourites?.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-4 rounded-2xl bg-white py-12 text-center">
+            <div className="flex size-16 items-center justify-center rounded-full bg-gray-100">
+              <Heart className="size-8 text-gray-400" />
             </div>
-          );
-        })}
+            <div>
+              <p className="text-sm font-semibold text-gray-800">
+                No favourites yet
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Start adding providers you love to your favourites!
+              </p>
+            </div>
+            <Link
+              href="/user"
+              className="mt-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              Browse Providers
+            </Link>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3">
+          {favourites?.map((fav) => (
+            <FavoriteCard
+              key={fav.id}
+              fav={fav}
+              onRemove={handleRemoveFavorite}
+              isDeletingFavorite={isDeletingFavorite}
+              deletingId={deletingId}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

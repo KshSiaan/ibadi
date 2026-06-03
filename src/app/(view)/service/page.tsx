@@ -2,11 +2,15 @@
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { Calendar, Clock, Star } from "lucide-react";
+import { Calendar, Clock, Loader2, Star } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { useUserBookings } from "@/hooks/api/bookings/use-bookings";
+import {
+  useUserBookings,
+  useProviderBookings,
+} from "@/hooks/api/bookings/use-bookings";
 import { useCreateReview } from "@/hooks/api/reviews/use-reviews";
+import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import type { Booking } from "@/lib/api/types";
 
 type Tab = "upcoming" | "past" | "cancelled";
@@ -61,8 +65,12 @@ function RatingDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-sm gap-0 p-6">
         <div className="mb-1">
-          <h2 className="text-base font-bold text-gray-800">Rate Your Experience</h2>
-          <p className="mt-0.5 text-xs text-gray-500">Are you satisfied with the service?</p>
+          <h2 className="text-base font-bold text-gray-800">
+            Rate Your Experience
+          </h2>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Are you satisfied with the service?
+          </p>
         </div>
 
         <div className="my-4 flex gap-2">
@@ -85,7 +93,9 @@ function RatingDialog({
           ))}
         </div>
 
-        <p className="mb-3 text-sm font-semibold text-gray-800">Tell us what can be improved?</p>
+        <p className="mb-3 text-sm font-semibold text-gray-800">
+          Tell us what can be improved?
+        </p>
 
         <div className="mb-4 flex flex-wrap gap-2">
           {ratingTags.map((tag) => (
@@ -144,8 +154,9 @@ function BookingCard({
         year: "numeric",
       })
     : "—";
-  const timeStr =
-    firstDay ? `From ${firstDay.startTime} to ${firstDay.endTime}` : "—";
+  const timeStr = firstDay
+    ? `From ${firstDay.startTime} to ${firstDay.endTime}`
+    : "—";
 
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
@@ -174,7 +185,9 @@ function BookingCard({
           <div className="mt-1 flex flex-wrap gap-2">
             {tab === "upcoming" && (
               <span className="text-xs font-semibold text-primary">
-                {booking.status === "pending" ? "Pending acceptance" : booking.status}
+                {booking.status === "pending"
+                  ? "Pending acceptance"
+                  : booking.status}
               </span>
             )}
             {tab === "past" && (
@@ -206,7 +219,7 @@ function BookingCard({
   );
 }
 
-export default function ServicePage() {
+function UserServicePage() {
   const [activeTab, setActiveTab] = useState<Tab>("upcoming");
   const [ratingOpen, setRatingOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -229,10 +242,7 @@ export default function ServicePage() {
   });
 
   return (
-    <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
-      <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">Service</h1>
-
-      {/* Tabs */}
+    <>
       <div className="mb-6 flex justify-center">
         <div className="flex rounded-xl bg-white p-1 shadow-sm">
           {tabs.map((tab) => (
@@ -253,16 +263,13 @@ export default function ServicePage() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="mx-auto max-w-lg flex flex-col gap-3">
         {activeQuery.isLoading && (
           <p className="text-center text-sm text-gray-500 py-8">Loading...</p>
         )}
-
         {!activeQuery.isLoading && bookings.length === 0 && (
           <p className="text-center text-sm text-gray-500 py-8">No bookings</p>
         )}
-
         {bookings.map((booking) => (
           <BookingCard
             key={booking.id}
@@ -281,6 +288,94 @@ export default function ServicePage() {
         onClose={() => setRatingOpen(false)}
         booking={selectedBooking}
       />
+    </>
+  );
+}
+
+function ProviderServicePage() {
+  const [activeTab, setActiveTab] = useState<Tab>("upcoming");
+
+  const upcomingQuery = useProviderBookings({ upcoming: true });
+  const pastQuery = useProviderBookings({ past: true });
+  const cancelledQuery = useProviderBookings();
+
+  const activeQuery =
+    activeTab === "upcoming"
+      ? upcomingQuery
+      : activeTab === "past"
+        ? pastQuery
+        : cancelledQuery;
+
+  const bookings = (activeQuery.data ?? []).filter((b) => {
+    if (activeTab === "cancelled")
+      return b.status === "cancelled" || b.status === "canceled";
+    return true;
+  });
+
+  return (
+    <>
+      <div className="mb-6 flex justify-center">
+        <div className="flex rounded-xl bg-white p-1 shadow-sm">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "rounded-lg px-5 py-2 text-sm font-semibold transition-colors",
+                activeTab === tab.id
+                  ? "bg-gray-100 text-gray-800"
+                  : "text-gray-500 hover:text-gray-700",
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-lg flex flex-col gap-3">
+        {activeQuery.isLoading && (
+          <p className="text-center text-sm text-gray-500 py-8">Loading...</p>
+        )}
+        {!activeQuery.isLoading && bookings.length === 0 && (
+          <p className="text-center text-sm text-gray-500 py-8">No bookings</p>
+        )}
+        {bookings.map((booking) => (
+          <BookingCard
+            key={booking.id}
+            booking={booking}
+            tab={activeTab}
+            onRate={() => {}}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+export default function ServicePage() {
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
+
+  return (
+    <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
+      <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
+        Service
+      </h1>
+
+      {profileLoading && (
+        <div className="flex justify-center py-16">
+          <Loader2 className="size-6 animate-spin text-gray-400" />
+        </div>
+      )}
+
+      {!profileLoading && profile?.role === "service_provider" && (
+        <ProviderServicePage />
+      )}
+
+      {!profileLoading && profile?.role !== "service_provider" && (
+        <UserServicePage />
+      )}
     </div>
   );
 }

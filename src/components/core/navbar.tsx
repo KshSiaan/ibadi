@@ -2,7 +2,7 @@
 
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,17 @@ const professionalNavLinks = [
 export default function Navbar({ professional }: { professional?: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const [cookies] = useCookies(["accessToken", "user"]);
+  const [cookies, , removeCookie] = useCookies(["accessToken", "refreshToken", "user"]);
+  const router = useRouter();
   const isLoggedIn = !!cookies.accessToken;
   const user = cookies.user as { name?: string; profile?: string } | undefined;
+
+  const handleSignOut = () => {
+    removeCookie("accessToken", { path: "/" });
+    removeCookie("refreshToken", { path: "/" });
+    removeCookie("user", { path: "/" });
+    router.push("/");
+  };
 
   const links = professional ? professionalNavLinks : navLinks;
   const activeColor = professional ? "text-cyan-600" : "text-primary";
@@ -83,13 +91,18 @@ export default function Navbar({ professional }: { professional?: boolean }) {
 
         <div className="hidden items-center gap-3 md:flex">
           {isLoggedIn ? (
-            <Link href="/profile" className="flex items-center gap-2">
-              <Avatar className="size-8">
-                <AvatarImage src={user?.profile ?? ""} alt={user?.name ?? ""} />
-                <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() ?? "U"}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium text-gray-700">{user?.name}</span>
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/profile" className="flex items-center gap-2">
+                <Avatar className="size-8">
+                  <AvatarImage src={user?.profile ?? ""} alt={user?.name ?? ""} />
+                  <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() ?? "U"}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium text-gray-700">{user?.name}</span>
+              </Link>
+              <Button variant="outline" size="sm" className="rounded-md border-red-300 text-red-500 hover:bg-red-50" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            </div>
           ) : (
             <>
               <AuthDialog
@@ -145,13 +158,18 @@ export default function Navbar({ professional }: { professional?: boolean }) {
             </Link>
           ))}
           {isLoggedIn ? (
-            <Link href="/profile" className="flex items-center gap-2 mt-4 px-3 py-2">
-              <Avatar className="size-8">
-                <AvatarImage src={user?.profile ?? ""} alt={user?.name ?? ""} />
-                <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() ?? "U"}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium text-gray-700">{user?.name}</span>
-            </Link>
+            <div className="mt-4 flex items-center justify-between px-3 py-2">
+              <Link href="/profile" className="flex items-center gap-2">
+                <Avatar className="size-8">
+                  <AvatarImage src={user?.profile ?? ""} alt={user?.name ?? ""} />
+                  <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() ?? "U"}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium text-gray-700">{user?.name}</span>
+              </Link>
+              <Button variant="outline" size="sm" className="rounded-md border-red-300 text-red-500 hover:bg-red-50" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 mt-4">
               <AuthDialog

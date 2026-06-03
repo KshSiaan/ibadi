@@ -14,19 +14,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useHomepage } from "@/hooks/api/homepage/use-homepage";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
   CheckCircle2,
   Heart,
+  Loader2,
   Search,
   SlidersHorizontal,
   Star,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const serviceQuestions = [
@@ -37,45 +38,9 @@ const serviceQuestions = [
   "Can I book the service on a weekly basis?",
 ];
 
-const mockProfessionals = [
-  {
-    id: "p1",
-    name: "NB Sujon",
-    avatar: "https://i.pravatar.cc/48?u=sujon1",
-    rating: 5.0,
-    reviews: 1,
-    services: 1,
-    price: "$10/h",
-    tags: ["1 has repeated", "Updated Schedule"],
-    verified: true,
-  },
-  {
-    id: "p2",
-    name: "NB Sujon",
-    avatar: "https://i.pravatar.cc/48?u=sujon2",
-    rating: 5.0,
-    reviews: 1,
-    services: 1,
-    price: "$10/h",
-    tags: ["1 has repeated", "Updated Schedule"],
-    verified: true,
-  },
-  {
-    id: "p3",
-    name: "NB Sujon",
-    avatar: "https://i.pravatar.cc/48?u=sujon3",
-    rating: 5.0,
-    reviews: 1,
-    services: 1,
-    price: "$10/h",
-    tags: ["1 has repeated", "Updated Schedule"],
-    verified: true,
-  },
-];
-
 export default function ResultsPage() {
-  const router = useRouter();
   const { selectedService } = useServiceBooking();
+  const { data: professionals = [], isLoading, error } = useHomepage();
   const [faqOpen, setFaqOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -189,64 +154,93 @@ export default function ResultsPage() {
         </div>
 
         {/* Professional cards */}
-        <div className="flex flex-col gap-3">
-          {mockProfessionals.map((pro) => (
-            <Link
-              key={pro.id}
-              href={`/user/${pro.id}`}
-              className="block rounded-2xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
-            >
-              <div className="flex items-start gap-3">
-                <Avatar className="size-12 shrink-0 ring-2 ring-primary/30">
-                  <AvatarImage src={pro.avatar} alt={pro.name} />
-                  <AvatarFallback>N</AvatarFallback>
-                </Avatar>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="size-6 animate-spin text-gray-400" />
+          </div>
+        ) : error ? (
+          <p className="py-8 text-center text-sm text-red-500">
+            Failed to load professionals. Please try again.
+          </p>
+        ) : professionals.length === 0 ? (
+          <p className="py-8 text-center text-sm text-gray-400">
+            No professionals found for your search.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {professionals.map((pro) => (
+              <Link
+                key={pro.userId}
+                href={`/user/${pro.userId}`}
+                className="block rounded-2xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar className="size-12 shrink-0 ring-2 ring-primary/30">
+                    <AvatarImage src={pro.user.profile ?? undefined} alt={pro.user.name} />
+                    <AvatarFallback>{pro.user.name?.[0] ?? "?"}</AvatarFallback>
+                  </Avatar>
 
-                <div className="flex flex-1 flex-col gap-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-bold text-gray-800">
-                        {pro.name}
-                      </span>
-                      {pro.verified && (
-                        <CheckCircle2 className="size-4 text-primary" />
+                  <div className="flex flex-1 flex-col gap-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-gray-800">
+                          {pro.user.name}
+                        </span>
+                        {pro.palliativeCare && (
+                          <CheckCircle2 className="size-4 text-primary" />
+                        )}
+                      </div>
+                      {pro.perHourPrice > 0 && (
+                        <span className="text-sm font-bold text-gray-800">
+                          ${pro.perHourPrice.toFixed(0)}/h
+                        </span>
                       )}
                     </div>
-                    <span className="text-sm font-bold text-gray-800">
-                      {pro.price}
-                    </span>
-                  </div>
 
-                  <div className="flex items-center gap-1">
-                    <div className="flex gap-0.5">
-                      {[0, 1, 2, 3, 4].map((i) => (
-                        <Star
-                          key={i}
-                          className="size-3 fill-yellow-400 text-yellow-400"
-                        />
+                    <div className="flex items-center gap-1">
+                      <div className="flex gap-0.5">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <Star
+                            key={i}
+                            className={cn(
+                              "size-3",
+                              i < Math.round(pro.user.avgRating ?? 0)
+                                ? "fill-yellow-400 text-yellow-400"
+                                : "fill-gray-200 text-gray-200",
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        {(pro.user.avgRating ?? 0).toFixed(1)} ({pro.user.totalReview ?? 0})
+                      </span>
+                    </div>
+
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {pro.experience && (
+                        <Badge
+                          variant="outline"
+                          className="rounded-full border-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-500"
+                        >
+                          {pro.experience.value}
+                        </Badge>
+                      )}
+                      {pro.othersRequiredTasks.slice(0, 2).map((t) => (
+                        <Badge
+                          key={t.id}
+                          variant="outline"
+                          className="rounded-full border-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-500"
+                        >
+                          {t.othersTask.value}
+                        </Badge>
                       ))}
                     </div>
-                    <span className="text-xs text-gray-400">
-                      {pro.rating} ({pro.reviews}) {pro.services} Service
-                    </span>
-                  </div>
-
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    {pro.tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="outline"
-                        className="rounded-full border-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-500"
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

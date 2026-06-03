@@ -24,19 +24,40 @@ export interface User {
   bio: string | null;
   fcmToken: string | null;
   status: string;
-  role: "user" | "professional";
-  profile: string;
-  phoneNumber: string;
+  role: "user" | "professional" | "service_provider";
+  profile: string | null;
+  phoneNumber: string | null;
   isVerified: boolean;
   customerId: string;
   avgRating: number;
   totalReview: number;
-  location: string | null;
+  location: { type: string; coordinates: (string | number)[]; address?: string } | null;
   expireAt: string | null;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
   verification: { status: boolean };
+  address?: unknown[];
+  workSchedule?: unknown[];
+  serviceProviderInfo?: ServiceProviderProfile | null;
+}
+
+export interface ServiceProviderProfile {
+  userId: string;
+  bio: string | null;
+  coverImage: string | null;
+  drivingLicense: string | null;
+  palliativeCare: string | null;
+  businessProfiles: string | null;
+  perHourPrice: number;
+  experienceOptionId: string;
+  qualifiedCarer: string | null;
+  createdAt: string;
+  updatedAt: string;
+  images: { id: string; url: string }[];
+  othersRequiredTasks: { othersTask: { id: string; value: string } }[];
+  specialistsIn: { category: { id: string; name: string; image: string } }[];
+  experience: { id: string; value: string } | null;
 }
 
 export interface LoginRequest {
@@ -292,6 +313,52 @@ export interface SaveCardRequest {
 }
 
 /* ─── Homepage Types ─── */
+export interface HomepageProviderUser {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string | null;
+  profile: string | null;
+  location: { type: string; coordinates: (string | number)[]; address?: string } | null;
+  totalReview: number;
+  avgRating: number;
+}
+
+export interface HomepageProviderTask {
+  id: string;
+  othersTaskId: string;
+  othersTask: { id: string; value: string };
+}
+
+export interface HomepageProviderCategory {
+  id: string;
+  categoryId: string;
+  category: { id: string; name: string; image: string };
+}
+
+export interface HomepageProviderImage {
+  id: string;
+  url: string;
+}
+
+export interface HomepageProvider {
+  userId: string;
+  bio: string | null;
+  coverImage: string | null;
+  drivingLicense: string | null;
+  palliativeCare: string | null;
+  businessProfiles: string | null;
+  perHourPrice: number;
+  experienceOptionId: string;
+  experience: { id: string; value: string };
+  user: HomepageProviderUser;
+  specialistsIn: HomepageProviderCategory[];
+  othersRequiredTasks: HomepageProviderTask[];
+  images: HomepageProviderImage[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface HomepageFilters {
   searchTerm?: string;
   categoryId?: string;

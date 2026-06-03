@@ -6,6 +6,7 @@ import { useServiceBooking } from "@/lib/store/service-booking";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { HomepageFilters } from "@/lib/api/types";
 
 const weekDays = [
   { short: "Mon", date: 13 },
@@ -34,9 +35,23 @@ export default function SchedulePage() {
     setSelectedMorning,
     selectedEvening,
     setSelectedEvening,
+    selectedCategoryId,
+    setHomepageFilters,
   } = useServiceBooking();
 
   const handleSearch = () => {
+    const slot = selectedMorning ?? selectedEvening;
+    const [startHour, endHour] = slot ? slot.split("-").map((n) => n.padStart(2, "0")) : [undefined, undefined];
+
+    const filters: HomepageFilters = {
+      categoryId: selectedCategoryId || undefined,
+      date: frequency === "once" ? `2025-01-${String(selectedDay).padStart(2, "0")}` : undefined,
+      startTime: startHour ? `${startHour}:00` : undefined,
+      endTime: endHour ? `${endHour}:00` : undefined,
+      limit: 20,
+    };
+
+    setHomepageFilters(filters);
     router.push("/book/finding");
   };
 

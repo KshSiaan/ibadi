@@ -1,11 +1,12 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { apiClient, ApiResponse } from "@/lib/api/client";
-import {
+import { ApiResponse } from "@/lib/api/client";
+import type {
   VerifyOtpRequest,
   VerifyOtpForRegisterResponse,
 } from "@/lib/api/types";
+import { base_api, base_url } from "@/lib/utils";
 import { useCookies } from "react-cookie";
 
 export function useVerifyOtpRegister() {
@@ -13,9 +14,17 @@ export function useVerifyOtpRegister() {
 
   return useMutation<VerifyOtpForRegisterResponse, Error, VerifyOtpRequest>({
     mutationFn: async (credentials: VerifyOtpRequest) => {
-      const response = await apiClient.post<
-        ApiResponse<VerifyOtpForRegisterResponse>
-      >("/otp/verify-otp", credentials, cookies.registerOtpToken);
+      const res = await fetch(`${base_url}${base_api}/otp/verify-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          token: cookies.registerOtpToken,
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      const response: ApiResponse<VerifyOtpForRegisterResponse> = await res.json();
 
       if (!response.success) {
         throw new Error(response.message || "Failed to verify OTP");

@@ -2,31 +2,28 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiClient, ApiResponse, PaginatedResponse } from "@/lib/api/client";
-import {
-  AvailabilityRequest,
-  HomepageFilters,
-  TimeSlot,
-  User,
-} from "@/lib/api/types";
+import { useServiceBooking } from "@/lib/store/service-booking";
+import type { AvailabilityRequest, HomepageProvider, TimeSlot } from "@/lib/api/types";
 
-export function useHomepage(filters?: HomepageFilters) {
+export function useHomepage() {
+  const { homepageFilters } = useServiceBooking();
+
   const query = new URLSearchParams();
-  if (filters) {
-    Object.entries(filters).forEach(([k, v]) => {
-      if (v !== undefined && v !== null) query.set(k, String(v));
-    });
-  }
+  Object.entries(homepageFilters).forEach(([k, v]) => {
+    if (v !== undefined && v !== null) query.set(k, String(v));
+  });
 
-  return useQuery<User[]>({
-    queryKey: ["homepage", filters],
+  return useQuery<HomepageProvider[]>({
+    queryKey: ["homepage", homepageFilters],
     queryFn: async () => {
       const qs = query.toString();
-      const response = await apiClient.get<ApiResponse<PaginatedResponse<User>>>(
+      const response = await apiClient.get<ApiResponse<PaginatedResponse<HomepageProvider>>>(
         `/homepage${qs ? `?${qs}` : ""}`,
       );
       if (!response.success) throw new Error(response.message);
       return response.data.data;
     },
+    enabled: !!homepageFilters.categoryId,
     staleTime: 1000 * 60 * 3,
   });
 }

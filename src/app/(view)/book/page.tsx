@@ -53,12 +53,13 @@ const fallbackServices: Category[] = [
 
 export default function Page() {
   const router = useRouter();
-  const { setSelectedService } = useServiceBooking();
+  const { setSelectedService, setSelectedCategoryId } = useServiceBooking();
   const { data: categories = [], isLoading, error } = useCategories();
 
-  const handleServiceSelect = (service: string) => {
-    setSelectedService(service);
-    if (service === "Care") {
+  const handleServiceSelect = (category: Category) => {
+    setSelectedService(category.name);
+    setSelectedCategoryId(category.id);
+    if (category.name === "Care") {
       router.push("/book/care");
       return;
     }
@@ -100,7 +101,7 @@ export default function Page() {
             <li key={category.id}>
               <button
                 type="button"
-                onClick={() => handleServiceSelect(category.name)}
+                onClick={() => handleServiceSelect(category)}
                 className="flex w-full items-center gap-4 rounded-xl bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 <Image

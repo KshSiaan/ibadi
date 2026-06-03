@@ -1,9 +1,17 @@
 import { create } from "zustand";
+import type { HomepageFilters } from "@/lib/api/types";
 
 export interface ServiceBookingState {
   /* ─── Service Selection ─── */
   selectedService: string;
   setSelectedService: (service: string) => void;
+
+  selectedCategoryId: string;
+  setSelectedCategoryId: (id: string) => void;
+
+  /* ─── Homepage Filters (built on Search) ─── */
+  homepageFilters: HomepageFilters;
+  setHomepageFilters: (filters: HomepageFilters) => void;
 
   /* ─── Address ─── */
   serviceAddress: string;
@@ -49,10 +57,18 @@ export interface ServiceBookingState {
   reset: () => void;
 }
 
+
 export const useServiceBooking = create<ServiceBookingState>((set) => ({
   /* ─── Service Selection ─── */
   selectedService: "Elderly care",
   setSelectedService: (service: string) => set({ selectedService: service }),
+
+  selectedCategoryId: "",
+  setSelectedCategoryId: (id: string) => set({ selectedCategoryId: id }),
+
+  /* ─── Homepage Filters ─── */
+  homepageFilters: {},
+  setHomepageFilters: (filters: HomepageFilters) => set({ homepageFilters: filters }),
 
   /* ─── Address ─── */
   serviceAddress: "",
@@ -118,6 +134,8 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
   reset: () =>
     set({
       selectedService: "Elderly care",
+      selectedCategoryId: "",
+      homepageFilters: {},
       serviceAddress: "",
       frequency: "once",
       selectedDay: 13,

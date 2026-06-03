@@ -5,8 +5,8 @@ import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import Link from "next/link";
+import { use, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
 
 const weekDays = [
   { short: "Mon", date: 13 },
@@ -146,7 +146,7 @@ function DayPanel({
           className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white disabled:opacity-40"
         >
           {selectedTime && endTime
-            ? `Save ${selectedTime} - ${endTime} for $${totalPrice}`
+            ? `Save ${selectedTime} - ${endTime}`
             : "Select a start time"}
         </button>
       </div>
@@ -157,9 +157,13 @@ function DayPanel({
 type DaySlot = { time: string; duration: number };
 
 function WeeklyView({
+  providerId,
+  pricePerHour,
   onClose,
   onFrequencyToggle,
 }: {
+  providerId: string;
+  pricePerHour: number;
   onClose: () => void;
   onFrequencyToggle: () => void;
 }) {
@@ -176,7 +180,6 @@ function WeeklyView({
     "Friday",
     "Saturday",
   ];
-  const pricePerHour = 10;
 
   function openDay(day: string) {
     const existing = slots[day];
@@ -207,6 +210,12 @@ function WeeklyView({
     0,
   );
   const hasSlots = Object.keys(slots).length > 0;
+
+  const confirmHref = hasSlots
+    ? `/user/${providerId}/booking-time/confirm?frequency=weekly&slots=${encodeURIComponent(
+        JSON.stringify(slots),
+      )}&providerId=${providerId}&pricePerHour=${pricePerHour}`
+    : "#";
 
   return (
     <div className="flex flex-col bg-background container mx-auto">
@@ -268,15 +277,7 @@ function WeeklyView({
 
       <div className="px-5 py-5 mt-24">
         <Button type="button" className="w-full" disabled={!hasSlots} asChild>
-          <Link
-            href={
-              hasSlots
-                ? `/user/123/booking-time/confirm?frequency=weekly&slots=${encodeURIComponent(
-                    JSON.stringify(slots),
-                  )}`
-                : "#"
-            }
-          >
+          <Link href={confirmHref}>
             {hasSlots
               ? `Save ${Object.keys(slots).length} day(s) for $${totalWeeklyPrice}`
               : "Select at least one day"}
@@ -301,19 +302,26 @@ function WeeklyView({
 }
 
 function OnceView({
+  providerId,
+  pricePerHour,
   onClose,
   onFrequencyToggle,
 }: {
+  providerId: string;
+  pricePerHour: number;
   onClose: () => void;
   onFrequencyToggle: () => void;
 }) {
   const [duration, setDuration] = useState(2);
   const [selectedDay, setSelectedDay] = useState(13);
   const [selectedTime, setSelectedTime] = useState<string | null>("16:30");
-  const pricePerHour = 10;
 
   const endTime = selectedTime ? addHours(selectedTime, duration) : null;
   const totalPrice = duration * pricePerHour;
+
+  const confirmHref = selectedTime
+    ? `/user/${providerId}/booking-time/confirm?frequency=once&day=${selectedDay}&time=${selectedTime}&duration=${duration}&providerId=${providerId}&pricePerHour=${pricePerHour}`
+    : "#";
 
   return (
     <div className="flex flex-col container mx-auto">
@@ -382,13 +390,7 @@ function OnceView({
 
       <div className="px-5 py-5 mt-24">
         <Button disabled={!selectedTime} className="w-full" asChild>
-          <Link
-            href={
-              selectedTime
-                ? `/user/123/booking-time/confirm?day=${selectedDay}&time=${selectedTime}&duration=${duration}`
-                : "#"
-            }
-          >
+          <Link href={confirmHref}>
             {selectedTime && endTime
               ? `Save ${selectedTime} - ${endTime} for $${totalPrice}`
               : "Select a start time"}
@@ -399,10 +401,11 @@ function OnceView({
   );
 }
 
-function BookingTimePage() {
+function BookingTimePage({ id }: { id: string }) {
   const router = useRouter();
   const params = useSearchParams();
   const freq = params.get("frequency") as "weekly" | "once" | null;
+  const pricePerHour = Number(params.get("pricePerHour") ?? 10);
   const [frequency, setFrequency] = useState<"weekly" | "once">(
     freq === "once" ? "once" : "weekly",
   );
@@ -414,6 +417,8 @@ function BookingTimePage() {
   if (frequency === "weekly") {
     return (
       <WeeklyView
+        providerId={id}
+        pricePerHour={pricePerHour}
         onClose={() => router.back()}
         onFrequencyToggle={toggleFrequency}
       />
@@ -422,16 +427,19 @@ function BookingTimePage() {
 
   return (
     <OnceView
+      providerId={id}
+      pricePerHour={pricePerHour}
       onClose={() => router.back()}
       onFrequencyToggle={toggleFrequency}
     />
   );
 }
 
-export default function Page() {
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   return (
     <Suspense>
-      <BookingTimePage />
+      <BookingTimePage id={id} />
     </Suspense>
   );
 }
