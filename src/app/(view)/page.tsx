@@ -20,7 +20,10 @@ import { useState } from "react";
 import { CheckCircle2, Clock } from "lucide-react";
 import { useCategories } from "@/hooks/api/use-categories";
 import { useGetMyAddresses } from "@/hooks/api/address/use-address";
-import { useNotifications, useMarkNotifications } from "@/hooks/api/notifications/use-notifications";
+import {
+  useNotifications,
+  useMarkNotifications,
+} from "@/hooks/api/notifications/use-notifications";
 import type { Address, Category } from "@/lib/api/types";
 
 /* ─── Fallback Data ─── */
@@ -230,7 +233,10 @@ function NotificationPopoverContent() {
       )}
 
       <div className="border-t border-gray-100 px-4 py-2">
-        <Link href="/inbox?tab=alerts" className="text-xs font-semibold text-primary hover:underline">
+        <Link
+          href="/inbox?tab=alerts"
+          className="text-xs font-semibold text-primary hover:underline"
+        >
           View all
         </Link>
       </div>
@@ -242,14 +248,20 @@ function NotificationPopoverContent() {
 export default function Page() {
   const { setSelectedService, setServiceAddress } = useServiceBooking();
   const [addressOpen, setAddressOpen] = useState(false);
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null,
+  );
   const { data: categories = [], isLoading } = useCategories();
-  const { data: addresses = [], isLoading: addressesLoading } = useGetMyAddresses();
+  const { data: addresses = [], isLoading: addressesLoading } =
+    useGetMyAddresses();
   const { data: notifications = [] } = useNotifications();
   const markAll = useMarkNotifications();
   const unreadNotifCount = notifications.filter((n) => !n.isRead).length;
 
-  const selectedAddress = addresses.find((a) => a.id === selectedAddressId) ?? addresses.find((a) => a.isDefault) ?? null;
+  const selectedAddress =
+    addresses.find((a) => a.id === selectedAddressId) ??
+    addresses.find((a) => a.isDefault) ??
+    null;
 
   const handleServiceSelect = (service: string) => {
     setSelectedService(service);
@@ -296,7 +308,11 @@ export default function Page() {
           </PopoverContent>
         </Popover>
 
-        <Popover onOpenChange={(open) => { if (open && unreadNotifCount > 0) markAll.mutate(); }}>
+        <Popover
+          onOpenChange={(open) => {
+            if (open && unreadNotifCount > 0) markAll.mutate();
+          }}
+        >
           <PopoverTrigger asChild>
             <button
               type="button"
@@ -398,7 +414,9 @@ export default function Page() {
           )}
 
           {!addressesLoading && addresses.length === 0 && (
-            <p className="text-center text-sm text-gray-400 py-2">No saved addresses</p>
+            <p className="text-center text-sm text-gray-400 py-2">
+              No saved addresses
+            </p>
           )}
 
           <div className="flex flex-col gap-2">
@@ -434,7 +452,9 @@ export default function Page() {
                     </span>
                   </div>
                   {address.isDefault && (
-                    <span className="ml-auto text-xs font-semibold text-primary">Default</span>
+                    <span className="ml-auto text-xs font-semibold text-primary">
+                      Default
+                    </span>
                   )}
                 </button>
               );

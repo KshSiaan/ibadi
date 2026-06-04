@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { useServiceBooking } from "@/lib/store/service-booking";
@@ -7,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { HomepageFilters } from "@/lib/api/types";
+import { useCookies } from "react-cookie";
 
 const weekDays = [
   { short: "Mon", date: 13 },
@@ -20,8 +22,9 @@ const weekDays = [
 const morningSlots = ["9-0", "9-12", "12-15"];
 const eveningSlots = ["15-18", "18-21", "21-00"];
 
-export default function SchedulePage() {
+export default async function SchedulePage() {
   const router = useRouter();
+  const [cookies] = useCookies(["accessToken"]);
   const {
     frequency,
     setFrequency,
@@ -39,13 +42,28 @@ export default function SchedulePage() {
     setHomepageFilters,
   } = useServiceBooking();
 
+  useEffect(() => {
+    if (!cookies.accessToken) {
+      router.replace("/auth/login");
+    }
+  }, [cookies.accessToken, router]);
+
+  if (!cookies.accessToken) {
+    return null;
+  }
+
   const handleSearch = () => {
     const slot = selectedMorning ?? selectedEvening;
-    const [startHour, endHour] = slot ? slot.split("-").map((n) => n.padStart(2, "0")) : [undefined, undefined];
+    const [startHour, endHour] = slot
+      ? slot.split("-").map((n) => n.padStart(2, "0"))
+      : [undefined, undefined];
 
     const filters: HomepageFilters = {
       categoryId: selectedCategoryId || undefined,
-      date: frequency === "once" ? `2025-01-${String(selectedDay).padStart(2, "0")}` : undefined,
+      date:
+        frequency === "once"
+          ? `2025-01-${String(selectedDay).padStart(2, "0")}`
+          : undefined,
       startTime: startHour ? `${startHour}:00` : undefined,
       endTime: endHour ? `${endHour}:00` : undefined,
       limit: 20,

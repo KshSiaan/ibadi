@@ -1,11 +1,15 @@
 import Footer from "@/components/core/footer";
 import Navbar from "@/components/core/navbar";
-import OnboardingGate from "@/components/core/onboarding-gate";
+import ProviderSetupGate from "@/components/core/provider-setup-gate";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, base_api, base_url } from "@/lib/utils";
 import { ArrowLeftRight, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import type { ApiResponse } from "@/lib/api/client";
+import type { User } from "@/lib/api/types";
 import { BiSolidBank } from "react-icons/bi";
 /* ─── Radial satellite node ─── */
 
@@ -45,11 +49,32 @@ const serviceCards = [
 ];
 
 /* ─── Page ─── */
-export default function HomeLayout({
+export default async function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("accessToken")?.value;
+
+  if (!token) redirect("/auth/login");
+
+  const res = await fetch(`${base_url}${base_api}/users/my-profile`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  }).catch(() => null);
+
+  if (!res?.ok) redirect("/auth/login");
+
+  const json: ApiResponse<User> = await res.json();
+  const user = json.data;
+
+  if (user.role !== "service_provider") redirect("/");
+
+  if (!user.serviceProviderInfo) {
+    return <ProviderSetupGate>{children}</ProviderSetupGate>;
+  }
+
   return (
     <>
       <Navbar professional />

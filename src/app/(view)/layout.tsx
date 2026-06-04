@@ -2,10 +2,14 @@ import Footer from "@/components/core/footer";
 import Navbar from "@/components/core/navbar";
 import OnboardingGate from "@/components/core/onboarding-gate";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, base_api, base_url } from "@/lib/utils";
 import { ArrowLeftRight, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import type { ApiResponse } from "@/lib/api/client";
+import type { User } from "@/lib/api/types";
 import { BiSolidBank } from "react-icons/bi";
 /* ─── Radial satellite node ─── */
 

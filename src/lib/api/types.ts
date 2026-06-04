@@ -104,6 +104,9 @@ export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
+  role?: "user" | "service_provider";
+  phoneNumber?: string;
+  location?: Location;
 }
 
 export interface RegisterResponse {

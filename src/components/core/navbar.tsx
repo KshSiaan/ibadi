@@ -29,13 +29,19 @@ const professionalNavLinks = [
   { label: "Profile", href: "/profile" },
 ];
 
-export default function Navbar({ professional }: { professional?: boolean }) {
+export default function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const [cookies, , removeCookie] = useCookies(["accessToken", "refreshToken", "user"]);
+  const [cookies, , removeCookie] = useCookies([
+    "accessToken",
+    "refreshToken",
+    "user",
+  ]);
   const router = useRouter();
   const isLoggedIn = !!cookies.accessToken;
-  const user = cookies.user as { name?: string; profile?: string } | undefined;
+  const user = cookies.user as
+    | { name?: string; profile?: string; role?: string }
+    | undefined;
 
   const handleSignOut = () => {
     removeCookie("accessToken", { path: "/" });
@@ -44,11 +50,10 @@ export default function Navbar({ professional }: { professional?: boolean }) {
     router.push("/");
   };
 
-  const links = professional ? professionalNavLinks : navLinks;
-  const activeColor = professional ? "text-cyan-600" : "text-primary";
-  const hoverColor = professional
-    ? "hover:text-cyan-600"
-    : "hover:text-primary";
+  const isProvider = isLoggedIn && user?.role === "service_provider";
+  const links = isProvider ? professionalNavLinks : navLinks;
+  const activeColor = isProvider ? "text-cyan-600" : "text-primary";
+  const hoverColor = isProvider ? "hover:text-cyan-600" : "hover:text-primary";
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
@@ -59,7 +64,7 @@ export default function Navbar({ professional }: { professional?: boolean }) {
     <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-16">
         <Link href="/" className="text-2xl font-bold">
-          {professional ? (
+          {isProvider ? (
             <>
               <span className="text-primary">i</span>
               <span className="text-cyan-800">Badi</span>
@@ -94,12 +99,24 @@ export default function Navbar({ professional }: { professional?: boolean }) {
             <div className="flex items-center gap-3">
               <Link href="/profile" className="flex items-center gap-2">
                 <Avatar className="size-8">
-                  <AvatarImage src={user?.profile ?? ""} alt={user?.name ?? ""} />
-                  <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() ?? "U"}</AvatarFallback>
+                  <AvatarImage
+                    src={user?.profile ?? ""}
+                    alt={user?.name ?? ""}
+                  />
+                  <AvatarFallback>
+                    {user?.name?.slice(0, 2).toUpperCase() ?? "U"}
+                  </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium text-gray-700">{user?.name}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {user?.name}
+                </span>
               </Link>
-              <Button variant="outline" size="sm" className="rounded-md border-red-300 text-red-500 hover:bg-red-50" onClick={handleSignOut}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-md border-red-300 text-red-500 hover:bg-red-50"
+                onClick={handleSignOut}
+              >
                 Sign Out
               </Button>
             </div>
@@ -108,7 +125,11 @@ export default function Navbar({ professional }: { professional?: boolean }) {
               <AuthDialog
                 defaultView="login"
                 trigger={
-                  <Button variant="outline" size="sm" className="rounded-md border-primary text-primary">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-md border-primary text-primary"
+                  >
                     Log In
                   </Button>
                 }
@@ -161,12 +182,24 @@ export default function Navbar({ professional }: { professional?: boolean }) {
             <div className="mt-4 flex items-center justify-between px-3 py-2">
               <Link href="/profile" className="flex items-center gap-2">
                 <Avatar className="size-8">
-                  <AvatarImage src={user?.profile ?? ""} alt={user?.name ?? ""} />
-                  <AvatarFallback>{user?.name?.slice(0, 2).toUpperCase() ?? "U"}</AvatarFallback>
+                  <AvatarImage
+                    src={user?.profile ?? ""}
+                    alt={user?.name ?? ""}
+                  />
+                  <AvatarFallback>
+                    {user?.name?.slice(0, 2).toUpperCase() ?? "U"}
+                  </AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium text-gray-700">{user?.name}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {user?.name}
+                </span>
               </Link>
-              <Button variant="outline" size="sm" className="rounded-md border-red-300 text-red-500 hover:bg-red-50" onClick={handleSignOut}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-md border-red-300 text-red-500 hover:bg-red-50"
+                onClick={handleSignOut}
+              >
                 Sign Out
               </Button>
             </div>
@@ -175,7 +208,11 @@ export default function Navbar({ professional }: { professional?: boolean }) {
               <AuthDialog
                 defaultView="login"
                 trigger={
-                  <Button variant="outline" size="sm" className="rounded-md border-primary text-primary">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-md border-primary text-primary"
+                  >
                     Log In
                   </Button>
                 }
@@ -204,12 +241,12 @@ export function AuthDialog({
   defaultView?: View;
 }) {
   const [view, setView] = useState<View>(defaultView);
-  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<"user" | "service_provider">("user");
 
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="sm:max-w-112.5">
         {/* VIEW 1: Role Selection */}
         {view === "role" && (
           <div className="flex flex-col gap-6 p-4">
@@ -225,7 +262,10 @@ export function AuthDialog({
             <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => setView("register")}
+                onClick={() => {
+                  setRole("user");
+                  setView("register");
+                }}
                 className="group flex items-center gap-4 rounded-xl border p-4 transition hover:border-primary"
               >
                 <div className="h-16 w-24 rounded-lg bg-gray-200" />{" "}
@@ -237,7 +277,10 @@ export function AuthDialog({
               </button>
               <button
                 type="button"
-                onClick={() => setView("register")}
+                onClick={() => {
+                  setRole("service_provider");
+                  setView("register");
+                }}
                 className="group flex items-center gap-4 rounded-xl border p-4 transition hover:border-primary"
               >
                 <div className="h-16 w-24 rounded-lg bg-gray-200" />{" "}
@@ -258,21 +301,22 @@ export function AuthDialog({
           <div className="flex flex-col gap-6 p-4 text-center">
             <h2 className="text-2xl font-bold">Create your account</h2>
             <p className="text-sm text-gray-500">
-              Sign up to get started with iBadi
+              {role === "service_provider"
+                ? "Set up your service provider account"
+                : "Sign up to book services on iBadi"}
             </p>
             <Button className="w-full" asChild>
-              <Link href="/auth/register">Create Account</Link>
+              <Link href={`/auth/register?role=${role}`}>Create Account</Link>
             </Button>
             <p className="text-center text-sm">
               Already have an account?{" "}
-              {/** biome-ignore lint/a11y/noStaticElementInteractions: <explanation> */}
-              {/** biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-              <span
-                className="cursor-pointer font-bold text-primary"
+              <button
+                type="button"
+                className="font-bold text-primary"
                 onClick={() => setView("login")}
               >
                 Log in
-              </span>
+              </button>
             </p>
           </div>
         )}

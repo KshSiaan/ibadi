@@ -1,15 +1,23 @@
 "use client";
 
-import { ArrowLeft, Check, Plus, X } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Plus, X } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { useGetOthersTaskOptions } from "@/hooks/api/others-task-options/use-others-task-options";
+import { useMyProfile } from "@/hooks/api/user/use-my-profile";
+import { useUpdateProfile } from "@/hooks/api/user/use-update-profile";
+import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
+import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type Day = {
   label: string;
+  key: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
   enabled: boolean;
   start: string;
   end: string;
@@ -39,25 +47,37 @@ const INFO_SLIDES = [
 ];
 
 const DAYS_DEFAULT: Day[] = [
-  { label: "Monday", enabled: false, start: "9:00", end: "18:00" },
-  { label: "Tuesday", enabled: false, start: "9:00", end: "18:00" },
-  { label: "Wednesday", enabled: false, start: "9:00", end: "18:00" },
-  { label: "Thursday", enabled: false, start: "9:00", end: "18:00" },
-  { label: "Friday", enabled: false, start: "9:00", end: "18:00" },
-  { label: "Saturday", enabled: false, start: "9:00", end: "18:00" },
-  { label: "Sunday", enabled: false, start: "9:00", end: "18:00" },
-];
-
-const TASKS = [
-  "Basic household cleaning",
-  "Washing and ironing clothes",
-  "Cooking",
-  "Feeding the elderly",
-  "Going for walks",
-  "Medication reminder",
-  "Help with personal hygiene",
-  "Basic exercise",
-  "Grocery shopping",
+  { label: "Monday", key: "Mon", enabled: false, start: "09:00", end: "18:00" },
+  {
+    label: "Tuesday",
+    key: "Tue",
+    enabled: false,
+    start: "09:00",
+    end: "18:00",
+  },
+  {
+    label: "Wednesday",
+    key: "Wed",
+    enabled: false,
+    start: "09:00",
+    end: "18:00",
+  },
+  {
+    label: "Thursday",
+    key: "Thu",
+    enabled: false,
+    start: "09:00",
+    end: "18:00",
+  },
+  { label: "Friday", key: "Fri", enabled: false, start: "09:00", end: "18:00" },
+  {
+    label: "Saturday",
+    key: "Sat",
+    enabled: false,
+    start: "09:00",
+    end: "18:00",
+  },
+  { label: "Sunday", key: "Sun", enabled: false, start: "09:00", end: "18:00" },
 ];
 
 const SPECIALISTS = [
@@ -159,6 +179,8 @@ function WorkSchedule({
   onConfirm: () => void;
 }) {
   const [days, setDays] = useState<Day[]>(DAYS_DEFAULT);
+  const { data: profile } = useMyProfile();
+  const { mutate, isPending, error } = useCreateWorkSchedule();
 
   function toggle(i: number) {
     setDays((prev) =>
@@ -169,6 +191,29 @@ function WorkSchedule({
   function setTime(i: number, field: "start" | "end", val: string) {
     setDays((prev) =>
       prev.map((d, idx) => (idx === i ? { ...d, [field]: val } : d)),
+    );
+  }
+
+  function toIso(timeStr: string) {
+    const today = new Date().toISOString().slice(0, 10);
+    return new Date(`${today}T${timeStr}:00.000Z`).toISOString();
+  }
+
+  function handleConfirm() {
+    const enabled = days.filter((d) => d.enabled);
+    if (enabled.length === 0) {
+      onConfirm();
+      return;
+    }
+    mutate(
+      enabled.map((d) => ({
+        day: d.key,
+        userId: profile?.id ?? "",
+        startTime: toIso(d.start),
+        endTime: toIso(d.end),
+        status: true,
+      })),
+      { onSuccess: () => onConfirm() },
     );
   }
 
@@ -220,12 +265,16 @@ function WorkSchedule({
           ))}
         </div>
 
+        {error && <p className="mt-3 text-xs text-red-500">{error.message}</p>}
+
         <button
           type="button"
-          onClick={onConfirm}
-          className="mt-8 w-full rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          onClick={handleConfirm}
+          disabled={isPending}
+          className="mt-8 w-full rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          Confirm
+          {isPending && <Loader2 className="size-4 animate-spin" />}
+          {isPending ? "Saving..." : "Confirm"}
         </button>
       </div>
     </PageShell>
@@ -241,19 +290,46 @@ function TasksAndFilters({
   onBack: () => void;
   onConfirm: () => void;
 }) {
-  const [tasks, setTasks] = useState<Record<string, boolean>>({});
+  const { data: taskOptions = [], isLoading: loadingTasks } =
+    useGetOthersTaskOptions();
+  const { data: profile } = useMyProfile();
+  const { mutate, isPending, error } = useUpdateServiceProviderInfo();
+
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [specs, setSpecs] = useState<Record<string, boolean>>({});
   const [palliative, setPalliative] = useState(false);
   const [driving, setDriving] = useState(false);
   const [business, setBusiness] = useState(false);
+  const [perHourPrice, setPerHourPrice] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  function toggleTask(t: string) {
-    setTasks((p) => ({ ...p, [t]: !p[t] }));
+  function toggleTaskId(id: string) {
+    setSelectedTaskIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   }
+
   function toggleSpec(s: string) {
     setSpecs((p) => ({ ...p, [s]: !p[s] }));
+  }
+
+  function handleUpdate() {
+    const fd = new globalThis.FormData();
+    fd.append("palliativeCare", String(palliative));
+    fd.append("drivingLicense", String(driving));
+    fd.append("businessProfiles", String(business));
+    fd.append("bio", profile?.serviceProviderInfo?.bio ?? profile?.bio ?? "");
+    fd.append("perHourPrice", perHourPrice || "0");
+    for (const id of selectedTaskIds) {
+      fd.append("othersRequiredTaskIds[]", id);
+    }
+    if (imageFile) fd.append("coverImage", imageFile);
+    mutate(fd, { onSuccess: () => onConfirm() });
   }
 
   return (
@@ -265,7 +341,7 @@ function TasksAndFilters({
             type="button"
             className="text-xs font-semibold text-gray-400 underline"
             onClick={() => {
-              setTasks({});
+              setSelectedTaskIds(new Set());
               setSpecs({});
               setPalliative(false);
               setDriving(false);
@@ -282,22 +358,28 @@ function TasksAndFilters({
             <h3 className="mb-3 text-sm font-bold text-[#1e2d4f]">
               Other required tasks
             </h3>
-            <div className="flex flex-col gap-2">
-              {TASKS.map((t) => (
-                <label
-                  key={t}
-                  className="flex cursor-pointer items-center gap-2"
-                >
-                  <input
-                    type="checkbox"
-                    checked={!!tasks[t]}
-                    onChange={() => toggleTask(t)}
-                    className="size-4 rounded border-gray-300 accent-primary"
-                  />
-                  <span className="text-xs text-gray-600">{t}</span>
-                </label>
-              ))}
-            </div>
+            {loadingTasks ? (
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <Loader2 className="size-3 animate-spin" /> Loading...
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {taskOptions.map((t) => (
+                  <label
+                    key={t.id}
+                    className="flex cursor-pointer items-center gap-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedTaskIds.has(t.id)}
+                      onChange={() => toggleTaskId(t.id)}
+                      className="size-4 rounded border-gray-300 accent-primary"
+                    />
+                    <span className="text-xs text-gray-600">{t.value}</span>
+                  </label>
+                ))}
+              </div>
+            )}
 
             <h3 className="mb-3 mt-6 text-sm font-bold text-[#1e2d4f]">
               Show specialists in:
@@ -353,6 +435,21 @@ function TasksAndFilters({
               </div>
             ))}
 
+            {/* Per hour price */}
+            <div className="border-b border-gray-200 pb-4">
+              <p className="mb-2 text-sm font-semibold text-[#1e2d4f]">
+                Hourly rate ($)
+              </p>
+              <Input
+                type="number"
+                min={0}
+                placeholder="e.g. 25"
+                value={perHourPrice}
+                onChange={(e) => setPerHourPrice(e.target.value)}
+                className="rounded-lg border-gray-300 bg-white text-sm"
+              />
+            </div>
+
             {/* Image upload */}
             <div>
               <p className="mb-2 text-sm font-semibold text-[#1e2d4f]">Image</p>
@@ -386,12 +483,16 @@ function TasksAndFilters({
           </div>
         </div>
 
+        {error && <p className="mt-3 text-xs text-red-500">{error.message}</p>}
+
         <button
           type="button"
-          onClick={onConfirm}
-          className="mt-8 w-full rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          onClick={handleUpdate}
+          disabled={isPending}
+          className="mt-8 w-full rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          Update
+          {isPending && <Loader2 className="size-4 animate-spin" />}
+          {isPending ? "Saving..." : "Update"}
         </button>
       </div>
     </PageShell>
@@ -408,12 +509,25 @@ function ProfilePicture({
   onConfirm: () => void;
 }) {
   const [preview, setPreview] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { mutate, isPending, error } = useUpdateProfile();
 
   function pick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPreview(URL.createObjectURL(file));
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+  }
+
+  function handleConfirm() {
+    if (!file) {
+      onConfirm();
+      return;
+    }
+    const fd = new globalThis.FormData();
+    fd.append("profile", file);
+    mutate(fd, { onSuccess: () => onConfirm() });
   }
 
   return (
@@ -504,12 +618,16 @@ function ProfilePicture({
           )}
         </div>
 
+        {error && <p className="mt-3 text-xs text-red-500">{error.message}</p>}
+
         <button
           type="button"
-          onClick={onConfirm}
-          className="mt-8 w-full rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          onClick={handleConfirm}
+          disabled={isPending}
+          className="mt-8 w-full rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          Confirm
+          {isPending && <Loader2 className="size-4 animate-spin" />}
+          {isPending ? "Uploading..." : "Confirm"}
         </button>
       </div>
     </PageShell>
@@ -519,13 +637,11 @@ function ProfilePicture({
 // ─── Done placeholder ─────────────────────────────────────────────────────────
 
 function ProfessionalDashboard() {
-  return (
-    <div className="flex min-h-dvh items-center justify-center bg-[#f0f0f0]">
-      <p className="text-sm text-gray-400">
-        Professional dashboard coming soon.
-      </p>
-    </div>
-  );
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/profile");
+  }, [router]);
+  return null;
 }
 
 // ─── Root ─────────────────────────────────────────────────────────────────────
@@ -533,7 +649,14 @@ function ProfessionalDashboard() {
 type Step = "slides" | "schedule" | "tasks" | "photo" | "done";
 
 export default function ProfessionalPage() {
+  const { data: profile } = useMyProfile();
   const [step, setStep] = useState<Step>("slides");
+
+  useEffect(() => {
+    if (profile?.serviceProviderInfo) {
+      setStep("done");
+    }
+  }, [profile]);
 
   if (step === "slides")
     return <InfoSlides onDone={() => setStep("schedule")} />;
