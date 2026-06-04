@@ -16,6 +16,8 @@ interface ApiClientOptions {
 export const base_api = "/api/v1";
 export const base_url =
   process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:3000";
+export const socket_url =
+  process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:6005";
 
 export async function howl<T>(
   endpoint: string,
