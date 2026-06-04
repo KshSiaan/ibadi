@@ -147,7 +147,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Switch to Professional Button */}
-      <div className="px-4 pb-6">
+      {/* <div className="px-4 pb-6">
         <button
           type="button"
           className="w-full flex items-center justify-between px-4 border py-3 bg-white shadow rounded-lg hover:bg-primary/20 transition-colors"
@@ -160,7 +160,7 @@ export default function ProfilePage() {
           </div>
           <ChevronRight className="w-5 h-5 text-primary" />
         </button>
-      </div>
+      </div> */}
 
       {/* Account Settings */}
       <div className="px-4 py-4">
