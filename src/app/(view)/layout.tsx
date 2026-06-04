@@ -1,16 +1,13 @@
-import Footer from "@/components/core/footer";
-import Navbar from "@/components/core/navbar";
-import OnboardingGate from "@/components/core/onboarding-gate";
-import { Button } from "@/components/ui/button";
-import { cn, base_api, base_url } from "@/lib/utils";
 import { ArrowLeftRight, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import type { ApiResponse } from "@/lib/api/client";
-import type { User } from "@/lib/api/types";
 import { BiSolidBank } from "react-icons/bi";
+import ClientReviews from "@/components/core/client-reviews";
+import Footer from "@/components/core/footer";
+import Navbar from "@/components/core/navbar";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
 /* ─── Radial satellite node ─── */
 
 /* ─── Data ─── */
@@ -152,49 +149,7 @@ export default function HomeLayout({
           <h2 className="mb-12 text-center text-3xl font-bold text-primary">
             Client Reviews
           </h2>
-
-          <div className="mx-auto  rounded-2xl px-8 py-8">
-            {/* Opening quote */}
-            <div className="mb-4 text-5xl font-black leading-none text-primary">
-              &ldquo;
-            </div>
-            <p className="text-sm leading-7 text-gray-500">
-              Lorem ipsum dolor sit amet consectetur. Amet sed tellus elementum
-              mauris. Libero maecenas eget tellus morbi diam enim euismod
-              egestas. Adipiscing fringilla duis justo adipiscing eget aenean
-              sollicitudin. Nibh ut sed sodales magna risus tellus. Nulla ut
-              arcu ac bibendum blandit tincidunt ante. Tincidunt libero urna ut
-              aliquet vitae nunc quisque sapien cursus.
-            </p>
-            {/* Closing quote */}
-            <div className="mt-2 text-right text-5xl font-black leading-none text-primary">
-              &rdquo;
-            </div>
-
-            {/* Reviewer */}
-            <div className="mt-5 flex items-center gap-3 mx-auto max-w-max">
-              <Image
-                src="https://i.pravatar.cc/48?u=james"
-                alt="James Smith"
-                width={44}
-                height={44}
-                className="rounded-full"
-              />
-              <div>
-                <p className="text-sm font-semibold text-gray-800">
-                  James Smith
-                </p>
-                <p className="text-xs text-gray-400">ABC Softwares</p>
-              </div>
-            </div>
-
-            {/* Dots */}
-            <div className="mt-6 flex justify-center gap-2">
-              <span className="size-2.5 rounded-full bg-primary" />
-              <span className="size-2.5 rounded-full bg-gray-200" />
-              <span className="size-2.5 rounded-full bg-gray-200" />
-            </div>
-          </div>
+          <ClientReviews />
         </div>
       </section>
 

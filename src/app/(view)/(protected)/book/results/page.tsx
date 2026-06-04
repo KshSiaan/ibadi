@@ -1,6 +1,18 @@
 "use client";
 
 import {
+  ArrowLeft,
+  CheckCircle2,
+  Heart,
+  Loader2,
+  Search,
+  SlidersHorizontal,
+  Star,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -14,33 +26,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetFaqs } from "@/hooks/api/faq/use-faq";
 import { useHomepage } from "@/hooks/api/homepage/use-homepage";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { cn } from "@/lib/utils";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Heart,
-  Loader2,
-  Search,
-  SlidersHorizontal,
-  Star,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-
-const serviceQuestions = [
-  "How does it work?",
-  "Can they perform other tasks besides caregiving?",
-  "Does it include care for people with medical conditions?",
-  "The person to be cared for is in the hospital",
-  "Can I book the service on a weekly basis?",
-];
 
 export default function ResultsPage() {
   const { selectedService } = useServiceBooking();
   const { data: professionals = [], isLoading, error } = useHomepage();
+  const { data: faqs = [], isLoading: faqsLoading } = useGetFaqs();
   const [faqOpen, setFaqOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -67,7 +62,7 @@ export default function ResultsPage() {
             </button>
           </div>
           <div className="mx-auto max-w-lg px-6 py-8">
-            <Link href="/book/filter" className="text-primary font-semibold">
+            <Link href="/book/filter" className="font-semibold text-primary">
               Go to filter page
             </Link>
           </div>
@@ -77,7 +72,7 @@ export default function ResultsPage() {
       {/* FAQ Dialog */}
       <Dialog open={faqOpen} onOpenChange={setFaqOpen}>
         <DialogContent className="max-w-sm gap-0 p-0">
-          <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogHeader className="px-6 pb-4 pt-6">
             <DialogTitle className="text-base font-semibold text-gray-800">
               How does the {selectedService} service work?
             </DialogTitle>
@@ -90,19 +85,29 @@ export default function ResultsPage() {
               height={200}
               width={200}
             />
-            <Accordion type="single" collapsible>
-              {serviceQuestions.map((q, i) => (
-                <AccordionItem key={q} value={`q-${i}`}>
-                  <AccordionTrigger className="text-left text-sm font-medium text-gray-700">
-                    {q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm text-gray-500">
-                    Lorem ipsum dolor sit amet consectetur adipiscing elit.
-                    Augue non malesuada placerat faucibus nam purus sem.
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+            {faqsLoading ? (
+              <div className="flex flex-col gap-3 pt-2">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex flex-col gap-1.5 py-2">
+                    <Skeleton className="h-4 w-3/4 rounded" />
+                    <Skeleton className="h-3 w-full rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Accordion type="single" collapsible>
+                {faqs.map((faq, i) => (
+                  <AccordionItem key={faq.id} value={`q-${i}`}>
+                    <AccordionTrigger className="text-left text-sm font-medium text-gray-700">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm text-gray-500">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -176,7 +181,10 @@ export default function ResultsPage() {
               >
                 <div className="flex items-start gap-3">
                   <Avatar className="size-12 shrink-0 ring-2 ring-primary/30">
-                    <AvatarImage src={pro.user.profile ?? undefined} alt={pro.user.name} />
+                    <AvatarImage
+                      src={pro.user.profile ?? undefined}
+                      alt={pro.user.name}
+                    />
                     <AvatarFallback>{pro.user.name?.[0] ?? "?"}</AvatarFallback>
                   </Avatar>
 
@@ -212,7 +220,8 @@ export default function ResultsPage() {
                         ))}
                       </div>
                       <span className="text-xs text-gray-400">
-                        {(pro.user.avgRating ?? 0).toFixed(1)} ({pro.user.totalReview ?? 0})
+                        {(pro.user.avgRating ?? 0).toFixed(1)} (
+                        {pro.user.totalReview ?? 0})
                       </span>
                     </div>
 
