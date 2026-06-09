@@ -7,7 +7,9 @@ import { useEffect, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { useGetExperienceOptions } from "@/hooks/api/experience-options/use-experience-options";
 import { useGetOthersTaskOptions } from "@/hooks/api/others-task-options/use-others-task-options";
+import { useCategories } from "@/hooks/api/use-categories";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useUpdateProfile } from "@/hooks/api/user/use-update-profile";
 import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
@@ -80,17 +82,6 @@ const DAYS_DEFAULT: Day[] = [
   { label: "Sunday", key: "Sun", enabled: false, start: "09:00", end: "18:00" },
 ];
 
-const SPECIALISTS = [
-  "Senile dementia",
-  "Alzheimer's",
-  "Parkinson's",
-  "Arthritis or osteoarthritis",
-  "Arteriosclerosis",
-  "Osteoporosis",
-  "Blindness",
-  "Deafness",
-  "Cancer",
-];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -290,15 +281,15 @@ function TasksAndFilters({
   onBack: () => void;
   onConfirm: () => void;
 }) {
-  const { data: taskOptions = [], isLoading: loadingTasks } =
-    useGetOthersTaskOptions();
+  const { data: taskOptions = [], isLoading: loadingTasks } = useGetOthersTaskOptions();
+  const { data: categories = [], isLoading: loadingCategories } = useCategories();
+  const { data: experienceOptions = [], isLoading: loadingExperience } = useGetExperienceOptions();
   const { data: profile } = useMyProfile();
   const { mutate, isPending, error } = useUpdateServiceProviderInfo();
 
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const [specs, setSpecs] = useState<Record<string, boolean>>({});
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
+  const [experienceOptionId, setExperienceOptionId] = useState<string>("");
   const [palliative, setPalliative] = useState(false);
   const [driving, setDriving] = useState(false);
   const [business, setBusiness] = useState(false);
@@ -314,8 +305,12 @@ function TasksAndFilters({
     });
   }
 
-  function toggleSpec(s: string) {
-    setSpecs((p) => ({ ...p, [s]: !p[s] }));
+  function toggleCategoryId(id: string) {
+    setSelectedCategoryIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   }
 
   function handleUpdate() {
@@ -325,8 +320,12 @@ function TasksAndFilters({
     fd.append("businessProfiles", String(business));
     fd.append("bio", profile?.serviceProviderInfo?.bio ?? profile?.bio ?? "");
     fd.append("perHourPrice", perHourPrice || "0");
+    if (experienceOptionId) fd.append("experienceOptionId", experienceOptionId);
     for (const id of selectedTaskIds) {
       fd.append("othersRequiredTaskIds[]", id);
+    }
+    for (const id of selectedCategoryIds) {
+      fd.append("specialistsInIds[]", id);
     }
     if (imageFile) fd.append("coverImage", imageFile);
     mutate(fd, { onSuccess: () => onConfirm() });
@@ -342,7 +341,8 @@ function TasksAndFilters({
             className="text-xs font-semibold text-gray-400 underline"
             onClick={() => {
               setSelectedTaskIds(new Set());
-              setSpecs({});
+              setSelectedCategoryIds(new Set());
+              setExperienceOptionId("");
               setPalliative(false);
               setDriving(false);
               setBusiness(false);
@@ -365,10 +365,7 @@ function TasksAndFilters({
             ) : (
               <div className="flex flex-col gap-2">
                 {taskOptions.map((t) => (
-                  <label
-                    key={t.id}
-                    className="flex cursor-pointer items-center gap-2"
-                  >
+                  <label key={t.id} className="flex cursor-pointer items-center gap-2">
                     <input
                       type="checkbox"
                       checked={selectedTaskIds.has(t.id)}
@@ -382,24 +379,51 @@ function TasksAndFilters({
             )}
 
             <h3 className="mb-3 mt-6 text-sm font-bold text-[#1e2d4f]">
-              Show specialists in:
+              Specialises in:
             </h3>
-            <div className="flex flex-col gap-2">
-              {SPECIALISTS.map((s) => (
-                <label
-                  key={s}
-                  className="flex cursor-pointer items-center gap-2"
-                >
-                  <input
-                    type="checkbox"
-                    checked={!!specs[s]}
-                    onChange={() => toggleSpec(s)}
-                    className="size-4 rounded border-gray-300 accent-primary"
-                  />
-                  <span className="text-xs text-gray-600">{s}</span>
-                </label>
-              ))}
-            </div>
+            {loadingCategories ? (
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <Loader2 className="size-3 animate-spin" /> Loading...
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {categories.map((c) => (
+                  <label key={c.id} className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedCategoryIds.has(c.id)}
+                      onChange={() => toggleCategoryId(c.id)}
+                      className="size-4 rounded border-gray-300 accent-primary"
+                    />
+                    <span className="text-xs text-gray-600">{c.name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            <h3 className="mb-3 mt-6 text-sm font-bold text-[#1e2d4f]">
+              Experience level
+            </h3>
+            {loadingExperience ? (
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <Loader2 className="size-3 animate-spin" /> Loading...
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {experienceOptions.map((e) => (
+                  <label key={e.id} className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="radio"
+                      name="experienceOptionId"
+                      checked={experienceOptionId === e.id}
+                      onChange={() => setExperienceOptionId(e.id)}
+                      className="size-4 accent-primary"
+                    />
+                    <span className="text-xs text-gray-600">{e.value}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right column */}
@@ -426,9 +450,7 @@ function TasksAndFilters({
             ].map(({ label, sub, val, set }) => (
               <div key={label} className="border-b border-gray-200 pb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[#1e2d4f]">
-                    {label}
-                  </span>
+                  <span className="text-sm font-semibold text-[#1e2d4f]">{label}</span>
                   <Switch checked={val} onCheckedChange={set} />
                 </div>
                 <p className="mt-1 text-xs text-gray-400">{sub}</p>
@@ -437,9 +459,7 @@ function TasksAndFilters({
 
             {/* Per hour price */}
             <div className="border-b border-gray-200 pb-4">
-              <p className="mb-2 text-sm font-semibold text-[#1e2d4f]">
-                Hourly rate ($)
-              </p>
+              <p className="mb-2 text-sm font-semibold text-[#1e2d4f]">Hourly rate ($)</p>
               <Input
                 type="number"
                 min={0}

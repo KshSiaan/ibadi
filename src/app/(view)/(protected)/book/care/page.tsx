@@ -1,17 +1,38 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useGetMyAddresses } from "@/hooks/api/address/use-address";
+import { useCategories } from "@/hooks/api/use-categories";
 import { useServiceBooking } from "@/lib/store/service-booking";
 
 export default function CarePage() {
   const router = useRouter();
-  const { setSelectedService } = useServiceBooking();
+  const { setSelectedService, setSelectedCategoryId } = useServiceBooking();
+  const { data: addresses = [], isLoading: addressesLoading } = useGetMyAddresses();
+  const { data: categories = [] } = useCategories();
 
-  const handleCareSelect = (service: string) => {
-    setSelectedService(service);
+  const activeAddress =
+    addresses.find((a) => a.isDefault) ?? addresses[0];
+
+  const addressLabel = activeAddress
+    ? `${activeAddress.addressLine1}, ${activeAddress.city}, ${activeAddress.state}`
+    : null;
+
+  const childrenCategory = categories.find((c) =>
+    c.name.toLowerCase().includes("child"),
+  );
+  const elderlyCategory = categories.find(
+    (c) =>
+      c.name.toLowerCase().includes("elder") ||
+      c.name.toLowerCase().includes("care"),
+  );
+
+  const handleCareSelect = (name: string, id?: string) => {
+    setSelectedService(name);
+    if (id) setSelectedCategoryId(id);
     router.push("/book/schedule");
   };
 
@@ -30,7 +51,12 @@ export default function CarePage() {
       <div className="flex flex-1 items-center justify-center gap-10">
         <button
           type="button"
-          onClick={() => handleCareSelect("Children care")}
+          onClick={() =>
+            handleCareSelect(
+              childrenCategory?.name ?? "Children care",
+              childrenCategory?.id,
+            )
+          }
           className="flex flex-col items-center gap-2"
         >
           <div
@@ -46,9 +72,15 @@ export default function CarePage() {
           </div>
           <span className="text-sm font-medium text-gray-700">Children</span>
         </button>
+
         <button
           type="button"
-          onClick={() => handleCareSelect("Elderly care")}
+          onClick={() =>
+            handleCareSelect(
+              elderlyCategory?.name ?? "Elderly care",
+              elderlyCategory?.id,
+            )
+          }
           className="flex flex-col items-center gap-2"
         >
           <div
@@ -67,9 +99,13 @@ export default function CarePage() {
       </div>
 
       <div className="flex flex-col items-center gap-2 pb-12">
-        <p className="text-sm font-semibold text-gray-700">
-          Tallapoosa county, east-central Alabama, U.S
-        </p>
+        {addressesLoading ? (
+          <Loader2 className="size-4 animate-spin text-gray-400" />
+        ) : (
+          <p className="text-sm font-semibold text-gray-700">
+            {addressLabel ?? "No address saved"}
+          </p>
+        )}
       </div>
     </div>
   );

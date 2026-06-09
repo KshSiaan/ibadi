@@ -2,8 +2,11 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useGetMyAddresses } from "@/hooks/api/address/use-address";
 import { useCreateBooking } from "@/hooks/api/bookings/use-bookings";
+import { useGetAddCardLink, useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
+import type { Address, PaymentMethod } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
@@ -17,55 +20,6 @@ import {
 import { use, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-type PaymentMethod = "paypal" | "visa" | "mastercard";
-
-const paymentOptions: {
-  id: PaymentMethod;
-  label: string;
-  last4: string;
-  icon: React.ReactNode;
-}[] = [
-  {
-    id: "paypal",
-    label: "PayPal",
-    last4: "1378",
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-        <text y="18" fontSize="14" fill="#003087" fontWeight="bold">
-          P
-        </text>
-        <text x="7" y="18" fontSize="14" fill="#009cde" fontWeight="bold">
-          P
-        </text>
-      </svg>
-    ),
-  },
-  {
-    id: "visa",
-    label: "Visa",
-    last4: "1396",
-    icon: (
-      <svg width="36" height="24" viewBox="0 0 36 24" aria-hidden="true">
-        <rect width="36" height="24" rx="4" fill="#1a1f71" />
-        <text x="4" y="17" fontSize="11" fill="white" fontWeight="bold">
-          VISA
-        </text>
-      </svg>
-    ),
-  },
-  {
-    id: "mastercard",
-    label: "Master card",
-    last4: "9558",
-    icon: (
-      <svg width="36" height="24" viewBox="0 0 36 24" aria-hidden="true">
-        <circle cx="13" cy="12" r="9" fill="#eb001b" />
-        <circle cx="23" cy="12" r="9" fill="#f79e1b" />
-        <path d="M18 5.5a9 9 0 0 1 0 13 9 9 0 0 1 0-13z" fill="#ff5f00" />
-      </svg>
-    ),
-  },
-];
 
 function RadioCircle({ selected }: { selected: boolean }) {
   return (
@@ -167,9 +121,21 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
 
   const { data: provider } = useGetUserById(providerId);
   const { mutate: createBooking, isPending } = useCreateBooking();
+  const { data: addresses = [] } = useGetMyAddresses();
+  const { data: paymentMethods = [], isLoading: loadingPayments } = useGetPaymentMethods();
+  const { data: addCardLink } = useGetAddCardLink();
 
-  const [selectedPayment, setSelectedPayment] =
-    useState<PaymentMethod>("paypal");
+  const defaultAddress: Address | undefined =
+    addresses.find((a) => a.isDefault) ?? addresses[0];
+  const [selectedAddress, setSelectedAddress] = useState<Address | undefined>(undefined);
+  const [addressPickerOpen, setAddressPickerOpen] = useState(false);
+  const activeAddress = selectedAddress ?? defaultAddress;
+
+  const defaultPayment: PaymentMethod | undefined =
+    paymentMethods.find((p) => p.isDefault) ?? paymentMethods[0];
+  const [selectedPaymentId, setSelectedPaymentId] = useState<string | undefined>(undefined);
+  const activePayment = paymentMethods.find((p) => p.id === selectedPaymentId) ?? defaultPayment;
+
   const [comment, setComment] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -391,18 +357,33 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-bold text-[#1e2d4f]">Address</h2>
-              <button
-                type="button"
-                className="text-xs font-semibold text-primary"
-              >
-                Change
-              </button>
+              {addresses.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setAddressPickerOpen(true)}
+                  className="text-xs font-semibold text-primary"
+                >
+                  Change
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="size-4 shrink-0 text-gray-400" />
-              <span className="text-xs text-gray-600">
-                Tallapoosa county, east-central Alabama, U.S
-              </span>
+              {activeAddress ? (
+                <span className="text-xs text-gray-600">
+                  {[
+                    activeAddress.addressLine1,
+                    activeAddress.addressLine2,
+                    activeAddress.city,
+                    activeAddress.state,
+                    activeAddress.country,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                </span>
+              ) : (
+                <span className="text-xs text-gray-400">No address saved</span>
+              )}
             </div>
           </div>
 
@@ -451,36 +432,51 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           {/* Payment methods */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <div className="flex flex-col gap-3">
-              {paymentOptions.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setSelectedPayment(opt.id)}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 transition-colors hover:border-primary/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-8 items-center justify-center">
-                      {opt.icon}
+              {loadingPayments ? (
+                <div className="flex items-center gap-2 py-2 text-xs text-gray-400">
+                  <Loader2 className="size-3 animate-spin" /> Loading...
+                </div>
+              ) : paymentMethods.length === 0 ? (
+                <p className="text-xs text-gray-400">No payment methods saved.</p>
+              ) : (
+                paymentMethods.map((pm) => (
+                  <button
+                    key={pm.id}
+                    type="button"
+                    onClick={() => setSelectedPaymentId(pm.id)}
+                    className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 transition-colors hover:border-primary/30"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex size-8 items-center justify-center">
+                        <span className="text-xs font-bold uppercase text-gray-600">
+                          {pm.brand}
+                        </span>
+                      </div>
+                      <div className="text-left">
+                        <p className="text-xs font-semibold capitalize text-gray-800">
+                          {pm.brand}
+                        </p>
+                        <p className="text-[10px] text-gray-400">
+                          •••• •••• {pm.last4} · {pm.expMonth}/{pm.expYear}
+                        </p>
+                        {pm.isDefault && (
+                          <span className="text-[10px] font-medium text-primary">Default</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-left">
-                      <p className="text-xs font-semibold text-gray-800">
-                        {opt.label}
-                      </p>
-                      <p className="text-[10px] text-gray-400">
-                        •••• •••• {opt.last4}
-                      </p>
-                    </div>
-                  </div>
-                  <RadioCircle selected={selectedPayment === opt.id} />
-                </button>
-              ))}
+                    <RadioCircle selected={activePayment?.id === pm.id} />
+                  </button>
+                ))
+              )}
             </div>
-            <button
-              type="button"
-              className="mt-3 w-full rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Add payment method
-            </button>
+            {addCardLink?.url && (
+              <a
+                href={addCardLink.url}
+                className="mt-3 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Add payment method
+              </a>
+            )}
           </div>
 
           {/* Remember that */}
@@ -537,6 +533,47 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           </button>
         </div>
       </div>
+
+      {/* Address Picker Dialog */}
+      <Dialog open={addressPickerOpen} onOpenChange={setAddressPickerOpen}>
+        <DialogContent className="max-w-sm gap-0 p-0">
+          <div className="px-6 pb-4 pt-6">
+            <h2 className="text-base font-bold text-gray-800">Select address</h2>
+          </div>
+          <div className="flex flex-col gap-2 px-6 pb-6">
+            {addresses.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => {
+                  setSelectedAddress(a);
+                  setAddressPickerOpen(false);
+                }}
+                className={`flex items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
+                  activeAddress?.id === a.id
+                    ? "border-primary bg-primary/5"
+                    : "border-gray-200 bg-white"
+                }`}
+              >
+                <MapPin className="mt-0.5 size-4 shrink-0 text-gray-400" />
+                <div>
+                  <p className="text-xs font-semibold text-gray-800">
+                    {a.addressLine1}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {[a.addressLine2, a.city, a.state, a.country]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                  {a.isDefault && (
+                    <span className="text-[10px] font-medium text-primary">Default</span>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Booking Confirmed Dialog */}
       <Dialog open={confirmed} onOpenChange={setConfirmed}>

@@ -22,7 +22,7 @@ const weekDays = [
 const morningSlots = ["9-0", "9-12", "12-15"];
 const eveningSlots = ["15-18", "18-21", "21-00"];
 
-export default async function SchedulePage() {
+export default function SchedulePage() {
   const router = useRouter();
   const [cookies] = useCookies(["accessToken"]);
   const {
@@ -39,6 +39,8 @@ export default async function SchedulePage() {
     selectedEvening,
     setSelectedEvening,
     selectedCategoryId,
+    searchTerm,
+    checkedTasks,
     setHomepageFilters,
   } = useServiceBooking();
 
@@ -58,12 +60,21 @@ export default async function SchedulePage() {
       ? slot.split("-").map((n) => n.padStart(2, "0"))
       : [undefined, undefined];
 
+    let dateStr: string | undefined;
+    if (frequency === "once") {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      dateStr = `${year}-${month}-${String(selectedDay).padStart(2, "0")}`;
+    }
+
+    const taskIds = checkedTasks.size > 0 ? Array.from(checkedTasks).join(",") : undefined;
+
     const filters: HomepageFilters = {
       categoryId: selectedCategoryId || undefined,
-      date:
-        frequency === "once"
-          ? `2025-01-${String(selectedDay).padStart(2, "0")}`
-          : undefined,
+      searchTerm: searchTerm || undefined,
+      otherTaskIds: taskIds,
+      date: dateStr,
       startTime: startHour ? `${startHour}:00` : undefined,
       endTime: endHour ? `${endHour}:00` : undefined,
       limit: 20,

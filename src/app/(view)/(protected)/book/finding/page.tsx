@@ -7,12 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetClientReviews } from "@/hooks/api/client-review/use-client-review";
+import { useServiceBooking } from "@/lib/store/service-booking";
 import { cn } from "@/lib/utils";
 
 export default function FindingPage() {
   const router = useRouter();
   const [progress, setProgress] = useState(0);
   const { data: reviews = [], isLoading } = useGetClientReviews();
+  const { selectedService } = useServiceBooking();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -97,8 +99,11 @@ export default function FindingPage() {
       {/* Finding text */}
       <div className="flex flex-col items-center gap-4">
         <p className="text-center text-lg text-gray-500">
-          Finding <span className="font-bold text-gray-800">Elderly care</span>{" "}
-          professionals
+          Finding{" "}
+          <span className="font-bold text-gray-800">
+            {selectedService || "professionals"}
+          </span>{" "}
+          {selectedService ? "professionals" : ""}
         </p>
         <Progress value={progress} className="h-1.5 w-48" />
       </div>

@@ -11,7 +11,12 @@ import { useServiceBooking } from "@/lib/store/service-booking";
 
 export default function Page() {
   const router = useRouter();
-  const { setSelectedService, setSelectedCategoryId } = useServiceBooking();
+  const {
+    setSelectedService,
+    setSelectedCategoryId,
+    searchTerm,
+    setSearchTerm,
+  } = useServiceBooking();
   const { data: categories = [], isLoading } = useCategories();
 
   const handleServiceSelect = (category: Category) => {
@@ -33,6 +38,8 @@ export default function Page() {
           </Link>
           <input
             placeholder="Find the service you need"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
           />
         </div>

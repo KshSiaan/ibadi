@@ -26,49 +26,6 @@ import {
 } from "@/hooks/api/notifications/use-notifications";
 import type { Address, Category } from "@/lib/api/types";
 
-/* ─── Fallback Data ─── */
-const fallbackServices: Category[] = [
-  {
-    id: "fallback-1",
-    name: "Cleaning",
-    image: "/icons/cleaning-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "fallback-2",
-    name: "Handyman",
-    image: "/icons/hammer-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "fallback-3",
-    name: "Dog Grooming",
-    image: "/icons/dog-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "fallback-4",
-    name: "Care",
-    image: "/icons/wellfare-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "fallback-5",
-    name: "Others",
-    image: "/icons/gift-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 /* ─── ServiceNode ─── */
 function ServiceNode({
@@ -147,10 +104,7 @@ function SearchPopoverContent({
           </div>
         ) : (
           <ul className="flex flex-col gap-1">
-            {(filteredCategories.length > 0
-              ? filteredCategories
-              : fallbackServices
-            ).map((category) => (
+            {filteredCategories.map((category) => (
               <li key={category.id}>
                 <Link
                   href="/book"
@@ -364,11 +318,8 @@ export default function Page() {
           <span className="text-lg font-bold text-primary">Support</span>
         </div>
 
-        {(categories.length > 0 ? categories : fallbackServices).map(
-          (category, index) => {
-            const totalItems = (
-              categories.length > 0 ? categories : fallbackServices
-            ).length;
+        {categories.map((category, index) => {
+            const totalItems = categories.length;
             const angleDeg = (index * 360) / totalItems - 90;
             return (
               <ServiceNode
@@ -381,8 +332,8 @@ export default function Page() {
                 onClick={() => handleServiceSelect(category.name)}
               />
             );
-          },
-        )}
+          })}
+
       </div>
 
       {/* Address button */}

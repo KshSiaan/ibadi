@@ -9,6 +9,10 @@ export interface ServiceBookingState {
   selectedCategoryId: string;
   setSelectedCategoryId: (id: string) => void;
 
+  /* ─── Search ─── */
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+
   /* ─── Homepage Filters (built on Search) ─── */
   homepageFilters: HomepageFilters;
   setHomepageFilters: (filters: HomepageFilters) => void;
@@ -65,6 +69,10 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
 
   selectedCategoryId: "",
   setSelectedCategoryId: (id: string) => set({ selectedCategoryId: id }),
+
+  /* ─── Search ─── */
+  searchTerm: "",
+  setSearchTerm: (term: string) => set({ searchTerm: term }),
 
   /* ─── Homepage Filters ─── */
   homepageFilters: {},
@@ -135,6 +143,7 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
     set({
       selectedService: "Elderly care",
       selectedCategoryId: "",
+      searchTerm: "",
       homepageFilters: {},
       serviceAddress: "",
       frequency: "once",

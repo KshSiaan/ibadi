@@ -139,6 +139,13 @@ export interface UpdateProfileRequest {
 export interface ServiceProviderInfo {
   bio?: string;
   perHourPrice?: number;
+  palliativeCare?: boolean;
+  drivingLicense?: boolean;
+  businessProfiles?: boolean;
+  experienceOptionId?: string;
+  othersRequiredTaskIds?: string[];
+  specialistsInIds?: string[];
+  coverImage?: File;
 }
 
 /* ─── OTP Types ─── */
