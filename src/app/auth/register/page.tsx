@@ -9,15 +9,15 @@ import {
   Loader2,
   AlertCircle,
   ArrowLeft,
-  MapPin,
   UserRound,
   BriefcaseBusiness,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useRegister } from "@/hooks/api/use-register";
-import type { Location } from "@/lib/api/types";
+import { LocationSearch, type LocationResult } from "@/components/location-search";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,24 +33,13 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<"user" | "service_provider">(initialRole);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [locationResult, setLocationResult] = useState<LocationResult | null>(null);
 
   const { mutate: register, isPending: loading, error } = useRegister();
 
-  const location: Location | undefined = useMemo(() => {
-    if (role !== "service_provider") return undefined;
-
-    const lat = Number(latitude);
-    const lng = Number(longitude);
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return undefined;
-
-    return {
-      type: "Point",
-      coordinates: [lat, lng],
-    };
-  }, [latitude, longitude, role]);
+  const location = locationResult
+    ? { type: "Point" as const, coordinates: [locationResult.lat, locationResult.lng] as [number, number] }
+    : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,53 +238,19 @@ export default function RegisterPage() {
 
             {role === "service_provider" && (
               <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                  <MapPin className="size-4 text-primary" />
+                <div className="text-sm font-semibold text-slate-700">
                   Service location
                 </div>
                 <p className="text-xs text-slate-500">
-                  Add your service location so clients can find you.
+                  Search and select your service area so clients can find you.
                 </p>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="register-latitude"
-                      className="text-xs font-medium text-slate-600"
-                    >
-                      Latitude
-                    </label>
-                    <Input
-                      id="register-latitude"
-                      type="number"
-                      step="any"
-                      placeholder="37.7749"
-                      value={latitude}
-                      onChange={(e) => setLatitude(e.target.value)}
-                      disabled={loading}
-                      required={role === "service_provider"}
-                      className="rounded-lg border-slate-200 px-4 py-2.5"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label
-                      htmlFor="register-longitude"
-                      className="text-xs font-medium text-slate-600"
-                    >
-                      Longitude
-                    </label>
-                    <Input
-                      id="register-longitude"
-                      type="number"
-                      step="any"
-                      placeholder="-122.4194"
-                      value={longitude}
-                      onChange={(e) => setLongitude(e.target.value)}
-                      disabled={loading}
-                      required={role === "service_provider"}
-                      className="rounded-lg border-slate-200 px-4 py-2.5"
-                    />
-                  </div>
-                </div>
+                <LocationSearch
+                  value={locationResult}
+                  onChange={setLocationResult}
+                  disabled={loading}
+                  required
+                  placeholder="Search city, suburb or address…"
+                />
               </div>
             )}
 
