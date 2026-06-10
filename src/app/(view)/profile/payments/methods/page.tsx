@@ -12,8 +12,8 @@ import {
 import {
   useGetPaymentMethods,
   useDeleteCard,
-  useGetAddCardLink,
 } from "@/hooks/api/stripe/use-stripe";
+import { AddCardForm } from "@/components/add-card-form";
 
 function CardIcon({ brand }: { brand: string }) {
   const b = brand.toLowerCase();
@@ -43,11 +43,11 @@ export default function PaymentsMethodsPage() {
   const router = useRouter();
   const { data: cards, isLoading } = useGetPaymentMethods();
   const deleteCard = useDeleteCard();
-  const { data: addCardLink, isLoading: linkLoading } = useGetAddCardLink();
 
   const [showMenuId, setShowMenuId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [addCardOpen, setAddCardOpen] = useState(false);
 
   const handleDeleteCard = async () => {
     if (!selectedCardId) return;
@@ -57,12 +57,6 @@ export default function PaymentsMethodsPage() {
       setShowDeleteDialog(false);
       setShowMenuId(null);
       setSelectedCardId(null);
-    }
-  };
-
-  const handleAddNew = () => {
-    if (addCardLink?.url) {
-      window.location.href = addCardLink.url;
     }
   };
 
@@ -146,13 +140,27 @@ export default function PaymentsMethodsPage() {
 
         <button
           type="button"
-          onClick={handleAddNew}
-          disabled={linkLoading}
-          className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+          onClick={() => setAddCardOpen(true)}
+          className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors"
         >
-          {linkLoading ? "Loading..." : "Add New"}
+          Add New
         </button>
       </div>
+
+      {/* Add Card Dialog */}
+      <Dialog open={addCardOpen} onOpenChange={setAddCardOpen}>
+        <DialogContent className="max-w-sm gap-4 p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-gray-800">
+              Add payment method
+            </DialogTitle>
+          </DialogHeader>
+          <AddCardForm
+            onSuccess={() => setAddCardOpen(false)}
+            onCancel={() => setAddCardOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
