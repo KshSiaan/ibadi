@@ -4,7 +4,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useGetMyAddresses } from "@/hooks/api/address/use-address";
 import { useCreateBooking } from "@/hooks/api/bookings/use-bookings";
-import { useGetAddCardLink, useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
+import {
+  useGetAddCardLink,
+  useGetPaymentMethods,
+} from "@/hooks/api/stripe/use-stripe";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import type { Address, PaymentMethod } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
@@ -19,7 +22,6 @@ import {
 } from "lucide-react";
 import { use, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
 
 function RadioCircle({ selected }: { selected: boolean }) {
   return (
@@ -122,19 +124,25 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
   const { data: provider } = useGetUserById(providerId);
   const { mutate: createBooking, isPending } = useCreateBooking();
   const { data: addresses = [] } = useGetMyAddresses();
-  const { data: paymentMethods = [], isLoading: loadingPayments } = useGetPaymentMethods();
+  const { data: paymentMethods = [], isLoading: loadingPayments } =
+    useGetPaymentMethods();
   const { data: addCardLink } = useGetAddCardLink();
 
   const defaultAddress: Address | undefined =
     addresses.find((a) => a.isDefault) ?? addresses[0];
-  const [selectedAddress, setSelectedAddress] = useState<Address | undefined>(undefined);
+  const [selectedAddress, setSelectedAddress] = useState<Address | undefined>(
+    undefined,
+  );
   const [addressPickerOpen, setAddressPickerOpen] = useState(false);
   const activeAddress = selectedAddress ?? defaultAddress;
 
   const defaultPayment: PaymentMethod | undefined =
     paymentMethods.find((p) => p.isDefault) ?? paymentMethods[0];
-  const [selectedPaymentId, setSelectedPaymentId] = useState<string | undefined>(undefined);
-  const activePayment = paymentMethods.find((p) => p.id === selectedPaymentId) ?? defaultPayment;
+  const [selectedPaymentId, setSelectedPaymentId] = useState<
+    string | undefined
+  >(undefined);
+  const activePayment =
+    paymentMethods.find((p) => p.id === selectedPaymentId) ?? defaultPayment;
 
   const [comment, setComment] = useState("");
   const [confirmed, setConfirmed] = useState(false);
@@ -437,7 +445,9 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                   <Loader2 className="size-3 animate-spin" /> Loading...
                 </div>
               ) : paymentMethods.length === 0 ? (
-                <p className="text-xs text-gray-400">No payment methods saved.</p>
+                <p className="text-xs text-gray-400">
+                  No payment methods saved.
+                </p>
               ) : (
                 paymentMethods.map((pm) => (
                   <button
@@ -460,7 +470,9 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                           •••• •••• {pm.last4} · {pm.expMonth}/{pm.expYear}
                         </p>
                         {pm.isDefault && (
-                          <span className="text-[10px] font-medium text-primary">Default</span>
+                          <span className="text-[10px] font-medium text-primary">
+                            Default
+                          </span>
                         )}
                       </div>
                     </div>
@@ -538,7 +550,9 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
       <Dialog open={addressPickerOpen} onOpenChange={setAddressPickerOpen}>
         <DialogContent className="max-w-sm gap-0 p-0">
           <div className="px-6 pb-4 pt-6">
-            <h2 className="text-base font-bold text-gray-800">Select address</h2>
+            <h2 className="text-base font-bold text-gray-800">
+              Select address
+            </h2>
           </div>
           <div className="flex flex-col gap-2 px-6 pb-6">
             {addresses.map((a) => (
@@ -566,7 +580,9 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                       .join(", ")}
                   </p>
                   {a.isDefault && (
-                    <span className="text-[10px] font-medium text-primary">Default</span>
+                    <span className="text-[10px] font-medium text-primary">
+                      Default
+                    </span>
                   )}
                 </div>
               </button>

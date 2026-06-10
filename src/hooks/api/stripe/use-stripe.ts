@@ -24,20 +24,25 @@ export function useGetPaymentMethods() {
 }
 
 export function useGetAddCardLink() {
+  const [cookies] = useCookies(["accessToken"]);
+
   return useQuery<{ url: string }>({
     queryKey: ["add-card-link"],
     queryFn: async () => {
       const response = await apiClient.get<ApiResponse<{ url: string }>>(
         "/stripe/payment-method/add-link",
+        cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);
       return response.data;
     },
+    enabled: !!cookies.accessToken,
     staleTime: 0,
   });
 }
 
 export function useSaveCard() {
+  const [cookies] = useCookies(["accessToken"]);
   const queryClient = useQueryClient();
 
   return useMutation<{ message: string }, Error, SaveCardRequest>({
@@ -45,6 +50,7 @@ export function useSaveCard() {
       const response = await apiClient.post<ApiResponse<{ message: string }>>(
         "/stripe/payment-method/save",
         data,
+        cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);
       return response.data;
@@ -56,12 +62,14 @@ export function useSaveCard() {
 }
 
 export function useDeleteCard() {
+  const [cookies] = useCookies(["accessToken"]);
   const queryClient = useQueryClient();
 
   return useMutation<{ message: string }, Error, string>({
     mutationFn: async (paymentMethodId: string) => {
       const response = await apiClient.delete<ApiResponse<{ message: string }>>(
         `/stripe/payment-method/${paymentMethodId}`,
+        cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);
       return response.data;

@@ -279,7 +279,7 @@ function WeeklyView({
         <Button type="button" className="w-full" disabled={!hasSlots} asChild>
           <Link href={confirmHref}>
             {hasSlots
-              ? `Save ${Object.keys(slots).length} day(s) for $${totalWeeklyPrice}`
+              ? `Save ${Object.keys(slots).length} day(s)`
               : "Select at least one day"}
           </Link>
         </Button>
@@ -392,7 +392,7 @@ function OnceView({
         <Button disabled={!selectedTime} className="w-full" asChild>
           <Link href={confirmHref}>
             {selectedTime && endTime
-              ? `Save ${selectedTime} - ${endTime} for $${totalPrice}`
+              ? `Save ${selectedTime} - ${endTime}`
               : "Select a start time"}
           </Link>
         </Button>
