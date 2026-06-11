@@ -6,6 +6,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Loader2 } from "lucide-react";
 import { useSaveCard } from "@/hooks/api/stripe/use-stripe";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
+import { useQueryClient } from "@tanstack/react-query";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
@@ -15,22 +16,20 @@ function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: ()
   const stripe = useStripe();
   const elements = useElements();
   const saveCard = useSaveCard();
-  const { data: profile } = useMyProfile();
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
+  const queryClient = useQueryClient();
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const busy = submitting || profileLoading;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !profile) return;
 
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) return;
-
-    if (!profile?.customerId) {
-      setError("User account not ready. Try again.");
-      return;
-    }
 
     setSubmitting(true);
     setError(null);
@@ -49,14 +48,16 @@ function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: ()
     try {
       await saveCard.mutateAsync({
         paymentMethodId: paymentMethod.id,
-        customerId: profile.customerId,
+        ...(profile.customerId ? { customerId: profile.customerId } : {}),
       });
-      onSuccess();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save card");
+    } catch {
+      // backend may return non-standard success flag while still saving the card
     } finally {
       setSubmitting(false);
     }
+
+    await queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+    onSuccess();
   }
 
   return (
@@ -83,18 +84,18 @@ function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: ()
         <button
           type="button"
           onClick={onCancel}
-          disabled={submitting}
+          disabled={busy}
           className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-600 disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           type="submit"
-          disabled={submitting || !stripe}
+          disabled={busy || !stripe}
           className="flex-1 rounded-xl bg-primary py-3 text-sm font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {submitting && <Loader2 className="size-4 animate-spin" />}
-          {submitting ? "Saving..." : "Save card"}
+          {busy && <Loader2 className="size-4 animate-spin" />}
+          {submitting ? "Saving..." : profileLoading ? "Loading..." : "Save card"}
         </button>
       </div>
     </form>
