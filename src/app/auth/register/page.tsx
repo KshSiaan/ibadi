@@ -1,23 +1,29 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { signInWithPopup } from "firebase/auth";
 import {
+  AlertCircle,
+  ArrowLeft,
+  BriefcaseBusiness,
   Eye,
   EyeOff,
   Loader2,
-  AlertCircle,
-  ArrowLeft,
   UserRound,
-  BriefcaseBusiness,
 } from "lucide-react";
-import { useState } from "react";
-
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import {
+  type LocationResult,
+  LocationSearch,
+} from "@/components/location-search";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
 import { useRegister } from "@/hooks/api/use-register";
-import { LocationSearch, type LocationResult } from "@/components/location-search";
+import { useFcm } from "@/hooks/use-fcm";
+import { firebaseAuth, googleProvider } from "@/lib/firebase-auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,12 +39,37 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<"user" | "service_provider">(initialRole);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [locationResult, setLocationResult] = useState<LocationResult | null>(null);
+  const [locationResult, setLocationResult] = useState<LocationResult | null>(
+    null,
+  );
 
+  const fcmToken = useFcm();
   const { mutate: register, isPending: loading, error } = useRegister();
+  const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
+  const [googleError, setGoogleError] = useState<string | null>(null);
+
+  const triggerGoogleSignup = async () => {
+    setGoogleError(null);
+    try {
+      const result = await signInWithPopup(firebaseAuth, googleProvider);
+      const idToken = await result.user.getIdToken();
+      googleLogin(
+        { token: idToken, email: result.user.email ?? "", fcmToken, role },
+        { onSuccess: () => router.push("/") },
+      );
+    } catch {
+      setGoogleError("Google sign-in failed");
+    }
+  };
 
   const location = locationResult
-    ? { type: "Point" as const, coordinates: [locationResult.lat, locationResult.lng] as [number, number] }
+    ? {
+        type: "Point" as const,
+        coordinates: [locationResult.lat, locationResult.lng] as [
+          number,
+          number,
+        ],
+      }
     : undefined;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -133,10 +164,10 @@ export default function RegisterPage() {
           </div>
 
           {/* Error Alert */}
-          {errorMessage && (
+          {(errorMessage || googleError) && (
             <div className="flex gap-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">
               <AlertCircle className="size-5 shrink-0" />
-              <span>{errorMessage}</span>
+              <span>{errorMessage || googleError}</span>
             </div>
           )}
 
@@ -287,6 +318,29 @@ export default function RegisterPage() {
               )}
             </Button>
           </form>
+
+          {/* Google Signup */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs text-slate-500">OR</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full rounded-lg border-slate-200"
+            disabled={loading || googleLoading}
+            onClick={() => triggerGoogleSignup()}
+          >
+            {googleLoading ? (
+              <>
+                <Loader2 className="mr-2 size-4 animate-spin" />
+                Signing up...
+              </>
+            ) : (
+              "Continue with Google"
+            )}
+          </Button>
 
           {/* Terms & Privacy */}
           <p className="text-center text-xs text-slate-500">

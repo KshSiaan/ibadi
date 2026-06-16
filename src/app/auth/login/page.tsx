@@ -1,42 +1,55 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { signInWithPopup } from "firebase/auth";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
 import { useLogin } from "@/hooks/api/use-login";
+import { useFcm } from "@/hooks/use-fcm";
+import { firebaseAuth, googleProvider } from "@/lib/firebase-auth";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
+  const fcmToken = useFcm();
   const { mutate: login, isPending: loading, error } = useLogin();
+  const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    login(
-      { email, password },
-      {
-        onSuccess: () => {
-          router.push("/");
-        },
-      },
-    );
+  const triggerGoogleLogin = async () => {
+    setGoogleError(null);
+    try {
+      const result = await signInWithPopup(firebaseAuth, googleProvider);
+      const idToken = await result.user.getIdToken();
+      googleLogin(
+        { token: idToken, email: result.user.email ?? "", fcmToken },
+        { onSuccess: () => router.push("/") },
+      );
+    } catch {
+      setGoogleError("Google sign-in failed");
+    }
   };
 
-  const errorMessage = error?.message || "";
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    login({ email, password }, { onSuccess: () => router.push("/") });
+  };
+
+  const errorMessage = error?.message || googleError || "";
+  const busy = loading || googleLoading;
 
   return (
     <main className="flex h-dvh w-full items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 px-4">
       <Card className="w-full max-w-md border-0 shadow-lg">
         <CardContent className="space-y-6 p-8">
-          {/* Header */}
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-bold text-slate-900">Welcome back</h1>
             <p className="text-sm text-slate-600">
@@ -44,7 +57,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Error Alert */}
           {errorMessage && (
             <div className="flex gap-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">
               <AlertCircle className="size-5 shrink-0" />
@@ -52,36 +64,41 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email Input */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
+              <label
+                htmlFor="login-email"
+                className="text-sm font-medium text-slate-700"
+              >
                 Email
               </label>
               <Input
+                id="login-email"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
+                disabled={busy}
                 required
                 className="rounded-lg border-slate-200 px-4 py-2.5"
               />
             </div>
 
-            {/* Password Input */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">
+              <label
+                htmlFor="login-password"
+                className="text-sm font-medium text-slate-700"
+              >
                 Password
               </label>
               <div className="relative">
                 <Input
+                  id="login-password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading}
+                  disabled={busy}
                   required
                   className="rounded-lg border-slate-200 px-4 py-2.5 pr-10"
                 />
@@ -100,13 +117,12 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   className="rounded border-slate-300"
-                  disabled={loading}
+                  disabled={busy}
                 />
                 <span className="text-sm text-slate-600">Remember me</span>
               </label>
@@ -118,10 +134,9 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            {/* Login Button */}
             <Button
               type="submit"
-              disabled={loading || !email || !password}
+              disabled={busy || !email || !password}
               className="w-full rounded-lg py-2.5 font-medium"
             >
               {loading ? (
@@ -135,37 +150,34 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Divider */}
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-slate-200" />
             <span className="text-xs text-slate-500">OR</span>
             <div className="h-px flex-1 bg-slate-200" />
           </div>
 
-          {/* Social Login */}
           <div className="space-y-3">
             <Button
               type="button"
               variant="outline"
               className="w-full rounded-lg border-slate-200"
-              disabled={loading}
+              disabled={busy}
+              onClick={() => triggerGoogleLogin()}
             >
-              Continue with Google
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full rounded-lg border-slate-200"
-              disabled={loading}
-            >
-              Continue with Apple
+              {googleLoading ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Continue with Google"
+              )}
             </Button>
           </div>
 
-          {/* Sign Up Link */}
           <div className="text-center">
             <p className="text-sm text-slate-600">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/auth/register"
                 className="font-medium text-primary hover:text-primary/80"

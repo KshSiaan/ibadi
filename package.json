@@ -11,6 +11,10 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
+<<<<<<< HEAD
+=======
+    "@react-oauth/google": "^0.13.5",
+>>>>>>> 1991acf0751c83cb596f265518575a4139479059
     "@stripe/react-stripe-js": "^6.6.0",
     "@stripe/stripe-js": "^9.8.0",
     "@tabler/icons-react": "^3.44.0",
@@ -21,6 +25,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^4.3.0",
     "embla-carousel-react": "^8.6.0",
+    "firebase": "^12.14.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
