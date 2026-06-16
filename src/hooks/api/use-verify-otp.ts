@@ -10,6 +10,7 @@ export function useVerifyOtp() {
 
   return useMutation<VerifyOtpResponse, Error, VerifyOtpRequest>({
     mutationFn: async (credentials: VerifyOtpRequest) => {
+      console.log(credentials);
       const response = await apiClient.post<ApiResponse<VerifyOtpResponse>>(
         "/otp/verify-otp",
         credentials,

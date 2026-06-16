@@ -1,13 +1,11 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { AddCardForm } from "@/components/add-card-form";
 import { useGetMyAddresses } from "@/hooks/api/address/use-address";
 import { useCreateBooking } from "@/hooks/api/bookings/use-bookings";
-import {
-  useGetAddCardLink,
-  useGetPaymentMethods,
-} from "@/hooks/api/stripe/use-stripe";
+import { useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import type { Address, PaymentMethod } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
@@ -126,8 +124,6 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
   const { data: addresses = [] } = useGetMyAddresses();
   const { data: paymentMethods = [], isLoading: loadingPayments } =
     useGetPaymentMethods();
-  const { data: addCardLink } = useGetAddCardLink();
-
   const defaultAddress: Address | undefined =
     addresses.find((a) => a.isDefault) ?? addresses[0];
   const [selectedAddress, setSelectedAddress] = useState<Address | undefined>(
@@ -147,6 +143,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
   const [comment, setComment] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [addCardOpen, setAddCardOpen] = useState(false);
 
   const totalHours =
     frequency === "once"
@@ -481,14 +478,13 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                 ))
               )}
             </div>
-            {addCardLink?.url && (
-              <a
-                href={addCardLink.url}
-                className="mt-3 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-              >
-                Add payment method
-              </a>
-            )}
+            <button
+              type="button"
+              onClick={() => setAddCardOpen(true)}
+              className="mt-3 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            >
+              Add payment method
+            </button>
           </div>
 
           {/* Remember that */}
@@ -545,6 +541,19 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           </button>
         </div>
       </div>
+
+      {/* Add Card Dialog */}
+      <Dialog open={addCardOpen} onOpenChange={setAddCardOpen}>
+        <DialogContent className="max-w-sm gap-4 p-6">
+          <DialogTitle className="text-base font-bold text-gray-800">
+            Add payment method
+          </DialogTitle>
+          <AddCardForm
+            onSuccess={() => setAddCardOpen(false)}
+            onCancel={() => setAddCardOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Address Picker Dialog */}
       <Dialog open={addressPickerOpen} onOpenChange={setAddressPickerOpen}>

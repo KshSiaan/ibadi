@@ -319,7 +319,7 @@ export interface PaymentMethod {
 
 export interface SaveCardRequest {
   paymentMethodId: string;
-  customerId: string;
+  customerId?: string;
 }
 
 /* ─── Homepage Types ─── */
