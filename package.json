@@ -5,16 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3000",
     "lint": "biome check",
     "format": "biome format --write"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
-<<<<<<< HEAD
-=======
     "@react-oauth/google": "^0.13.5",
->>>>>>> 1991acf0751c83cb596f265518575a4139479059
     "@stripe/react-stripe-js": "^6.6.0",
     "@stripe/stripe-js": "^9.8.0",
     "@tabler/icons-react": "^3.44.0",

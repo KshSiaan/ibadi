@@ -1,0 +1,17 @@
+services:
+  frontend:
+    build: .
+    image: nazmulhasn/iumi_web:latest
+    container_name: iumi_website
+    restart: unless-stopped
+    environment:
+      - .env.local
+      - PORT=3000
+    expose:
+      - "3000"
+    networks:
+      - iumi_net
+
+networks:
+  iumi_net:
+    driver: bridge
