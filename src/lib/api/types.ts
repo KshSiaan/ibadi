@@ -520,7 +520,10 @@ export interface RefreshTokenResponse {
 }
 
 export interface GoogleLoginRequest {
+  email: string;
+  fcmToken: string;
   token: string;
+  role?: "user" | "service_provider";
 }
 
 /* ─── Chat Types ─── */

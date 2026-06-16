@@ -1,6 +1,18 @@
+import { getApps, initializeApp } from "firebase/app";
 import { base_api, base_url } from "./utils";
 
 const onDev = process.env.NODE_ENV === "development";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCsQ39r6-yYumBsxLpirIcjJUwzIpBkdBo",
+  authDomain: "service-provider-umi.firebaseapp.com",
+  projectId: "service-provider-umi",
+  storageBucket: "service-provider-umi.firebasestorage.app",
+  messagingSenderId: "102179953373",
+  appId: "1:102179953373:web:91f95932433488a1211934",
+};
+
+export const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
 // Example usage
 export const apiConfig = {
