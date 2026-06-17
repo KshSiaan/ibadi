@@ -63,6 +63,7 @@ export interface ServiceProviderProfile {
 export interface LoginRequest {
   email: string;
   password: string;
+  fcmToken:string
 }
 
 export interface LoginResponse {

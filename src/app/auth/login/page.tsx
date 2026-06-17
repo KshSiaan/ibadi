@@ -29,6 +29,8 @@ export default function LoginPage() {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const idToken = await result.user.getIdToken();
       const fcmToken = await requestFcmToken();
+      console.log("🚀 ~ triggerGoogleLogin ~ fcmToken:", fcmToken)
+      
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken },
         {
@@ -64,7 +66,7 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    login({ email, password}, { onSuccess: () => router.push("/") });
+    login({ email, password, fcmToken}, { onSuccess: () => router.push("/") });
   };
 
   const errorMessage = error?.message || googleError || "";
