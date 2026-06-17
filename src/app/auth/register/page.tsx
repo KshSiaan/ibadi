@@ -22,8 +22,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
 import { useRegister } from "@/hooks/api/use-register";
-import { useFcm } from "@/hooks/use-fcm";
 import { firebaseAuth, googleProvider } from "@/lib/firebase-auth";
+import { getFcmToken } from "@/lib/firebase-messaging";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -43,7 +43,6 @@ export default function RegisterPage() {
     null,
   );
 
-  const fcmToken = useFcm();
   const { mutate: register, isPending: loading, error } = useRegister();
   const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
   const [googleError, setGoogleError] = useState<string | null>(null);
@@ -53,8 +52,13 @@ export default function RegisterPage() {
     try {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const idToken = await result.user.getIdToken();
+      const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+      let fcmToken: string | undefined;
+      if (vapidKey) {
+        fcmToken = await getFcmToken(vapidKey).catch(() => undefined);
+      }
       googleLogin(
-        { token: idToken, email: result.user.email ?? "", fcmToken: fcmToken || undefined, role },
+        { token: idToken, email: result.user.email ?? "", fcmToken, role },
         {
           onSuccess: () => router.push("/"),
           onError: (err) => {

@@ -10,8 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
 import { useLogin } from "@/hooks/api/use-login";
-import { useFcm } from "@/hooks/use-fcm";
 import { firebaseAuth, googleProvider } from "@/lib/firebase-auth";
+import { getFcmToken } from "@/lib/firebase-messaging";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,7 +20,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
 
-  const fcmToken = useFcm();
   const { mutate: login, isPending: loading, error } = useLogin();
   const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
 
@@ -29,8 +28,13 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const idToken = await result.user.getIdToken();
+      const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+      let fcmToken: string | undefined;
+      if (vapidKey) {
+        fcmToken = await getFcmToken(vapidKey).catch(() => undefined);
+      }
       googleLogin(
-        { token: idToken, email: result.user.email ?? "", fcmToken: fcmToken || undefined },
+        { token: idToken, email: result.user.email ?? "", fcmToken },
         {
           onSuccess: () => router.push("/"),
           onError: (err) => {
