@@ -64,7 +64,7 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    login({ email, password, fcmToken: fcmToken || undefined }, { onSuccess: () => router.push("/") });
+    login({ email, password}, { onSuccess: () => router.push("/") });
   };
 
   const errorMessage = error?.message || googleError || "";
