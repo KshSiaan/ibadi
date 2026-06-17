@@ -331,14 +331,14 @@ export function AuthDialog({
             <Button className="w-full bg-blue-600 hover:bg-blue-700">
               Continue with Facebook
             </Button> */}
-            <Button variant="outline" className="w-full">
+            {/* <Button variant="outline" className="w-full">
               <FcGoogle />
               Continue with Google
             </Button>
             <div className="my-2 flex items-center gap-4 text-gray-400">
               <div className="h-px flex-1 bg-gray-200" /> or{" "}
               <div className="h-px flex-1 bg-gray-200" />
-            </div>
+            </div> */}
             <Button className="w-full" asChild>
               <Link href="/auth/login">Log in with email</Link>
             </Button>

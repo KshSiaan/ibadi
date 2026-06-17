@@ -55,10 +55,34 @@ export default function RegisterPage() {
       const idToken = await result.user.getIdToken();
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken, role },
-        { onSuccess: () => router.push("/") },
+        {
+          onSuccess: () => router.push("/"),
+          onError: (err) => {
+            console.error("[Google Signup] API error:", err);
+            setGoogleError(err.message || "Server rejected Google sign-in");
+          },
+        },
       );
-    } catch {
-      setGoogleError("Google sign-in failed");
+    } catch (err) {
+      const fbErr = err as { code?: string; message?: string };
+      const code = fbErr.code ?? "unknown";
+      const msg = fbErr.message ?? "";
+      console.error("[Google Signup] Firebase error:", code, msg);
+      if (code === "auth/unauthorized-domain") {
+        setGoogleError(
+          `This domain is not authorized for Google sign-in. Add it to Firebase Console → Authentication → Authorized Domains. (${code})`,
+        );
+      } else if (code === "auth/popup-blocked") {
+        setGoogleError(
+          "Pop-up was blocked by your browser. Allow pop-ups for this site and try again.",
+        );
+      } else if (code === "auth/popup-closed-by-user") {
+        setGoogleError("Sign-in pop-up was closed. Please try again.");
+      } else if (code === "auth/cancelled-popup-request") {
+        // user triggered another click — silent
+      } else {
+        setGoogleError(`Google sign-in failed: ${msg || code}`);
+      }
     }
   };
 

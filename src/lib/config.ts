@@ -5,7 +5,9 @@ const onDev = process.env.NODE_ENV === "development";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCsQ39r6-yYumBsxLpirIcjJUwzIpBkdBo",
-  authDomain: "service-provider-umi.firebaseapp.com",
+  authDomain:
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ??
+    "service-provider-umi.firebaseapp.com",
   projectId: "service-provider-umi",
   storageBucket: "service-provider-umi.firebasestorage.app",
   messagingSenderId: "102179953373",
