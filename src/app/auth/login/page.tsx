@@ -30,7 +30,7 @@ export default function LoginPage() {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const idToken = await result.user.getIdToken();
       googleLogin(
-        { token: idToken, email: result.user.email ?? "", fcmToken },
+        { token: idToken, email: result.user.email ?? "", fcmToken: fcmToken || undefined },
         {
           onSuccess: () => router.push("/"),
           onError: (err) => {
@@ -62,7 +62,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     login({ email, password }, { onSuccess: () => router.push("/") });
   };

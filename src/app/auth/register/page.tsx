@@ -54,7 +54,7 @@ export default function RegisterPage() {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const idToken = await result.user.getIdToken();
       googleLogin(
-        { token: idToken, email: result.user.email ?? "", fcmToken, role },
+        { token: idToken, email: result.user.email ?? "", fcmToken: fcmToken || undefined, role },
         {
           onSuccess: () => router.push("/"),
           onError: (err) => {
@@ -96,7 +96,7 @@ export default function RegisterPage() {
       }
     : undefined;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     register(
