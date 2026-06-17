@@ -42,6 +42,7 @@ function CardIcon({ brand }: { brand: string }) {
 export default function PaymentsMethodsPage() {
   const router = useRouter();
   const { data: cards, isLoading } = useGetPaymentMethods();
+  console.log(cards);
   const deleteCard = useDeleteCard();
 
   const [showMenuId, setShowMenuId] = useState<string | null>(null);
