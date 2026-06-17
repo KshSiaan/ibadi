@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
 import { useRegister } from "@/hooks/api/use-register";
 import { firebaseAuth, googleProvider } from "@/lib/firebase-auth";
-import { getFcmToken } from "@/lib/firebase-messaging";
+import { requestFcmToken } from "@/lib/firebase-messaging";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -52,11 +52,7 @@ export default function RegisterPage() {
     try {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const idToken = await result.user.getIdToken();
-      const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-      let fcmToken: string | undefined;
-      if (vapidKey) {
-        fcmToken = await getFcmToken(vapidKey).catch(() => undefined);
-      }
+      const fcmToken = await requestFcmToken();
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken, role },
         {
