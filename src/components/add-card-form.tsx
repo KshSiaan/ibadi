@@ -11,7 +11,15 @@ const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
 );
 
-function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: () => void }) {
+function CardForm({
+  onSuccess,
+  onCancel,
+  customerId,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+  customerId: string;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const saveCard = useSaveCard();
@@ -22,7 +30,7 @@ function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: ()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !customerId) return;
 
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) return;
@@ -44,6 +52,7 @@ function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: ()
     try {
       await saveCard.mutateAsync({
         paymentMethodId: paymentMethod.id,
+        customerId,
       });
     } catch {
       // backend may return non-standard success flag while still saving the card
@@ -86,7 +95,7 @@ function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: ()
         </button>
         <button
           type="submit"
-          disabled={submitting || !stripe}
+          disabled={submitting || !stripe || !customerId}
           className="flex-1 rounded-xl bg-primary py-3 text-sm font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {submitting && <Loader2 className="size-4 animate-spin" />}
@@ -97,10 +106,18 @@ function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: ()
   );
 }
 
-export function AddCardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: () => void }) {
+export function AddCardForm({
+  onSuccess,
+  onCancel,
+  customerId,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+  customerId: string;
+}) {
   return (
     <Elements stripe={stripePromise}>
-      <CardForm onSuccess={onSuccess} onCancel={onCancel} />
+      <CardForm onSuccess={onSuccess} onCancel={onCancel} customerId={customerId} />
     </Elements>
   );
 }

@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { FcGoogle } from "react-icons/fc";
 import { useCookies } from "react-cookie";
 
 type View = "role" | "register" | "login";
@@ -21,7 +20,7 @@ const navLinks = [
   { label: "Payments", href: "/profile/payments" },
   { label: "Profile", href: "/profile" },
   { label: "Settings", href: "/profile/personal-details" },
-  { label: "Support", href: "/inbox" },
+  { label: "Support", href: "/profile" },
 ];
 const professionalNavLinks = [
   { label: "Calendar", href: "/professional/calendar" },
@@ -84,7 +83,7 @@ export default function Navbar() {
         <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
           {links.slice(0, 4).map((link) => (
             <Link
-              key={link.href}
+              key={link.label}
               href={link.href}
               className={cn(
                 "text-sm font-medium transition-colors",
@@ -169,7 +168,7 @@ export default function Navbar() {
         <nav className="flex flex-col gap-1 border-t border-gray-100 bg-white px-6 py-4">
           {links.map((link) => (
             <Link
-              key={link.href}
+              key={link.label}
               href={link.href}
               className={cn(
                 "rounded-md px-3 py-2 text-sm font-medium",
