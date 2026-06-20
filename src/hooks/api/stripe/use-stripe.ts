@@ -45,11 +45,11 @@ export function useSaveCard() {
   const [cookies] = useCookies(["accessToken"]);
   const queryClient = useQueryClient();
 
-  return useMutation<{ message: string }, Error, SaveCardRequest>({
-    mutationFn: async (data: SaveCardRequest) => {
+  return useMutation<{ message: string }, Error, Pick<SaveCardRequest, "paymentMethodId" | "customerId">>({
+    mutationFn: async ({ paymentMethodId, customerId }) => {
       const response = await apiClient.post<ApiResponse<{ message: string }>>(
         "/stripe/payment-method/save",
-        data,
+        { paymentMethodId, customerId },
         cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);

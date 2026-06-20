@@ -14,9 +14,12 @@ import {
   useDeleteCard,
 } from "@/hooks/api/stripe/use-stripe";
 import { AddCardForm } from "@/components/add-card-form";
+import { useQuery } from "@tanstack/react-query";
+import { howl } from "@/lib/utils";
+import { useCookies } from "react-cookie";
 
-function CardIcon({ brand }: { brand: string }) {
-  const b = brand.toLowerCase();
+function CardIcon({ brand }: { brand?: string }) {
+  const b = (brand ?? "").toLowerCase();
   if (b === "visa") {
     return (
       <div className="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center">
@@ -34,16 +37,33 @@ function CardIcon({ brand }: { brand: string }) {
   }
   return (
     <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-      <span className="text-white text-xs font-bold">{brand[0]?.toUpperCase() ?? "C"}</span>
+      <span className="text-white text-xs font-bold">
+        {brand?.[0]?.toUpperCase() ?? "C"}
+      </span>
     </div>
   );
 }
 
 export default function PaymentsMethodsPage() {
   const router = useRouter();
+  const [{ accessToken }] = useCookies(["accessToken"]);
   const { data: cards, isLoading } = useGetPaymentMethods();
-  console.log(cards);
   const deleteCard = useDeleteCard();
+
+  const { data } = useQuery({
+    queryKey: ["getCustomerId"],
+    queryFn: async (): Promise<{
+      success: boolean;
+      message: string;
+      data: string; // customerID
+    }> => {
+      const res: any = await howl("/stripe/get-customer", {
+        token: accessToken,
+      });
+      return res;
+    },
+    enabled: !!accessToken,
+  });
 
   const [showMenuId, setShowMenuId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -80,11 +100,15 @@ export default function PaymentsMethodsPage() {
         <h2 className="text-sm font-semibold text-gray-700 mb-4">Your Card</h2>
 
         {isLoading && (
-          <p className="text-sm text-gray-500 text-center py-6">Loading cards...</p>
+          <p className="text-sm text-gray-500 text-center py-6">
+            Loading cards...
+          </p>
         )}
 
         {!isLoading && cards?.length === 0 && (
-          <p className="text-sm text-gray-500 text-center py-6">No cards saved</p>
+          <p className="text-sm text-gray-500 text-center py-6">
+            No cards saved
+          </p>
         )}
 
         <div className="space-y-3 mb-6">
@@ -99,7 +123,9 @@ export default function PaymentsMethodsPage() {
                   <span className="text-sm font-medium text-gray-900 capitalize">
                     {card.brand}
                     {card.isDefault && (
-                      <span className="ml-2 text-xs text-primary">(Default)</span>
+                      <span className="ml-2 text-xs text-primary">
+                        (Default)
+                      </span>
                     )}
                   </span>
                   <span className="text-xs text-gray-500">
@@ -159,6 +185,7 @@ export default function PaymentsMethodsPage() {
           <AddCardForm
             onSuccess={() => setAddCardOpen(false)}
             onCancel={() => setAddCardOpen(false)}
+            customerId={data?.data ?? ""}
           />
         </DialogContent>
       </Dialog>

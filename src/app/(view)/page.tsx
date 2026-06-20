@@ -26,43 +26,27 @@ import {
 } from "@/hooks/api/notifications/use-notifications";
 import type { Address, Category } from "@/lib/api/types";
 
-
-/* ─── ServiceNode ─── */
-function ServiceNode({
+/* ─── Category Card ─── */
+function CategoryCard({
   icon,
   label,
   id,
-  angleDeg,
-  radius,
-  onClick,
 }: {
   icon: string;
   label: string;
   id: string;
-  angleDeg: number;
-  radius: number;
-  onClick?: () => void;
 }) {
-  const rad = (angleDeg * Math.PI) / 180;
-  const x = Math.round(radius * Math.cos(rad));
-  const y = Math.round(radius * Math.sin(rad));
   return (
     <Link
       href={`/book?service=${id}`}
-      className="absolute flex flex-col items-center gap-2 focus:outline-none"
-      style={{
-        top: "50%",
-        left: "50%",
-        transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-      }}
+      className="flex flex-col items-center gap-3 rounded-2xl border border-[#e0e0e0] bg-white p-4 shadow-sm transition-shadow hover:shadow-md focus:outline-none"
     >
-      <div
-        className="flex items-center justify-center rounded-full border border-[#e0e0e0] bg-white shadow-sm transition-shadow hover:shadow-md"
-        style={{ width: 88, height: 88 }}
-      >
-        <Image src={icon} alt={label} width={42} height={42} />
+      <div className="flex size-16 items-center justify-center rounded-full bg-gray-50">
+        <Image src={icon} alt={label} width={40} height={40} />
       </div>
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-center text-sm font-medium text-gray-700 leading-tight">
+        {label}
+      </span>
     </Link>
   );
 }
@@ -200,7 +184,7 @@ function NotificationPopoverContent() {
 
 /* ─── Page ─── */
 export default function Page() {
-  const { setSelectedService, setServiceAddress } = useServiceBooking();
+  const { setServiceAddress } = useServiceBooking();
   const [addressOpen, setAddressOpen] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     null,
@@ -216,10 +200,6 @@ export default function Page() {
     addresses.find((a) => a.id === selectedAddressId) ??
     addresses.find((a) => a.isDefault) ??
     null;
-
-  const handleServiceSelect = (service: string) => {
-    setSelectedService(service);
-  };
 
   const handleConfirmAddress = () => {
     if (selectedAddress) {
@@ -291,49 +271,25 @@ export default function Page() {
         </Popover>
       </div>
 
-      {/* Radial wheel */}
-      <div
-        className="relative origin-center scale-[0.55] sm:scale-75 md:scale-90 lg:scale-100"
-        style={{ width: 520, height: 520 }}
-      >
-        <div
-          className="absolute flex flex-col items-center gap-2"
-          style={{
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%,-50%)",
-          }}
-        >
-          <div
-            className="flex items-center justify-center rounded-full border-2 border-primary bg-white shadow-lg"
-            style={{ width: 148, height: 148 }}
-          >
-            <Image
-              src="/icons/headphone-icon.svg"
-              alt="Support"
-              width={64}
-              height={64}
-            />
+      {/* Categories grid */}
+      <div className="w-full max-w-3xl px-4 py-8">
+        <h2 className="mb-6 text-xl font-bold text-gray-800">Our Services</h2>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="size-6 animate-spin text-gray-400" />
           </div>
-          <span className="text-lg font-bold text-primary">Support</span>
-        </div>
-
-        {categories.map((category, index) => {
-            const totalItems = categories.length;
-            const angleDeg = (index * 360) / totalItems - 90;
-            return (
-              <ServiceNode
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {categories.map((category) => (
+              <CategoryCard
                 key={category.id}
                 id={category.id}
                 icon={category.image}
                 label={category.name}
-                angleDeg={angleDeg}
-                radius={210}
-                onClick={() => handleServiceSelect(category.name)}
               />
-            );
-          })}
-
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Address button */}

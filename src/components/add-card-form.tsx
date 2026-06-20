@@ -5,28 +5,32 @@ import { Elements, CardElement, useStripe, useElements } from "@stripe/react-str
 import { loadStripe } from "@stripe/stripe-js";
 import { Loader2 } from "lucide-react";
 import { useSaveCard } from "@/hooks/api/stripe/use-stripe";
-import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useQueryClient } from "@tanstack/react-query";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
 );
 
-function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: () => void }) {
+function CardForm({
+  onSuccess,
+  onCancel,
+  customerId,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+  customerId: string;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const saveCard = useSaveCard();
-  const { data: profile, isLoading: profileLoading } = useMyProfile();
   const queryClient = useQueryClient();
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const busy = submitting || profileLoading;
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!stripe || !elements || !profile) return;
+    if (!stripe || !elements || !customerId) return;
 
     const cardElement = elements.getElement(CardElement);
     if (!cardElement) return;
@@ -48,7 +52,7 @@ function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: ()
     try {
       await saveCard.mutateAsync({
         paymentMethodId: paymentMethod.id,
-        ...(profile.customerId ? { customerId: profile.customerId } : {}),
+        customerId,
       });
     } catch {
       // backend may return non-standard success flag while still saving the card
@@ -84,28 +88,36 @@ function CardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: ()
         <button
           type="button"
           onClick={onCancel}
-          disabled={busy}
+          disabled={submitting}
           className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-600 disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           type="submit"
-          disabled={busy || !stripe}
+          disabled={submitting || !stripe || !customerId}
           className="flex-1 rounded-xl bg-primary py-3 text-sm font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {busy && <Loader2 className="size-4 animate-spin" />}
-          {submitting ? "Saving..." : profileLoading ? "Loading..." : "Save card"}
+          {submitting && <Loader2 className="size-4 animate-spin" />}
+          {submitting ? "Saving..." : "Save card"}
         </button>
       </div>
     </form>
   );
 }
 
-export function AddCardForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel: () => void }) {
+export function AddCardForm({
+  onSuccess,
+  onCancel,
+  customerId,
+}: {
+  onSuccess: () => void;
+  onCancel: () => void;
+  customerId: string;
+}) {
   return (
     <Elements stripe={stripePromise}>
-      <CardForm onSuccess={onSuccess} onCancel={onCancel} />
+      <CardForm onSuccess={onSuccess} onCancel={onCancel} customerId={customerId} />
     </Elements>
   );
 }
