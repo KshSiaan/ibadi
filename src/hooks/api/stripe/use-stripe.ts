@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient, ApiResponse } from "@/lib/api/client";
 import { PaymentMethod, SaveCardRequest } from "@/lib/api/types";
 import { useCookies } from "react-cookie";
+import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 
 export function useGetPaymentMethods() {
   const [cookies] = useCookies(["accessToken"]);
@@ -44,12 +45,13 @@ export function useGetAddCardLink() {
 export function useSaveCard() {
   const [cookies] = useCookies(["accessToken"]);
   const queryClient = useQueryClient();
+  const { data: profile } = useMyProfile();
 
-  return useMutation<{ message: string }, Error, SaveCardRequest>({
-    mutationFn: async (data: SaveCardRequest) => {
+  return useMutation<{ message: string }, Error, Pick<SaveCardRequest, "paymentMethodId">>({
+    mutationFn: async ({ paymentMethodId }) => {
       const response = await apiClient.post<ApiResponse<{ message: string }>>(
         "/stripe/payment-method/save",
-        data,
+        { paymentMethodId, customerId: profile?.id ?? "" },
         cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);

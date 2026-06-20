@@ -15,18 +15,22 @@ import { useCookies } from "react-cookie";
 type View = "role" | "register" | "login";
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Service", href: "/service" },
-  { label: "Favourite", href: "/favourite" },
-  { label: "Inbox", href: "/inbox" },
+  { label: "Bookings", href: "/profile/payments/bookings" },
+  { label: "Services", href: "/service" },
+  { label: "Calendar", href: "/inbox" },
+  { label: "Payments", href: "/profile/payments" },
   { label: "Profile", href: "/profile" },
+  { label: "Settings", href: "/profile/personal-details" },
+  { label: "Support", href: "/inbox" },
 ];
 const professionalNavLinks = [
   { label: "Calendar", href: "/professional/calendar" },
-  { label: "Notification", href: "/professional/notification" },
-  { label: "Request", href: "/professional/request" },
-  { label: "Inbox", href: "/inbox" },
+  { label: "Services", href: "/professional" },
+  { label: "Availability", href: "/professional/request" },
+  { label: "Payments", href: "/profile/payments" },
   { label: "Profile", href: "/profile" },
+  { label: "Settings", href: "/profile/personal-details" },
+  { label: "Support", href: "/inbox" },
 ];
 
 export default function Navbar() {
@@ -78,7 +82,7 @@ export default function Navbar() {
         </Link>
 
         <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
-          {links.map((link) => (
+          {links.slice(0, 4).map((link) => (
             <Link
               key={link.href}
               href={link.href}
