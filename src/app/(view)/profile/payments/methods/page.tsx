@@ -55,7 +55,7 @@ export default function PaymentsMethodsPage() {
     queryFn: async (): Promise<{
       success: boolean;
       message: string;
-      data: string; // customerID
+      data: string;
     }> => {
       const res: any = await howl("/stripe/get-customer", {
         token: accessToken,

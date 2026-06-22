@@ -9,16 +9,18 @@ export function useUpdateServiceProviderInfo() {
   const [cookies] = useCookies(["accessToken"]);
   const queryClient = useQueryClient();
 
-  return useMutation<User, Error, FormData>({
-    mutationFn: async (formData: FormData) => {
+  return useMutation<User, Error, FormData | Record<string, unknown>>({
+    mutationFn: async (payload: FormData | Record<string, unknown>) => {
+      const isFormData = payload instanceof FormData;
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1/users/service-provider-info`,
         {
           method: "PATCH",
           headers: {
             Authorization: `Bearer ${cookies.accessToken}`,
+            ...(!isFormData ? { "Content-Type": "application/json" } : {}),
           },
-          body: formData,
+          body: isFormData ? payload : JSON.stringify(payload),
         },
       );
       const json: ApiResponse<User> = await res.json();

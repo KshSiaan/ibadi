@@ -56,7 +56,7 @@ export default function RegisterPage() {
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken, role },
         {
-          onSuccess: () => router.push("/"),
+          onSuccess: (data) => router.push(data.user.role === "service_provider" ? "/professional" : "/"),
           onError: (err) => {
             console.error("[Google Signup] API error:", err);
             setGoogleError(err.message || "Server rejected Google sign-in");

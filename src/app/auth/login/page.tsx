@@ -32,7 +32,7 @@ export default function LoginPage() {
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken },
         {
-          onSuccess: () => router.push("/"),
+          onSuccess: (data) => router.push(data.user.role === "service_provider" ? "/professional" : "/"),
           onError: (err) => {
             console.error("[Google Login] API error:", err);
             setGoogleError(err.message || "Server rejected Google sign-in");
@@ -65,7 +65,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fcmToken = await requestFcmToken();
-    login({ email, password, fcmToken }, { onSuccess: () => router.push("/") });
+    login({ email, password, fcmToken }, { onSuccess: (data) => router.push(data.user.role === "service_provider" ? "/professional" : "/") });
   };
 
   const errorMessage = error?.message || googleError || "";

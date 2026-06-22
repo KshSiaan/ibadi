@@ -3,29 +3,37 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
+import { useCategories } from "@/hooks/api/use-categories";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 
-type Step = 0 | 1 | 2;
+type Step = 0 | 1 | 2 | 3;
 
 const slides = [
   {
     id: 1,
     illustration: "/icons/home/1.svg",
-    title: "Set up your\nprofile",
+    title: "Your\nSpecialties",
     description:
-      "Tell clients what services you can offer. Choose the options that apply to you.",
+      "Select the service categories you offer. Clients will use these to find and book you.",
   },
   {
     id: 2,
+    illustration: "/icons/home/1.svg",
+    title: "Set up your\nprofile",
+    description:
+      "Tell clients what additional services you can offer. Choose the options that apply to you.",
+  },
+  {
+    id: 3,
     illustration: "/icons/home/2.svg",
     title: "About\nyou",
     description:
       "Write a short bio and set your hourly rate so clients know what to expect.",
   },
   {
-    id: 3,
+    id: 4,
     illustration: "/icons/home/3.svg",
     title: "Ready\nto go!",
     description:
@@ -34,6 +42,7 @@ const slides = [
 ];
 
 interface FormData {
+  specialistsInIds: string[];
   palliativeCare: boolean;
   drivingLicense: boolean;
   businessProfiles: boolean;
@@ -48,6 +57,7 @@ export default function ProviderSetupGate({
 }) {
   const [step, setStep] = useState<Step>(0);
   const [form, setForm] = useState<FormData>({
+    specialistsInIds: [],
     palliativeCare: false,
     drivingLicense: false,
     businessProfiles: false,
@@ -57,15 +67,25 @@ export default function ProviderSetupGate({
   const [done, setDone] = useState(false);
 
   const { mutate, isPending, error } = useUpdateServiceProviderInfo();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
   const slide = slides[step];
+
+  function toggleCategory(id: string) {
+    setForm((p) => ({
+      ...p,
+      specialistsInIds: p.specialistsInIds.includes(id)
+        ? p.specialistsInIds.filter((c) => c !== id)
+        : [...p.specialistsInIds, id],
+    }));
+  }
 
   function toggle(key: "palliativeCare" | "drivingLicense" | "businessProfiles") {
     setForm((p) => ({ ...p, [key]: !p[key] }));
   }
 
   function next() {
-    if (step < 2) {
+    if (step < 3) {
       setStep((s) => (s + 1) as Step);
     } else {
       submit();
@@ -77,21 +97,27 @@ export default function ProviderSetupGate({
   }
 
   function submit() {
-    const fd = new globalThis.FormData();
-    fd.append("palliativeCare", String(form.palliativeCare));
-    fd.append("drivingLicense", String(form.drivingLicense));
-    fd.append("businessProfiles", String(form.businessProfiles));
-    fd.append("bio", form.bio);
-    fd.append("perHourPrice", form.perHourPrice || "0");
-    mutate(fd, { onSuccess: () => setDone(true) });
+    mutate(
+      {
+        specialistsIn: form.specialistsInIds,
+        palliativeCare: String(form.palliativeCare),
+        drivingLicense: String(form.drivingLicense),
+        businessProfiles: String(form.businessProfiles),
+        bio: form.bio,
+        perHourPrice: form.perHourPrice ? Number(form.perHourPrice) : 0,
+      },
+      { onSuccess: () => setDone(true) },
+    );
   }
 
   const canProceed =
     step === 0
-      ? true
+      ? form.specialistsInIds.length > 0
       : step === 1
-        ? form.bio.trim().length > 0
-        : !isPending;
+        ? true
+        : step === 2
+          ? form.bio.trim().length > 0
+          : !isPending;
 
   if (done) return <>{children}</>;
 
@@ -111,10 +137,10 @@ export default function ProviderSetupGate({
         ) : (
           <span />
         )}
-        {step < 2 && (
+        {step < 3 && (
           <button
             type="button"
-            onClick={() => setStep(2)}
+            onClick={() => setStep(3)}
             className="text-sm font-semibold text-primary"
           >
             Skip
@@ -150,8 +176,56 @@ export default function ProviderSetupGate({
           {slide.description}
         </p>
 
-        {/* Step-specific fields */}
+        {/* Step 0: Category selection */}
         {step === 0 && (
+          <div className="mt-2 w-full max-w-md">
+            {categoriesLoading ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="size-5 animate-spin text-gray-400" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {categories.map((cat) => {
+                  const selected = form.specialistsInIds.includes(cat.id);
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => toggleCategory(cat.id)}
+                      className={`relative flex flex-col items-center gap-2 rounded-xl border-2 bg-white px-3 py-4 text-center transition-colors ${
+                        selected
+                          ? "border-primary bg-primary/5"
+                          : "border-transparent shadow-sm hover:border-primary/40"
+                      }`}
+                    >
+                      {selected && (
+                        <CheckCircle2 className="absolute right-2 top-2 size-4 text-primary" />
+                      )}
+                      <Image
+                        src={cat.image}
+                        alt={cat.name}
+                        width={36}
+                        height={36}
+                        className="rounded-md"
+                      />
+                      <span className="text-xs font-medium text-gray-700 leading-tight">
+                        {cat.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {form.specialistsInIds.length > 0 && (
+              <p className="mt-3 text-center text-xs text-primary font-semibold">
+                {form.specialistsInIds.length} selected
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Step 1: Capabilities */}
+        {step === 1 && (
           <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
             {(
               [
@@ -176,7 +250,8 @@ export default function ProviderSetupGate({
           </div>
         )}
 
-        {step === 1 && (
+        {/* Step 2: Bio + rate */}
+        {step === 2 && (
           <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
             <Textarea
               rows={3}
@@ -198,8 +273,18 @@ export default function ProviderSetupGate({
           </div>
         )}
 
-        {step === 2 && (
+        {/* Step 3: Review */}
+        {step === 3 && (
           <div className="mt-2 w-full max-w-sm rounded-xl bg-white px-4 py-3 shadow-sm text-sm text-gray-600 flex flex-col gap-1.5">
+            <p>
+              <span className="font-medium">Specialties:</span>{" "}
+              {form.specialistsInIds.length > 0
+                ? form.specialistsInIds
+                    .map((id) => categories.find((c) => c.id === id)?.name)
+                    .filter(Boolean)
+                    .join(", ")
+                : <span className="text-gray-400">—</span>}
+            </p>
             <p>
               <span className="font-medium">Palliative Care:</span>{" "}
               {form.palliativeCare ? "Yes" : "No"}
@@ -238,7 +323,7 @@ export default function ProviderSetupGate({
           ))}
         </div>
 
-        {/* Next / Submit button */}
+        {/* Next / Submit */}
         <button
           type="button"
           onClick={next}
@@ -246,7 +331,7 @@ export default function ProviderSetupGate({
           className="mt-4 w-full max-w-sm rounded-xl bg-primary py-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isPending && <Loader2 className="size-4 animate-spin" />}
-          {step < 2 ? "Next" : isPending ? "Saving..." : "Submit"}
+          {step < 3 ? "Next" : isPending ? "Saving..." : "Submit"}
         </button>
       </div>
     </div>

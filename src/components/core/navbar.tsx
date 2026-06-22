@@ -24,12 +24,12 @@ const navLinks = [
 ];
 const professionalNavLinks = [
   { label: "Calendar", href: "/professional/calendar" },
-  { label: "Services", href: "/professional" },
-  { label: "Availability", href: "/professional/request" },
+  { label: "Notification", href: " /professional/notification" },
+  { label: "Request", href: "/professional/request" },
   { label: "Payments", href: "/profile/payments" },
+  { label: "Inbox", href: "/inbox" },
   { label: "Profile", href: "/profile" },
   { label: "Settings", href: "/profile/personal-details" },
-  { label: "Support", href: "/inbox" },
 ];
 
 export default function Navbar() {
@@ -81,7 +81,7 @@ export default function Navbar() {
         </Link>
 
         <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
-          {links.slice(0, 4).map((link) => (
+          {links.slice(0, 5).map((link) => (
             <Link
               key={link.label}
               href={link.href}
