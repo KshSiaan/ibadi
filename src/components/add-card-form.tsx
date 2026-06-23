@@ -113,7 +113,7 @@ export function AddCardForm({
 }: {
   onSuccess: () => void;
   onCancel: () => void;
-  customerId: string;
+  customerId?: string;
 }) {
   return (
     <Elements stripe={stripePromise}>
