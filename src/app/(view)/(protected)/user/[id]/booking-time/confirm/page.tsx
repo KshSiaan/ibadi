@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { use, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 function RadioCircle({ selected }: { selected: boolean }) {
   return (
@@ -478,13 +479,14 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                 ))
               )}
             </div>
+            <Link href="/user/payment-methods">
             <button
               type="button"
-              onClick={() => setAddCardOpen(true)}
+              
               className="mt-3 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               Add payment method
-            </button>
+            </button></Link>
           </div>
 
           {/* Remember that */}
@@ -543,17 +545,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
       </div>
 
       {/* Add Card Dialog */}
-      <Dialog open={addCardOpen} onOpenChange={setAddCardOpen}>
-        <DialogContent className="max-w-sm gap-4 p-6">
-          <DialogTitle className="text-base font-bold text-gray-800">
-            Add payment method
-          </DialogTitle>
-          <AddCardForm
-            onSuccess={() => setAddCardOpen(false)}
-            onCancel={() => setAddCardOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+
 
       {/* Address Picker Dialog */}
       <Dialog open={addressPickerOpen} onOpenChange={setAddressPickerOpen}>
