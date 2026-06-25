@@ -1,14 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
-import { useCategories } from "@/hooks/api/use-categories";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { useCategories } from "@/hooks/api/use-categories";
+import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
+import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
+import type { WorkScheduleEntry } from "@/lib/api/types";
 
-type Step = 0 | 1 | 2 | 3;
+type Step = 0 | 1 | 2 | 3 | 4;
+type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+
+const DAYS: DayKey[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const DAY_FULL: Record<DayKey, string> = {
+  Mon: "Monday",
+  Tue: "Tuesday",
+  Wed: "Wednesday",
+  Thu: "Thursday",
+  Fri: "Friday",
+  Sat: "Saturday",
+  Sun: "Sunday",
+};
 
 const slides = [
   {
@@ -21,25 +36,37 @@ const slides = [
   {
     id: 2,
     illustration: "/icons/home/1.svg",
+    title: "Work\nschedule",
+    description: "When are you available to offer your services?",
+  },
+  {
+    id: 3,
+    illustration: "/icons/home/1.svg",
     title: "Set up your\nprofile",
     description:
       "Tell clients what additional services you can offer. Choose the options that apply to you.",
   },
   {
-    id: 3,
+    id: 4,
     illustration: "/icons/home/2.svg",
     title: "About\nyou",
     description:
       "Write a short bio and set your hourly rate so clients know what to expect.",
   },
   {
-    id: 4,
+    id: 5,
     illustration: "/icons/home/3.svg",
     title: "Ready\nto go!",
     description:
       "Review your details and submit. You can always update them later from your profile.",
   },
 ];
+
+interface DaySchedule {
+  status: boolean;
+  startTime: string;
+  endTime: string;
+}
 
 interface FormData {
   specialistsInIds: string[];
@@ -48,7 +75,14 @@ interface FormData {
   businessProfiles: boolean;
   bio: string;
   perHourPrice: string;
+  schedule: Record<DayKey, DaySchedule>;
 }
+
+const defaultDaySchedule: DaySchedule = {
+  status: false,
+  startTime: "09:00",
+  endTime: "18:00",
+};
 
 export default function ProviderSetupGate({
   children,
@@ -63,13 +97,26 @@ export default function ProviderSetupGate({
     businessProfiles: false,
     bio: "",
     perHourPrice: "",
+    schedule: {
+      Mon: { ...defaultDaySchedule },
+      Tue: { ...defaultDaySchedule },
+      Wed: { ...defaultDaySchedule },
+      Thu: { ...defaultDaySchedule },
+      Fri: { ...defaultDaySchedule },
+      Sat: { ...defaultDaySchedule },
+      Sun: { ...defaultDaySchedule },
+    },
   });
   const [done, setDone] = useState(false);
 
   const { mutate, isPending, error } = useUpdateServiceProviderInfo();
-  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { mutate: createSchedule, isPending: isSchedulePending } =
+    useCreateWorkSchedule();
+  const { data: categories = [], isLoading: categoriesLoading } =
+    useCategories();
 
   const slide = slides[step];
+  const isSubmitting = isPending || isSchedulePending;
 
   function toggleCategory(id: string) {
     setForm((p) => ({
@@ -80,12 +127,38 @@ export default function ProviderSetupGate({
     }));
   }
 
-  function toggle(key: "palliativeCare" | "drivingLicense" | "businessProfiles") {
+  function toggle(
+    key: "palliativeCare" | "drivingLicense" | "businessProfiles",
+  ) {
     setForm((p) => ({ ...p, [key]: !p[key] }));
   }
 
+  function toggleDay(day: DayKey) {
+    setForm((p) => ({
+      ...p,
+      schedule: {
+        ...p.schedule,
+        [day]: { ...p.schedule[day], status: !p.schedule[day].status },
+      },
+    }));
+  }
+
+  function updateDayTime(
+    day: DayKey,
+    field: "startTime" | "endTime",
+    value: string,
+  ) {
+    setForm((p) => ({
+      ...p,
+      schedule: {
+        ...p.schedule,
+        [day]: { ...p.schedule[day], [field]: value },
+      },
+    }));
+  }
+
   function next() {
-    if (step < 3) {
+    if (step < 4) {
       setStep((s) => (s + 1) as Step);
     } else {
       submit();
@@ -97,17 +170,29 @@ export default function ProviderSetupGate({
   }
 
   function submit() {
-    mutate(
-      {
-        specialistsIn: form.specialistsInIds,
-        palliativeCare: String(form.palliativeCare),
-        drivingLicense: String(form.drivingLicense),
-        businessProfiles: String(form.businessProfiles),
-        bio: form.bio,
-        perHourPrice: form.perHourPrice ? Number(form.perHourPrice) : 0,
+    const schedulePayload: WorkScheduleEntry[] = DAYS.map((day) => ({
+      day,
+      userId: "",
+      status: form.schedule[day].status,
+      startTime: form.schedule[day].startTime,
+      endTime: form.schedule[day].endTime,
+    }));
+
+    createSchedule(schedulePayload, {
+      onSuccess: () => {
+        mutate(
+          {
+            specialistsIn: form.specialistsInIds,
+            palliativeCare: String(form.palliativeCare),
+            drivingLicense: String(form.drivingLicense),
+            businessProfiles: String(form.businessProfiles),
+            bio: form.bio,
+            perHourPrice: form.perHourPrice ? Number(form.perHourPrice) : 0,
+          },
+          { onSuccess: () => setDone(true) },
+        );
       },
-      { onSuccess: () => setDone(true) },
-    );
+    });
   }
 
   const canProceed =
@@ -116,20 +201,24 @@ export default function ProviderSetupGate({
       : step === 1
         ? true
         : step === 2
-          ? form.bio.trim().length > 0
-          : !isPending;
+          ? true
+          : step === 3
+            ? form.bio.trim().length > 0
+            : !isSubmitting;
 
   if (done) return <>{children}</>;
 
+  const isScheduleStep = step === 1;
+
   return (
     <div className="z-100 flex flex-col bg-[#f0f0f0] min-h-screen">
-      {/* Skip / Back row */}
+      {/* Back / Skip row */}
       <div className="flex h-14 items-center justify-between px-6 sm:px-10">
         {step > 0 ? (
           <button
             type="button"
             onClick={back}
-            disabled={isPending}
+            disabled={isSubmitting}
             className="text-sm font-semibold text-primary"
           >
             Back
@@ -137,10 +226,10 @@ export default function ProviderSetupGate({
         ) : (
           <span />
         )}
-        {step < 3 && (
+        {step < 4 && (
           <button
             type="button"
-            onClick={() => setStep(3)}
+            onClick={() => setStep(4)}
             className="text-sm font-semibold text-primary"
           >
             Skip
@@ -148,18 +237,20 @@ export default function ProviderSetupGate({
         )}
       </div>
 
-      {/* Illustration */}
-      <div className="flex flex-1 items-end justify-center pb-8">
-        <div className="relative h-70 w-80 sm:h-85 sm:w-100">
-          <Image
-            key={slide.id}
-            src={slide.illustration}
-            alt={slide.title}
-            fill
-            className="object-contain object-bottom"
-          />
+      {/* Illustration — hidden for schedule step */}
+      {!isScheduleStep && (
+        <div className="flex flex-1 items-end justify-center pb-8">
+          <div className="relative h-70 w-80 sm:h-85 sm:w-100">
+            <Image
+              key={slide.id}
+              src={slide.illustration}
+              alt={slide.title}
+              fill
+              className="object-contain object-bottom"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Text + controls */}
       <div className="flex flex-col items-start gap-3 px-8 pb-10 sm:items-center sm:px-16 sm:text-center">
@@ -224,15 +315,79 @@ export default function ProviderSetupGate({
           </div>
         )}
 
-        {/* Step 1: Capabilities */}
+        {/* Step 1: Work schedule */}
         {step === 1 && (
+          <div className="mt-2 w-full max-w-sm divide-y divide-gray-100">
+            {DAYS.map((day) => {
+              const sched = form.schedule[day];
+              return (
+                <div key={day} className="py-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-800">
+                      {DAY_FULL[day]}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleDay(day)}
+                        className={`relative h-7 w-12 rounded-full transition-colors ${
+                          sched.status ? "bg-primary" : "bg-gray-200"
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-0.5 size-6 rounded-full bg-white shadow-sm transition-transform ${
+                            sched.status ? "translate-x-5" : "translate-x-0.5"
+                          }`}
+                        />
+                      </button>
+                      <span
+                        className={`w-24 text-xs ${
+                          sched.status ? "text-gray-700" : "text-gray-400"
+                        }`}
+                      >
+                        {sched.status ? "Available" : "Not available"}
+                      </span>
+                    </div>
+                  </div>
+                  {sched.status && (
+                    <div className="mt-2 flex items-center gap-3">
+                      <input
+                        type="time"
+                        value={sched.startTime}
+                        onChange={(e) =>
+                          updateDayTime(day, "startTime", e.target.value)
+                        }
+                        className="border-b border-gray-300 bg-transparent text-sm font-medium text-gray-700 outline-none w-20"
+                      />
+                      <span className="text-gray-400 text-sm">—</span>
+                      <input
+                        type="time"
+                        value={sched.endTime}
+                        onChange={(e) =>
+                          updateDayTime(day, "endTime", e.target.value)
+                        }
+                        className="border-b border-gray-300 bg-transparent text-sm font-medium text-gray-700 outline-none w-20"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Step 2: Capabilities */}
+        {step === 2 && (
           <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
             {(
               [
                 ["palliativeCare", "Palliative Care"],
                 ["drivingLicense", "Driving License"],
                 ["businessProfiles", "Business Profiles"],
-              ] as ["palliativeCare" | "drivingLicense" | "businessProfiles", string][]
+              ] as [
+                "palliativeCare" | "drivingLicense" | "businessProfiles",
+                string,
+              ][]
             ).map(([key, label]) => (
               <label
                 key={key}
@@ -244,14 +399,16 @@ export default function ProviderSetupGate({
                   onChange={() => toggle(key)}
                   className="accent-primary size-4"
                 />
-                <span className="text-sm font-medium text-gray-700">{label}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {label}
+                </span>
               </label>
             ))}
           </div>
         )}
 
-        {/* Step 2: Bio + rate */}
-        {step === 2 && (
+        {/* Step 3: Bio + rate */}
+        {step === 3 && (
           <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
             <Textarea
               rows={3}
@@ -273,17 +430,32 @@ export default function ProviderSetupGate({
           </div>
         )}
 
-        {/* Step 3: Review */}
-        {step === 3 && (
+        {/* Step 4: Review */}
+        {step === 4 && (
           <div className="mt-2 w-full max-w-sm rounded-xl bg-white px-4 py-3 shadow-sm text-sm text-gray-600 flex flex-col gap-1.5">
             <p>
               <span className="font-medium">Specialties:</span>{" "}
-              {form.specialistsInIds.length > 0
-                ? form.specialistsInIds
-                    .map((id) => categories.find((c) => c.id === id)?.name)
-                    .filter(Boolean)
-                    .join(", ")
-                : <span className="text-gray-400">—</span>}
+              {form.specialistsInIds.length > 0 ? (
+                form.specialistsInIds
+                  .map((id) => categories.find((c) => c.id === id)?.name)
+                  .filter(Boolean)
+                  .join(", ")
+              ) : (
+                <span className="text-gray-400">—</span>
+              )}
+            </p>
+            <p>
+              <span className="font-medium">Schedule:</span>{" "}
+              {DAYS.filter((d) => form.schedule[d].status).length > 0 ? (
+                DAYS.filter((d) => form.schedule[d].status)
+                  .map(
+                    (d) =>
+                      `${DAY_FULL[d]} (${form.schedule[d].startTime}–${form.schedule[d].endTime})`,
+                  )
+                  .join(", ")
+              ) : (
+                <span className="text-gray-400">—</span>
+              )}
             </p>
             <p>
               <span className="font-medium">Palliative Care:</span>{" "}
@@ -330,8 +502,14 @@ export default function ProviderSetupGate({
           disabled={!canProceed}
           className="mt-4 w-full max-w-sm rounded-xl bg-primary py-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {isPending && <Loader2 className="size-4 animate-spin" />}
-          {step < 3 ? "Next" : isPending ? "Saving..." : "Submit"}
+          {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+          {step < 4
+            ? isScheduleStep
+              ? "Confirm"
+              : "Next"
+            : isSubmitting
+              ? "Saving..."
+              : "Submit"}
         </button>
       </div>
     </div>
