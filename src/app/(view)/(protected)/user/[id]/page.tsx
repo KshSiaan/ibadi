@@ -46,7 +46,7 @@ export default function UserProfilePage({
 
   const [expanded, setExpanded] = useState(false);
   const [frequencyOpen, setFrequencyOpen] = useState(false);
-  const [frequency, setFrequency] = useState<"weekly" | "once">("weekly");
+  const [frequency, setFrequency] = useState<"weekly" | "one_time">("weekly");
 
   const isFavorited = useMemo(() => {
     return favorites.some((fav) => fav.serviceProviderId === id);
@@ -393,9 +393,9 @@ export default function UserProfilePage({
 
             <button
               type="button"
-              onClick={() => setFrequency("once")}
+              onClick={() => setFrequency("one_time")}
               className={`w-full rounded-xl border-2 p-4 text-left transition-all ${
-                frequency === "once"
+                frequency === "one_time"
                   ? "border-primary bg-primary/5"
                   : "border-gray-200 bg-white hover:border-gray-300"
               }`}
@@ -404,12 +404,12 @@ export default function UserProfilePage({
                 <div className="mt-0.5">
                   <div
                     className={`size-5 rounded border-2 flex items-center justify-center ${
-                      frequency === "once"
+                      frequency === "one_time"
                         ? "border-primary bg-primary"
                         : "border-gray-300 bg-white"
                     }`}
                   >
-                    {frequency === "once" && (
+                    {frequency === "one_time" && (
                       <CheckCircle2 className="size-4 text-white" />
                     )}
                   </div>

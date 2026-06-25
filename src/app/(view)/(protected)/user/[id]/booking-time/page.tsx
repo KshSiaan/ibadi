@@ -320,7 +320,7 @@ function OnceView({
   const totalPrice = duration * pricePerHour;
 
   const confirmHref = selectedTime
-    ? `/user/${providerId}/booking-time/confirm?frequency=once&day=${selectedDay}&time=${selectedTime}&duration=${duration}&providerId=${providerId}&pricePerHour=${pricePerHour}`
+    ? `/user/${providerId}/booking-time/confirm?frequency=one_time&day=${selectedDay}&time=${selectedTime}&duration=${duration}&providerId=${providerId}&pricePerHour=${pricePerHour}`
     : "#";
 
   return (
@@ -404,14 +404,14 @@ function OnceView({
 function BookingTimePage({ id }: { id: string }) {
   const router = useRouter();
   const params = useSearchParams();
-  const freq = params.get("frequency") as "weekly" | "once" | null;
+  const freq = params.get("frequency") as "weekly" | "one_time" | null;
   const pricePerHour = Number(params.get("pricePerHour") ?? 10);
-  const [frequency, setFrequency] = useState<"weekly" | "once">(
-    freq === "once" ? "once" : "weekly",
+  const [frequency, setFrequency] = useState<"weekly" | "one_time">(
+    freq === "one_time" ? "one_time" : "weekly",
   );
 
   function toggleFrequency() {
-    setFrequency((f) => (f === "weekly" ? "once" : "weekly"));
+    setFrequency((f) => (f === "weekly" ? "one_time" : "weekly"));
   }
 
   if (frequency === "weekly") {
