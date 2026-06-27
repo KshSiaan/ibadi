@@ -71,6 +71,15 @@ export default function LoginPage() {
   const busy = loading || googleLoading;
   const notificationBlocked = permissionStatus === "denied" || permissionStatus === "unsupported";
 
+  const disabledReason = (() => {
+    if (busy || fcmLoading) return null;
+    if (!fcmToken) return null; // amber banner covers this
+    if (!email && !password) return "Enter your email and password to continue";
+    if (!email) return "Enter your email to continue";
+    if (!password) return "Enter your password to continue";
+    return null;
+  })();
+
   return (
     <main className="flex h-dvh w-full items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 px-4">
       <Card className="w-full max-w-md border-0 shadow-lg">
@@ -200,6 +209,9 @@ export default function LoginPage() {
                 "Sign in"
               )}
             </Button>
+            {disabledReason && (
+              <p className="text-center text-xs text-slate-400">{disabledReason}</p>
+            )}
           </form>
 
           <div className="flex items-center gap-3">
