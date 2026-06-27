@@ -168,14 +168,18 @@ export default function ProviderSetupGate({
   function back() {
     if (step > 0) setStep((s) => (s - 1) as Step);
   }
+  function toISO(time: string) {
+    const today = new Date().toISOString().split("T")[0];
+    return new Date(`${today}T${time}:00`).toISOString();
+  }
 
   function submit() {
     const schedulePayload: WorkScheduleEntry[] = DAYS.map((day) => ({
       day,
       userId: "",
       status: form.schedule[day].status,
-      startTime: form.schedule[day].startTime,
-      endTime: form.schedule[day].endTime,
+      startTime: toISO(form.schedule[day].startTime),
+      endTime: toISO(form.schedule[day].endTime),
     }));
 
     createSchedule(schedulePayload, {
