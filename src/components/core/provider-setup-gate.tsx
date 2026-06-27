@@ -9,6 +9,7 @@ import { useCategories } from "@/hooks/api/use-categories";
 import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
 import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
 import type { WorkScheduleEntry } from "@/lib/api/types";
+import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 
 type Step = 0 | 1 | 2 | 3 | 4;
 type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
@@ -89,6 +90,7 @@ export default function ProviderSetupGate({
 }: {
   children: React.ReactNode;
 }) {
+  const me = useMyProfile();
   const [step, setStep] = useState<Step>(0);
   const [form, setForm] = useState<FormData>({
     specialistsInIds: [],
@@ -176,7 +178,7 @@ export default function ProviderSetupGate({
   function submit() {
     const schedulePayload: WorkScheduleEntry[] = DAYS.map((day) => ({
       day,
-      userId: "",
+      userId: me?.data?.id || "",
       status: form.schedule[day].status,
       startTime: toISO(form.schedule[day].startTime),
       endTime: toISO(form.schedule[day].endTime),
