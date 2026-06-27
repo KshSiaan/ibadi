@@ -21,8 +21,10 @@ export async function requestFcmToken(): Promise<string | undefined> {
   console.log("[FCM] notification permission:", permission);
   if (permission !== "granted") return undefined;
 
-  const swReg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-  console.log("[FCM] service worker registered:", swReg.scope);
+  await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+  // Wait for SW to activate — register() resolves before the SW is active
+  const swReg = await navigator.serviceWorker.ready;
+  console.log("[FCM] service worker active:", swReg.scope);
 
   try {
     const token = await getFcmToken(vapidKey, swReg);

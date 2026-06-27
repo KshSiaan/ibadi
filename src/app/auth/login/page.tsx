@@ -8,10 +8,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useFcmContext } from "@/context/FcmContext";
 import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
 import { useLogin } from "@/hooks/api/use-login";
 import { firebaseAuth, googleProvider } from "@/lib/firebase-auth";
-import { requestFcmToken } from "@/lib/firebase-messaging";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
 
+  const { fcmToken, permissionStatus, isLoading: fcmLoading, requestPermission } = useFcmContext();
   const { mutate: login, isPending: loading, error } = useLogin();
   const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
 
@@ -28,9 +29,12 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const idToken = await result.user.getIdToken();
+<<<<<<< HEAD
       const fcmToken = await requestFcmToken();
       console.log("🚀 ~ triggerGoogleLogin ~ fcmToken:", fcmToken)
       
+=======
+>>>>>>> 474e859a1bfc47ca5096056b6fd58243464d8099
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken },
         {
@@ -64,14 +68,14 @@ export default function LoginPage() {
     }
   };
 
-  const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleLogin = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const fcmToken = await requestFcmToken();
     login({ email, password, fcmToken }, { onSuccess: (data) => router.push(data.user.role === "service_provider" ? "/professional" : "/") });
   };
 
   const errorMessage = error?.message || googleError || "";
   const busy = loading || googleLoading;
+  const notificationBlocked = permissionStatus === "denied" || permissionStatus === "unsupported";
 
   return (
     <main className="flex h-dvh w-full items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 px-4">
@@ -83,6 +87,28 @@ export default function LoginPage() {
               Sign in to your account to continue
             </p>
           </div>
+
+          {notificationBlocked && (
+            <div className="flex flex-col gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+              <div className="flex gap-3">
+                <AlertCircle className="size-5 shrink-0" />
+                <span>
+                  {permissionStatus === "unsupported"
+                    ? "Your browser does not support notifications. Please use a supported browser to sign in."
+                    : "Notifications are blocked. Please enable notifications in your browser settings, then click Try Again."}
+                </span>
+              </div>
+              {permissionStatus === "denied" && (
+                <button
+                  type="button"
+                  onClick={requestPermission}
+                  className="self-end text-xs font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-700"
+                >
+                  Try Again
+                </button>
+              )}
+            </div>
+          )}
 
           {errorMessage && (
             <div className="flex gap-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -163,13 +189,18 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              disabled={busy || !email || !password}
+              disabled={busy || !email || !password || !fcmToken || fcmLoading}
               className="w-full rounded-lg py-2.5 font-medium"
             >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
                   Signing in...
+                </>
+              ) : fcmLoading ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Generating device token...
                 </>
               ) : (
                 "Sign in"
@@ -188,7 +219,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               className="w-full rounded-lg border-slate-200"
-              disabled={busy}
+              disabled={busy || !fcmToken}
               onClick={() => triggerGoogleLogin()}
             >
               {googleLoading ? (

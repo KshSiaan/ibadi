@@ -202,6 +202,8 @@ export interface ReviewStatistic {
 }
 
 /* ─── Booking Types ─── */
+export type BookingType = "one_time" | "weekly";
+
 export interface BookingDay {
   day: string;
   startTime: string;
@@ -214,7 +216,7 @@ export interface CreateBookingRequest {
   price: number;
   startDate: string;
   totalHours: number;
-  bookingType: "weekly" | "once";
+  bookingType: BookingType;
   bookingDays: BookingDay[];
 }
 
@@ -225,7 +227,7 @@ export interface Booking {
   price: number;
   startDate: string;
   totalHours: number;
-  bookingType: string;
+  bookingType: BookingType;
   bookingDays: (BookingDay & { id: string; status: string })[];
   status: string;
   createdAt: string;

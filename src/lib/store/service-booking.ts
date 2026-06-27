@@ -22,8 +22,8 @@ export interface ServiceBookingState {
   setServiceAddress: (address: string) => void;
 
   /* ─── Schedule ─── */
-  frequency: "once" | "weekly";
-  setFrequency: (frequency: "once" | "weekly") => void;
+  frequency: "one_time" | "weekly";
+  setFrequency: (frequency: "one_time" | "weekly") => void;
 
   selectedDay: number;
   setSelectedDay: (day: number) => void;
@@ -83,8 +83,8 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
   setServiceAddress: (address: string) => set({ serviceAddress: address }),
 
   /* ─── Schedule ─── */
-  frequency: "once",
-  setFrequency: (frequency: "once" | "weekly") => set({ frequency }),
+  frequency: "one_time",
+  setFrequency: (frequency: "one_time" | "weekly") => set({ frequency }),
 
   selectedDay: 13,
   setSelectedDay: (day: number) => set({ selectedDay: day }),
@@ -146,7 +146,7 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
       searchTerm: "",
       homepageFilters: {},
       serviceAddress: "",
-      frequency: "once",
+      frequency: "one_time",
       selectedDay: 13,
       duration: [2],
       startType: "flexible",

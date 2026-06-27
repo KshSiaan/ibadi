@@ -61,7 +61,7 @@ export default function SchedulePage() {
       : [undefined, undefined];
 
     let dateStr: string | undefined;
-    if (frequency === "once") {
+    if (frequency === "one_time") {
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -100,7 +100,7 @@ export default function SchedulePage() {
       <div className="mx-auto w-full max-w-lg flex-1 px-6 py-6">
         <h3 className="mb-3 text-base font-bold text-gray-800">Frequency</h3>
         <div className="mb-6 grid grid-cols-2 gap-2">
-          {(["once", "weekly"] as const).map((f) => (
+          {(["one_time", "weekly"] as const).map((f) => (
             <button
               type="button"
               key={f}
@@ -112,15 +112,15 @@ export default function SchedulePage() {
                   : "bg-white text-gray-500",
               )}
             >
-              <span>{f === "once" ? "Just once" : "Weekly"}</span>
+              <span>{f === "one_time" ? "Just once" : "Weekly"}</span>
               <span className="text-[10px] font-normal opacity-70">
-                {f === "once" ? "One-Time" : "Recurring"}
+                {f === "one_time" ? "One-Time" : "Recurring"}
               </span>
             </button>
           ))}
         </div>
 
-        {frequency === "once" ? (
+        {frequency === "one_time" ? (
           <>
             <div className="mb-1 flex items-center justify-between">
               <p className="text-sm font-semibold text-gray-700">January</p>

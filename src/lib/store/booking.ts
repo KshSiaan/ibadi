@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 export type BookingView = "profile" | "frequency" | "schedule" | "payment" | "confirmed";
-export type BookingFrequency = "weekly" | "once";
+export type BookingFrequency = "weekly" | "one_time";
 
 interface BookingState {
   view: BookingView;

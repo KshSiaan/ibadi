@@ -106,7 +106,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
   const router = useRouter();
   const params = useSearchParams();
 
-  const frequency = params.get("frequency") as "weekly" | "once";
+  const frequency = params.get("frequency") as "weekly" | "one_time";
   const pricePerHour = Number(params.get("pricePerHour") ?? 0);
 
   // once params
@@ -147,21 +147,21 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
   const [addCardOpen, setAddCardOpen] = useState(false);
 
   const totalHours =
-    frequency === "once"
+    frequency === "one_time"
       ? duration
       : Object.values(weeklySlots).reduce((acc, s) => acc + s.duration, 0);
 
   const totalPrice = totalHours * pricePerHour;
 
   const dayLabel =
-    frequency === "once"
+    frequency === "one_time"
       ? (weekDays.find((d) => d.date === dayDate)?.short ?? "Mon")
       : Object.keys(weeklySlots).join(", ");
 
   const startTimeLabel =
-    frequency === "once" ? time : (Object.values(weeklySlots)[0]?.time ?? "");
+    frequency === "one_time" ? time : (Object.values(weeklySlots)[0]?.time ?? "");
   const endTimeLabel =
-    frequency === "once"
+    frequency === "one_time"
       ? addHours(time, duration)
       : addHours(startTimeLabel, Object.values(weeklySlots)[0]?.duration ?? 0);
 
@@ -176,7 +176,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
     }[];
     let startDate: string;
 
-    if (frequency === "once") {
+    if (frequency === "one_time") {
       startDate = buildISODate(dayDate, time);
       bookingDays = [
         {
@@ -307,7 +307,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
               </button>
             </div>
 
-            {frequency === "once" ? (
+            {frequency === "one_time" ? (
               <>
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar className="size-4 text-gray-500" />
