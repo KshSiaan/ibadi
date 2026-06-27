@@ -82,7 +82,6 @@ const DAYS_DEFAULT: Day[] = [
   { label: "Sunday", key: "Sun", enabled: false, start: "09:00", end: "18:00" },
 ];
 
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function PageShell({
@@ -281,14 +280,21 @@ function TasksAndFilters({
   onBack: () => void;
   onConfirm: () => void;
 }) {
-  const { data: taskOptions = [], isLoading: loadingTasks } = useGetOthersTaskOptions();
-  const { data: categories = [], isLoading: loadingCategories } = useCategories();
-  const { data: experienceOptions = [], isLoading: loadingExperience } = useGetExperienceOptions();
+  const { data: taskOptions = [], isLoading: loadingTasks } =
+    useGetOthersTaskOptions();
+  const { data: categories = [], isLoading: loadingCategories } =
+    useCategories();
+  const { data: experienceOptions = [], isLoading: loadingExperience } =
+    useGetExperienceOptions();
   const { data: profile } = useMyProfile();
   const { mutate, isPending, error } = useUpdateServiceProviderInfo();
 
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(new Set());
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [experienceOptionId, setExperienceOptionId] = useState<string>("");
   const [palliative, setPalliative] = useState(false);
   const [driving, setDriving] = useState(false);
@@ -365,7 +371,10 @@ function TasksAndFilters({
             ) : (
               <div className="flex flex-col gap-2">
                 {taskOptions.map((t) => (
-                  <label key={t.id} className="flex cursor-pointer items-center gap-2">
+                  <label
+                    key={t.id}
+                    className="flex cursor-pointer items-center gap-2"
+                  >
                     <input
                       type="checkbox"
                       checked={selectedTaskIds.has(t.id)}
@@ -388,7 +397,10 @@ function TasksAndFilters({
             ) : (
               <div className="flex flex-col gap-2">
                 {categories.map((c) => (
-                  <label key={c.id} className="flex cursor-pointer items-center gap-2">
+                  <label
+                    key={c.id}
+                    className="flex cursor-pointer items-center gap-2"
+                  >
                     <input
                       type="checkbox"
                       checked={selectedCategoryIds.has(c.id)}
@@ -411,7 +423,10 @@ function TasksAndFilters({
             ) : (
               <div className="flex flex-col gap-2">
                 {experienceOptions.map((e) => (
-                  <label key={e.id} className="flex cursor-pointer items-center gap-2">
+                  <label
+                    key={e.id}
+                    className="flex cursor-pointer items-center gap-2"
+                  >
                     <input
                       type="radio"
                       name="experienceOptionId"
@@ -450,7 +465,9 @@ function TasksAndFilters({
             ].map(({ label, sub, val, set }) => (
               <div key={label} className="border-b border-gray-200 pb-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[#1e2d4f]">{label}</span>
+                  <span className="text-sm font-semibold text-[#1e2d4f]">
+                    {label}
+                  </span>
                   <Switch checked={val} onCheckedChange={set} />
                 </div>
                 <p className="mt-1 text-xs text-gray-400">{sub}</p>
@@ -459,7 +476,9 @@ function TasksAndFilters({
 
             {/* Per hour price */}
             <div className="border-b border-gray-200 pb-4">
-              <p className="mb-2 text-sm font-semibold text-[#1e2d4f]">Hourly rate ($)</p>
+              <p className="mb-2 text-sm font-semibold text-[#1e2d4f]">
+                Hourly rate ($)
+              </p>
               <Input
                 type="number"
                 min={0}
