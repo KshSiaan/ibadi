@@ -29,12 +29,6 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const idToken = await result.user.getIdToken();
-<<<<<<< HEAD
-      const fcmToken = await requestFcmToken();
-      console.log("🚀 ~ triggerGoogleLogin ~ fcmToken:", fcmToken)
-      
-=======
->>>>>>> 474e859a1bfc47ca5096056b6fd58243464d8099
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken },
         {
