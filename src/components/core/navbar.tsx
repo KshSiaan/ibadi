@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useCookies } from "react-cookie";
+import Image from "next/image";
 
 type View = "role" | "register" | "login";
 
@@ -67,17 +68,13 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-6 lg:px-16">
         <Link href="/" className="text-2xl font-bold">
-          {isProvider ? (
-            <>
-              <span className="text-primary">i</span>
-              <span className="text-cyan-800">Badi</span>
-            </>
-          ) : (
-            <>
-              <span className="text-cyan-800">i</span>
-              <span className="text-primary">Badi</span>
-            </>
-          )}
+          <Image
+            src="/icon.png"
+            alt="Logo"
+            width={80}
+            height={40}
+            className="h-8 w-auto"
+          />
         </Link>
 
         <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
