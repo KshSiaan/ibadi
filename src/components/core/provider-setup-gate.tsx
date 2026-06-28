@@ -241,26 +241,25 @@ export default function ProviderSetupGate({
       };
 
       // Add task options as boolean properties
-      taskOptions.forEach((option) => {
-        // Convert option ID/value to camelCase key (e.g., "Palliative Care" -> "palliativeCare")
-        const key = option.value.split(" ").reduce((acc, word, i) => {
-          if (i === 0) return word.toLowerCase();
-          return (
-            acc + word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-          );
-        }, "");
+      // taskOptions.forEach((option) => {
+      //   const key = option.value.split(" ").reduce((acc, word, i) => {
+      //     if (i === 0) return word.toLowerCase();
+      //     return (
+      //       acc + word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      //     );
+      //   }, "");
 
-        serviceProviderPayload[key] = form.taskOptions[option.id] || false;
-      });
+      //   serviceProviderPayload[key] = form.taskOptions[option.id] || false;
+      // });
 
       // Make API calls
       if (workSchedulePayload.length > 0) {
         console.log("[v0] Creating work schedule...");
-        await createSchedule(workSchedulePayload);
+        createSchedule(workSchedulePayload);
       }
 
       console.log("[v0] Updating service provider info...");
-      await updateServiceProvider(serviceProviderPayload);
+      updateServiceProvider(serviceProviderPayload);
 
       console.log("[v0] All submissions completed successfully");
       setDone(true);
