@@ -2,16 +2,16 @@
 
 import { CheckCircle2, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useCategories } from "@/hooks/api/use-categories";
+import { useGetOthersTaskOptions } from "@/hooks/api/others-task-options/use-others-task-options";
 import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
+import { useCategories } from "@/hooks/api/use-categories";
 import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
-import type { WorkScheduleEntry } from "@/lib/api/types";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 
-type Step = 0 | 1 | 2 | 3 | 4;
+type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
 const DAYS: DayKey[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -43,23 +43,35 @@ const slides = [
   {
     id: 3,
     illustration: "/icons/home/1.svg",
-    title: "Set up your\nprofile",
+    title: "Services\nyou offer",
     description:
       "Tell clients what additional services you can offer. Choose the options that apply to you.",
   },
   {
     id: 4,
-    illustration: "/icons/home/2.svg",
+    illustration: "/icons/home/1.svg",
+    title: "Profile\nPhoto",
+    description:
+      "Upload a professional photo to help clients know who you are.",
+  },
+  {
+    id: 5,
+    illustration: "/icons/home/1.svg",
     title: "About\nyou",
     description:
       "Write a short bio and set your hourly rate so clients know what to expect.",
   },
   {
-    id: 5,
+    id: 6,
+    illustration: "/icons/home/3.svg",
+    title: "Review your\ndetails",
+    description: "Review everything before going live and submit.",
+  },
+  {
+    id: 7,
     illustration: "/icons/home/3.svg",
     title: "Ready\nto go!",
-    description:
-      "Review your details and submit. You can always update them later from your profile.",
+    description: "Your profile is all set. Start accepting bookings!",
   },
 ];
 
@@ -71,12 +83,12 @@ interface DaySchedule {
 
 interface FormData {
   specialistsInIds: string[];
-  palliativeCare: boolean;
-  drivingLicense: boolean;
-  businessProfiles: boolean;
+  taskOptions: Record<string, boolean>;
   bio: string;
   perHourPrice: string;
   schedule: Record<DayKey, DaySchedule>;
+  categories: string[];
+  coverImage: File | null;
 }
 
 const defaultDaySchedule: DaySchedule = {
@@ -90,15 +102,24 @@ export default function ProviderSetupGate({
 }: {
   children: React.ReactNode;
 }) {
-  const me = useMyProfile();
+  const { data: me } = useMyProfile();
+  const { data: taskOptions = [], isLoading: loadingTasks } =
+    useGetOthersTaskOptions();
+  const { data: categories = [], isLoading: loadingCategories } =
+    useCategories();
+  const { mutate: createSchedule, isPending: loadingSchedule } =
+    useCreateWorkSchedule();
+  const { mutate: updateServiceProvider, isPending: loadingServiceProvider } =
+    useUpdateServiceProviderInfo();
+
   const [step, setStep] = useState<Step>(0);
   const [form, setForm] = useState<FormData>({
     specialistsInIds: [],
-    palliativeCare: false,
-    drivingLicense: false,
-    businessProfiles: false,
+    taskOptions: {},
     bio: "",
     perHourPrice: "",
+    categories: [],
+    coverImage: null,
     schedule: {
       Mon: { ...defaultDaySchedule },
       Tue: { ...defaultDaySchedule },
@@ -111,14 +132,28 @@ export default function ProviderSetupGate({
   });
   const [done, setDone] = useState(false);
 
-  const { mutate, isPending, error } = useUpdateServiceProviderInfo();
-  const { mutate: createSchedule, isPending: isSchedulePending } =
-    useCreateWorkSchedule();
-  const { data: categories = [], isLoading: categoriesLoading } =
-    useCategories();
+  // Initialize taskOptions when they're loaded
+  const initializedForm = useMemo(() => {
+    if (taskOptions.length > 0 && Object.keys(form.taskOptions).length === 0) {
+      const taskOptionsMap: Record<string, boolean> = {};
+      taskOptions.forEach((option) => {
+        taskOptionsMap[option.id] = false;
+      });
+      return {
+        ...form,
+        taskOptions: taskOptionsMap,
+      };
+    }
+    return form;
+  }, [taskOptions, form]);
+
+  // Update form when initializedForm changes
+  if (Object.keys(form.taskOptions).length === 0 && taskOptions.length > 0) {
+    setForm(initializedForm);
+  }
 
   const slide = slides[step];
-  const isSubmitting = isPending || isSchedulePending;
+  const isSubmitting = loadingSchedule || loadingServiceProvider;
 
   function toggleCategory(id: string) {
     setForm((p) => ({
@@ -129,10 +164,14 @@ export default function ProviderSetupGate({
     }));
   }
 
-  function toggle(
-    key: "palliativeCare" | "drivingLicense" | "businessProfiles",
-  ) {
-    setForm((p) => ({ ...p, [key]: !p[key] }));
+  function toggleTaskOption(id: string) {
+    setForm((p) => ({
+      ...p,
+      taskOptions: {
+        ...p.taskOptions,
+        [id]: !p.taskOptions[id],
+      },
+    }));
   }
 
   function toggleDay(day: DayKey) {
@@ -160,7 +199,7 @@ export default function ProviderSetupGate({
   }
 
   function next() {
-    if (step < 4) {
+    if (step < 6) {
       setStep((s) => (s + 1) as Step);
     } else {
       submit();
@@ -170,35 +209,65 @@ export default function ProviderSetupGate({
   function back() {
     if (step > 0) setStep((s) => (s - 1) as Step);
   }
-  function toISO(time: string) {
-    const today = new Date().toISOString().split("T")[0];
-    return new Date(`${today}T${time}:00`).toISOString();
-  }
 
-  function submit() {
-    const schedulePayload: WorkScheduleEntry[] = DAYS.map((day) => ({
-      day,
-      userId: me?.data?.id || "",
-      status: form.schedule[day].status,
-      startTime: toISO(form.schedule[day].startTime),
-      endTime: toISO(form.schedule[day].endTime),
-    }));
+  async function submit() {
+    console.log("[v0] Submitting form data:", form);
 
-    createSchedule(schedulePayload, {
-      onSuccess: () => {
-        mutate(
-          {
-            specialistsIn: form.specialistsInIds,
-            palliativeCare: String(form.palliativeCare),
-            drivingLicense: String(form.drivingLicense),
-            businessProfiles: String(form.businessProfiles),
-            bio: form.bio,
-            perHourPrice: form.perHourPrice ? Number(form.perHourPrice) : 0,
-          },
-          { onSuccess: () => setDone(true) },
-        );
-      },
-    });
+    try {
+      // Build workSchedule payload
+      const workSchedulePayload = DAYS.filter(
+        (day) => form.schedule[day].status,
+      ).map((day) => {
+        const sched = form.schedule[day];
+        // Parse time strings (HH:mm) and combine with a date
+        const today = new Date().toISOString().split("T")[0];
+        const startTime = new Date(`${today}T${sched.startTime}:00.000Z`);
+        const endTime = new Date(`${today}T${sched.endTime}:00.000Z`);
+
+        return {
+          day,
+          userId: me?.id || "", // Assuming you have the user ID available
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          status: true,
+        };
+      });
+
+      // Build service provider info payload with task options as keys
+      const serviceProviderPayload: Record<string, any> = {
+        specialistsIn: form.specialistsInIds,
+        bio: form.bio,
+        perHourPrice: parseFloat(form.perHourPrice) || 0,
+      };
+
+      // Add task options as boolean properties
+      taskOptions.forEach((option) => {
+        // Convert option ID/value to camelCase key (e.g., "Palliative Care" -> "palliativeCare")
+        const key = option.value.split(" ").reduce((acc, word, i) => {
+          if (i === 0) return word.toLowerCase();
+          return (
+            acc + word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          );
+        }, "");
+
+        serviceProviderPayload[key] = form.taskOptions[option.id] || false;
+      });
+
+      // Make API calls
+      if (workSchedulePayload.length > 0) {
+        console.log("[v0] Creating work schedule...");
+        await createSchedule(workSchedulePayload);
+      }
+
+      console.log("[v0] Updating service provider info...");
+      await updateServiceProvider(serviceProviderPayload);
+
+      console.log("[v0] All submissions completed successfully");
+      setDone(true);
+    } catch (error) {
+      console.error("[v0] Submission error:", error);
+      // Error handling could show a toast or error message here
+    }
   }
 
   const canProceed =
@@ -209,8 +278,13 @@ export default function ProviderSetupGate({
         : step === 2
           ? true
           : step === 3
-            ? form.bio.trim().length > 0
-            : !isSubmitting;
+            ? true
+            : step === 4
+              ? form.bio.trim().length > 0 &&
+                form.perHourPrice.trim().length > 0
+              : step === 5
+                ? true
+                : !isSubmitting;
 
   if (done) return <>{children}</>;
 
@@ -232,10 +306,10 @@ export default function ProviderSetupGate({
         ) : (
           <span />
         )}
-        {step < 4 && (
+        {step < 6 && (
           <button
             type="button"
-            onClick={() => setStep(4)}
+            onClick={() => setStep(6)}
             className="text-sm font-semibold text-primary"
           >
             Skip
@@ -262,7 +336,6 @@ export default function ProviderSetupGate({
       <div className="flex flex-col items-start gap-3 px-8 pb-10 sm:items-center sm:px-16 sm:text-center">
         <h2 className="text-2xl font-bold leading-snug text-[#1e2d4f] sm:text-3xl">
           {slide.title.split("\n").map((line, i, arr) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: static slides
             <span key={i}>
               {line}
               {i < arr.length - 1 && <br />}
@@ -276,42 +349,29 @@ export default function ProviderSetupGate({
         {/* Step 0: Category selection */}
         {step === 0 && (
           <div className="mt-2 w-full max-w-md">
-            {categoriesLoading ? (
+            {loadingCategories ? (
               <div className="flex justify-center py-6">
                 <Loader2 className="size-5 animate-spin text-gray-400" />
               </div>
-            ) : (
+            ) : categories.length > 0 ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {categories.map((cat) => {
-                  const selected = form.specialistsInIds.includes(cat.id);
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => toggleCategory(cat.id)}
-                      className={`relative flex flex-col items-center gap-2 rounded-xl border-2 bg-white px-3 py-4 text-center transition-colors ${
-                        selected
-                          ? "border-primary bg-primary/5"
-                          : "border-transparent shadow-sm hover:border-primary/40"
-                      }`}
-                    >
-                      {selected && (
-                        <CheckCircle2 className="absolute right-2 top-2 size-4 text-primary" />
-                      )}
-                      <Image
-                        src={cat.image}
-                        alt={cat.name}
-                        width={36}
-                        height={36}
-                        className="rounded-md"
-                      />
-                      <span className="text-xs font-medium text-gray-700 leading-tight">
-                        {cat.name}
-                      </span>
-                    </button>
-                  );
-                })}
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => toggleCategory(cat.id)}
+                    className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                      form.specialistsInIds.includes(cat.id)
+                        ? "bg-primary text-white shadow-md"
+                        : "bg-white text-gray-700 shadow-sm hover:shadow-md"
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
               </div>
+            ) : (
+              <p className="text-sm text-gray-400">No categories available</p>
             )}
             {form.specialistsInIds.length > 0 && (
               <p className="mt-3 text-center text-xs text-primary font-semibold">
@@ -382,39 +442,79 @@ export default function ProviderSetupGate({
           </div>
         )}
 
-        {/* Step 2: Capabilities */}
+        {/* Step 2: Task Options */}
         {step === 2 && (
           <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
-            {(
-              [
-                ["palliativeCare", "Palliative Care"],
-                ["drivingLicense", "Driving License"],
-                ["businessProfiles", "Business Profiles"],
-              ] as [
-                "palliativeCare" | "drivingLicense" | "businessProfiles",
-                string,
-              ][]
-            ).map(([key, label]) => (
-              <label
-                key={key}
-                className="flex cursor-pointer items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm"
-              >
-                <input
-                  type="checkbox"
-                  checked={form[key]}
-                  onChange={() => toggle(key)}
-                  className="accent-primary size-4"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  {label}
-                </span>
-              </label>
-            ))}
+            {loadingTasks ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="size-5 animate-spin text-gray-400" />
+              </div>
+            ) : taskOptions.length > 0 ? (
+              taskOptions.map((option: TaskOption) => (
+                <label
+                  key={option.id}
+                  className="flex cursor-pointer items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.taskOptions[option.id] || false}
+                    onChange={() => toggleTaskOption(option.id)}
+                    className="accent-primary size-4"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {option.value}
+                  </span>
+                </label>
+              ))
+            ) : (
+              <p className="text-sm text-gray-400">No task options available</p>
+            )}
           </div>
         )}
 
-        {/* Step 3: Bio + rate */}
+        {/* Step 3: Cover Image */}
         {step === 3 && (
+          <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
+            <label className="flex cursor-pointer items-center justify-center w-full rounded-xl bg-white px-6 py-8 shadow-sm hover:shadow-md transition-shadow border-2 border-dashed border-gray-200">
+              <div className="flex flex-col items-center gap-2">
+                {form.coverImage ? (
+                  <>
+                    <span className="text-sm font-medium text-primary">
+                      {form.coverImage.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Click to change
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg">📸</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Upload photo
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      JPG, PNG up to 5MB
+                    </span>
+                  </>
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/jpeg,image/png"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setForm((p) => ({ ...p, coverImage: file }));
+                  }
+                }}
+                className="hidden"
+              />
+            </label>
+          </div>
+        )}
+
+        {/* Step 4: Bio + rate */}
+        {step === 4 && (
           <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
             <Textarea
               rows={3}
@@ -436,56 +536,74 @@ export default function ProviderSetupGate({
           </div>
         )}
 
-        {/* Step 4: Review */}
-        {step === 4 && (
-          <div className="mt-2 w-full max-w-sm rounded-xl bg-white px-4 py-3 shadow-sm text-sm text-gray-600 flex flex-col gap-1.5">
-            <p>
-              <span className="font-medium">Specialties:</span>{" "}
-              {form.specialistsInIds.length > 0 ? (
-                form.specialistsInIds
-                  .map((id) => categories.find((c) => c.id === id)?.name)
-                  .filter(Boolean)
-                  .join(", ")
-              ) : (
-                <span className="text-gray-400">—</span>
-              )}
-            </p>
-            <p>
-              <span className="font-medium">Schedule:</span>{" "}
-              {DAYS.filter((d) => form.schedule[d].status).length > 0 ? (
-                DAYS.filter((d) => form.schedule[d].status)
-                  .map(
-                    (d) =>
-                      `${DAY_FULL[d]} (${form.schedule[d].startTime}–${form.schedule[d].endTime})`,
-                  )
-                  .join(", ")
-              ) : (
-                <span className="text-gray-400">—</span>
-              )}
-            </p>
-            <p>
-              <span className="font-medium">Palliative Care:</span>{" "}
-              {form.palliativeCare ? "Yes" : "No"}
-            </p>
-            <p>
-              <span className="font-medium">Driving License:</span>{" "}
-              {form.drivingLicense ? "Yes" : "No"}
-            </p>
-            <p>
-              <span className="font-medium">Business Profiles:</span>{" "}
-              {form.businessProfiles ? "Yes" : "No"}
-            </p>
-            <p>
-              <span className="font-medium">Bio:</span>{" "}
-              {form.bio || <span className="text-gray-400">—</span>}
-            </p>
-            <p>
-              <span className="font-medium">Hourly rate:</span> $
-              {form.perHourPrice || "0"}
-            </p>
-            {error && (
-              <p className="mt-1 text-xs text-red-500">{error.message}</p>
+        {/* Step 5: Review all details + Submit */}
+        {step === 5 && (
+          <div className="mt-2 w-full max-w-sm space-y-3">
+            {/* Bio & Rate */}
+            <div className="rounded-xl bg-white px-4 py-3 shadow-sm text-sm text-gray-600 flex flex-col gap-1.5">
+              <p>
+                <span className="font-medium">Bio:</span>{" "}
+                {form.bio || <span className="text-gray-400">—</span>}
+              </p>
+              <p>
+                <span className="font-medium">Hourly rate:</span> $
+                {form.perHourPrice || "0"}
+              </p>
+            </div>
+
+            {/* Task Options */}
+            {Object.values(form.taskOptions).some((v) => v) && (
+              <div className="rounded-xl bg-white px-4 py-3 shadow-sm text-sm">
+                <p className="font-medium mb-2 text-gray-600">
+                  Services Offered:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(form.taskOptions)
+                    .filter(([, selected]) => selected)
+                    .map(([id]) => {
+                      const option = taskOptions.find((opt) => opt.id === id);
+                      return option ? (
+                        <span
+                          key={id}
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                        >
+                          {option.value}
+                        </span>
+                      ) : null;
+                    })}
+                </div>
+              </div>
             )}
+
+            {/* Work Schedule */}
+            {Object.values(form.schedule).some((s) => s.status) && (
+              <div className="rounded-xl bg-white px-4 py-3 shadow-sm text-sm">
+                <p className="font-medium mb-2 text-gray-600">Work Schedule:</p>
+                <div className="space-y-1.5 text-xs text-gray-500">
+                  {DAYS.map((day) => {
+                    const sched = form.schedule[day];
+                    return sched.status ? (
+                      <p key={day}>
+                        <span className="font-medium text-gray-700">
+                          {DAY_FULL[day]}:
+                        </span>{" "}
+                        {sched.startTime} - {sched.endTime}
+                      </p>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 6: Success */}
+        {step === 6 && (
+          <div className="mt-2 w-full max-w-sm rounded-xl bg-white px-4 py-6 shadow-sm text-center">
+            <CheckCircle2 className="mx-auto mb-3 size-12 text-green-500" />
+            <p className="text-sm font-medium text-gray-700">
+              All set! Your profile is ready to go live.
+            </p>
           </div>
         )}
 
@@ -509,13 +627,13 @@ export default function ProviderSetupGate({
           className="mt-4 w-full max-w-sm rounded-xl bg-primary py-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-          {step < 4
+          {step < 6
             ? isScheduleStep
               ? "Confirm"
               : "Next"
             : isSubmitting
               ? "Saving..."
-              : "Submit"}
+              : "Go Live"}
         </button>
       </div>
     </div>

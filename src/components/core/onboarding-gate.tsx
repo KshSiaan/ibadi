@@ -29,11 +29,7 @@ export default function OnboardingGate({
   if (stage === "loading") return null;
 
   if (stage === "onboarding") {
-    return (
-      <Onboarding
-        onDone={() => setStage("privacy")}
-      />
-    );
+    return <Onboarding onDone={() => setStage("privacy")} />;
   }
 
   if (stage === "privacy") {
