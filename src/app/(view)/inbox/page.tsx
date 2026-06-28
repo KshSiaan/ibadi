@@ -5,6 +5,8 @@ import {
   CircleX,
   Clock,
   Headphones,
+  MessageSquareIcon,
+  PhoneOutgoing,
   Search,
   ShoppingBag,
 } from "lucide-react";
@@ -18,6 +20,15 @@ import {
   useNotifications,
 } from "@/hooks/api/notifications/use-notifications";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -353,13 +364,39 @@ export default function InboxPage() {
             )}
 
             <div className="mt-8 flex justify-center">
-              <button
-                type="button"
-                className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white"
-              >
-                <Headphones className="size-4" />
-                Support
-              </button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white"
+                  >
+                    <Headphones className="size-4" />
+                    Support
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle></DialogTitle>
+                  </DialogHeader>
+                  <div className="">
+                    <Image
+                      src="/icons/home/call.svg"
+                      height={240}
+                      width={240}
+                      alt="Support"
+                      className="mx-auto size-48"
+                    />
+                    <Button className="mt-4 w-full" size="lg">
+                      <PhoneOutgoing /> Call
+                    </Button>
+                    <Button className="mt-4 w-full" size="lg" asChild>
+                      <Link href="/inbox">
+                        <MessageSquareIcon /> Message
+                      </Link>
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </>
         )}

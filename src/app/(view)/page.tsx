@@ -7,7 +7,16 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useServiceBooking } from "@/lib/store/service-booking";
-import { Bell, ChevronDown, Pencil, Search, Loader2 } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  Pencil,
+  Search,
+  Loader2,
+  PhoneIcon,
+  PhoneOutgoing,
+  MessageSquareIcon,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -15,6 +24,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   InputGroupInput,
@@ -26,6 +36,7 @@ import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useCategories } from "@/hooks/api/use-categories";
 import type { Category } from "@/lib/api/types";
+import { Button } from "@/components/ui/button";
 
 /* ─── Fallback Data ─── */
 const fallbackServices: Category[] = [
@@ -80,7 +91,7 @@ function ServiceNode({
   radius,
   onClick,
 }: {
-  icon: string;
+  icon?: string;
   label: string;
   id: string;
   angleDeg: number;
@@ -104,7 +115,7 @@ function ServiceNode({
         className="flex items-center justify-center rounded-full border border-[#e0e0e0] bg-white shadow-sm transition-shadow hover:shadow-md"
         style={{ width: 88, height: 88 }}
       >
-        <Image src={icon} alt={label} width={42} height={42} />
+        {icon && <Image src={icon} alt={label} width={42} height={42} />}
       </div>
       <span className="text-sm font-medium text-gray-700">{label}</span>
     </Link>
@@ -148,10 +159,7 @@ function SearchPopoverContent({
           </div>
         ) : (
           <ul className="flex flex-col gap-1">
-            {(filteredCategories.length > 0
-              ? filteredCategories
-              : fallbackServices
-            ).map((category) => (
+            {filteredCategories?.map((category) => (
               <li key={category.id}>
                 <Link
                   href="/book"
@@ -263,39 +271,73 @@ export default function Page() {
             transform: "translate(-50%,-50%)",
           }}
         >
-          <div
-            className="flex items-center justify-center rounded-full border-2 border-primary bg-white shadow-lg"
-            style={{ width: 148, height: 148 }}
-          >
-            <Image
-              src="/icons/headphone-icon.svg"
-              alt="Support"
-              width={64}
-              height={64}
-            />
-          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <div
+                className="flex items-center justify-center rounded-full border-2 border-primary bg-white shadow-lg"
+                style={{ width: 148, height: 148 }}
+              >
+                <Image
+                  src="/icons/headphone-icon.svg"
+                  alt="Support"
+                  width={64}
+                  height={64}
+                />
+              </div>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle></DialogTitle>
+              </DialogHeader>
+              <div className="">
+                <Image
+                  src="/icons/home/call.svg"
+                  height={240}
+                  width={240}
+                  alt="Support"
+                  className="mx-auto size-48"
+                />
+                <Button className="mt-4 w-full" size="lg">
+                  <PhoneOutgoing /> Call
+                </Button>
+                <Button className="mt-4 w-full" size="lg" asChild>
+                  <Link href="/inbox">
+                    <MessageSquareIcon /> Message
+                  </Link>
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <span className="text-lg font-bold text-primary">Support</span>
         </div>
 
-        {(categories.length > 0 ? categories : fallbackServices).map(
-          (category, index) => {
-            const totalItems = (
-              categories.length > 0 ? categories : fallbackServices
-            ).length;
-            const angleDeg = (index * 360) / totalItems - 90;
-            return (
-              <ServiceNode
-                key={category.id}
-                id={category.id}
-                icon={category.image}
-                label={category.name}
-                angleDeg={angleDeg}
-                radius={210}
-                onClick={() => handleServiceSelect(category.name)}
-              />
-            );
-          },
-        )}
+        {(categories.length > 0
+          ? categories
+          : Array.from({ length: 5 }, (_, i) => ({
+              id: `placeholder-${i}`,
+              name: "",
+              image: "",
+              isDeleted: false,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }))
+        ).map((category, index) => {
+          const totalItems = (
+            categories.length > 0 ? categories : Array.from({ length: 5 })
+          ).length;
+          const angleDeg = (index * 360) / totalItems - 90;
+          return (
+            <ServiceNode
+              key={category.id}
+              id={category.id}
+              icon={category?.image ?? ""}
+              label={category.name}
+              angleDeg={angleDeg}
+              radius={210}
+              onClick={() => handleServiceSelect(category.name)}
+            />
+          );
+        })}
       </div>
 
       {/* Add address button */}

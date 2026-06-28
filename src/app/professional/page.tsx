@@ -1,728 +1,528 @@
-"use client";
+// "use client";
 
-import { ArrowLeft, Check, Loader2, Plus, X } from "lucide-react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+// import { CheckCircle2, Loader2 } from "lucide-react";
+// import { useState, useMemo } from "react";
+// import {
+//   useGetOthersTaskOptions,
+//   TaskOption,
+// } from "@/hooks/api/others-task-options/use-others-task-options";
+// import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
+// import { useCategories } from "@/hooks/api/use-categories";
+// import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
 
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { useGetExperienceOptions } from "@/hooks/api/experience-options/use-experience-options";
-import { useGetOthersTaskOptions } from "@/hooks/api/others-task-options/use-others-task-options";
-import { useCategories } from "@/hooks/api/use-categories";
-import { useMyProfile } from "@/hooks/api/user/use-my-profile";
-import { useUpdateProfile } from "@/hooks/api/user/use-update-profile";
-import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
-import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
+// type Step = 0 | 1 | 2 | 3;
+// type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// const DAYS: DayKey[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-type Day = {
-  label: string;
-  key: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
-  enabled: boolean;
-  start: string;
-  end: string;
-};
+// const DAY_FULL: Record<DayKey, string> = {
+//   Mon: "Monday",
+//   Tue: "Tuesday",
+//   Wed: "Wednesday",
+//   Thu: "Thursday",
+//   Fri: "Friday",
+//   Sat: "Saturday",
+//   Sun: "Sunday",
+// };
 
-// ─── Data ────────────────────────────────────────────────────────────────────
+// const slides = [
+//   {
+//     id: 1,
+//     illustration: "/icons/home/1.svg",
+//     title: "Your\nSpecialties",
+//     description:
+//       "Select the service categories you offer. Clients will use these to find and book you.",
+//   },
+//   {
+//     id: 2,
+//     illustration: "/icons/home/1.svg",
+//     title: "Work\nschedule",
+//     description: "When are you available to offer your services?",
+//   },
+//   {
+//     id: 3,
+//     illustration: "/icons/home/1.svg",
+//     title: "Services\nyou offer",
+//     description:
+//       "Tell clients what additional services you can offer. Choose the options that apply to you.",
+//   },
+//   {
+//     id: 4,
+//     illustration: "/icons/home/3.svg",
+//     title: "Ready\nto go!",
+//     description: "Your profile is all set. Start accepting bookings!",
+//   },
+// ];
 
-const INFO_SLIDES = [
-  {
-    id: 1,
-    src: "/icons/prof-home/1.svg",
-    title: "Offer your at-home services",
-    desc: "Let us know where you can travel to, when you're available, and what service you want to offer.",
-  },
-  {
-    id: 2,
-    src: "/icons/prof-home/2.svg",
-    title: "Perform the services",
-    desc: "Complete the service for which you have been booked.",
-  },
-  {
-    id: 3,
-    src: "/icons/prof-home/3.svg",
-    title: "Earn money",
-    desc: "Receive the payment for the services you've provided in your account!",
-  },
-];
+// interface DaySchedule {
+//   status: boolean;
+//   startTime: string;
+//   endTime: string;
+// }
 
-const DAYS_DEFAULT: Day[] = [
-  { label: "Monday", key: "Mon", enabled: false, start: "09:00", end: "18:00" },
-  {
-    label: "Tuesday",
-    key: "Tue",
-    enabled: false,
-    start: "09:00",
-    end: "18:00",
-  },
-  {
-    label: "Wednesday",
-    key: "Wed",
-    enabled: false,
-    start: "09:00",
-    end: "18:00",
-  },
-  {
-    label: "Thursday",
-    key: "Thu",
-    enabled: false,
-    start: "09:00",
-    end: "18:00",
-  },
-  { label: "Friday", key: "Fri", enabled: false, start: "09:00", end: "18:00" },
-  {
-    label: "Saturday",
-    key: "Sat",
-    enabled: false,
-    start: "09:00",
-    end: "18:00",
-  },
-  { label: "Sunday", key: "Sun", enabled: false, start: "09:00", end: "18:00" },
-];
+// interface FormData {
+//   specialistsInIds: string[];
+//   taskOptions: Record<string, boolean>;
+//   bio: string;
+//   perHourPrice: string;
+//   schedule: Record<DayKey, DaySchedule>;
+//   categories: string[];
+//   coverImage: File | null;
+// }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// const defaultDaySchedule: DaySchedule = {
+//   status: false,
+//   startTime: "09:00",
+//   endTime: "18:00",
+// };
 
-function PageShell({
-  children,
-  onBack,
-}: {
-  children: React.ReactNode;
-  onBack?: () => void;
-}) {
-  return (
-    <div className="flex min-h-dvh flex-col bg-[#f0f0f0]">
-      {onBack && (
-        <div className="px-6 pt-6">
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-primary"
-            aria-label="Back"
-          >
-            <ArrowLeft className="size-5" />
-          </button>
-        </div>
-      )}
-      {children}
-    </div>
-  );
-}
+// export default function ProviderSetupGate({
+//   children,
+// }: {
+//   children: React.ReactNode;
+// }) {
+//   const { data: taskOptions = [], isLoading: loadingTasks } =
+//     useGetOthersTaskOptions();
+//   const { data: categories = [], isLoading: loadingCategories } =
+//     useCategories();
+//   const { mutate: createSchedule, isPending: loadingSchedule } =
+//     useCreateWorkSchedule();
+//   const { mutate: updateServiceProvider, isPending: loadingServiceProvider } =
+//     useUpdateServiceProviderInfo();
 
-// ─── Step 1-3: Info slides ────────────────────────────────────────────────────
+//   const [step, setStep] = useState<Step>(0);
+//   const [form, setForm] = useState<FormData>({
+//     specialistsInIds: [],
+//     taskOptions: {},
+//     bio: "Dedicated healthcare professional providing reliable and compassionate care.",
+//     perHourPrice: "45",
+//     categories: [],
+//     coverImage: null,
+//     schedule: {
+//       Mon: {
+//         ...defaultDaySchedule,
+//         status: true,
+//         startTime: "09:00",
+//         endTime: "17:00",
+//       },
+//       Tue: {
+//         ...defaultDaySchedule,
+//         status: true,
+//         startTime: "09:00",
+//         endTime: "17:00",
+//       },
+//       Wed: {
+//         ...defaultDaySchedule,
+//         status: true,
+//         startTime: "09:00",
+//         endTime: "17:00",
+//       },
+//       Thu: {
+//         ...defaultDaySchedule,
+//         status: true,
+//         startTime: "09:00",
+//         endTime: "17:00",
+//       },
+//       Fri: {
+//         ...defaultDaySchedule,
+//         status: true,
+//         startTime: "09:00",
+//         endTime: "17:00",
+//       },
+//       Sat: { ...defaultDaySchedule },
+//       Sun: { ...defaultDaySchedule },
+//     },
+//   });
+//   const [done, setDone] = useState(false);
 
-function InfoSlides({ onDone }: { onDone: () => void }) {
-  const [idx, setIdx] = useState(0);
-  const slide = INFO_SLIDES[idx];
-  const isLast = idx === INFO_SLIDES.length - 1;
+//   // Initialize taskOptions when they're loaded
+//   const initializedForm = useMemo(() => {
+//     if (taskOptions.length > 0 && Object.keys(form.taskOptions).length === 0) {
+//       const taskOptionsMap: Record<string, boolean> = {};
+//       taskOptions.forEach((option) => {
+//         taskOptionsMap[option.id] = false;
+//       });
+//       return {
+//         ...form,
+//         taskOptions: taskOptionsMap,
+//       };
+//     }
+//     return form;
+//   }, [taskOptions, form]);
 
-  return (
-    <PageShell>
-      <div className="flex flex-1 flex-col items-center justify-center px-8 pb-10 pt-8">
-        <div className="relative mb-8 h-[260px] w-[300px]">
-          <Image
-            key={slide.id}
-            src={slide.src}
-            alt={slide.title}
-            fill
-            className="object-contain"
-          />
-        </div>
+//   // Update form when initializedForm changes
+//   if (Object.keys(form.taskOptions).length === 0 && taskOptions.length > 0) {
+//     setForm(initializedForm);
+//   }
 
-        <div className="w-full max-w-xs text-left">
-          <h2 className="mb-2 text-xl font-bold text-[#1e2d4f]">
-            {slide.title}
-          </h2>
-          <p className="text-sm leading-relaxed text-gray-400">{slide.desc}</p>
-        </div>
+//   const slide = slides[step];
+//   const isSubmitting = loadingSchedule || loadingServiceProvider;
 
-        {/* Dots */}
-        <div className="mt-6 flex gap-2">
-          {INFO_SLIDES.map((s, i) => (
-            <span
-              key={s.id}
-              className={`size-2.5 rounded-full transition-colors ${i === idx ? "bg-primary" : "bg-gray-300"}`}
-            />
-          ))}
-        </div>
+//   function toggleCategory(id: string) {
+//     setForm((p) => ({
+//       ...p,
+//       specialistsInIds: p.specialistsInIds.includes(id)
+//         ? p.specialistsInIds.filter((c) => c !== id)
+//         : [...p.specialistsInIds, id],
+//     }));
+//   }
 
-        <button
-          type="button"
-          onClick={() => (isLast ? onDone() : setIdx((i) => i + 1))}
-          className="mt-6 w-full max-w-xs rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        >
-          {isLast ? "Finish" : "Next"}
-        </button>
-      </div>
-    </PageShell>
-  );
-}
+//   function toggleTaskOption(id: string) {
+//     setForm((p) => ({
+//       ...p,
+//       taskOptions: {
+//         ...p.taskOptions,
+//         [id]: !p.taskOptions[id],
+//       },
+//     }));
+//   }
 
-// ─── Step 4: Work schedule ────────────────────────────────────────────────────
+//   function toggleDay(day: DayKey) {
+//     setForm((p) => ({
+//       ...p,
+//       schedule: {
+//         ...p.schedule,
+//         [day]: { ...p.schedule[day], status: !p.schedule[day].status },
+//       },
+//     }));
+//   }
 
-function WorkSchedule({
-  onBack,
-  onConfirm,
-}: {
-  onBack: () => void;
-  onConfirm: () => void;
-}) {
-  const [days, setDays] = useState<Day[]>(DAYS_DEFAULT);
-  const { data: profile } = useMyProfile();
-  const { mutate, isPending, error } = useCreateWorkSchedule();
+//   function updateDayTime(
+//     day: DayKey,
+//     field: "startTime" | "endTime",
+//     value: string,
+//   ) {
+//     setForm((p) => ({
+//       ...p,
+//       schedule: {
+//         ...p.schedule,
+//         [day]: { ...p.schedule[day], [field]: value },
+//       },
+//     }));
+//   }
 
-  function toggle(i: number) {
-    setDays((prev) =>
-      prev.map((d, idx) => (idx === i ? { ...d, enabled: !d.enabled } : d)),
-    );
-  }
+//   function next() {
+//     if (step < 3) {
+//       setStep((s) => (s + 1) as Step);
+//     } else {
+//       submit();
+//     }
+//   }
 
-  function setTime(i: number, field: "start" | "end", val: string) {
-    setDays((prev) =>
-      prev.map((d, idx) => (idx === i ? { ...d, [field]: val } : d)),
-    );
-  }
+//   function back() {
+//     if (step > 0) setStep((s) => (s - 1) as Step);
+//   }
 
-  function toIso(timeStr: string) {
-    const today = new Date().toISOString().slice(0, 10);
-    return new Date(`${today}T${timeStr}:00.000Z`).toISOString();
-  }
+//   async function submit() {
+//     console.log("[v0] Submitting form data:", form);
 
-  function handleConfirm() {
-    const enabled = days.filter((d) => d.enabled);
-    if (enabled.length === 0) {
-      onConfirm();
-      return;
-    }
-    mutate(
-      enabled.map((d) => ({
-        day: d.key,
-        userId: profile?.id ?? "",
-        startTime: toIso(d.start),
-        endTime: toIso(d.end),
-        status: true,
-      })),
-      { onSuccess: () => onConfirm() },
-    );
-  }
+//     try {
+//       // Build workSchedule payload
+//       const workSchedulePayload = DAYS.filter(
+//         (day) => form.schedule[day].status,
+//       ).map((day) => {
+//         const sched = form.schedule[day];
+//         // Parse time strings (HH:mm) and combine with a date
+//         const today = new Date().toISOString().split("T")[0];
+//         const startTime = new Date(`${today}T${sched.startTime}:00.000Z`);
+//         const endTime = new Date(`${today}T${sched.endTime}:00.000Z`);
 
-  return (
-    <PageShell onBack={onBack}>
-      <div className="mx-auto w-full max-w-sm px-6 pb-10 pt-4">
-        <h2 className="mb-1 text-xl font-bold text-[#1e2d4f]">Work schedule</h2>
-        <p className="mb-6 text-xs text-gray-400">
-          When are you available to offer your services?
-        </p>
+//         return {
+//           day,
+//           userId: "current-user-id",
+//           startTime: startTime.toISOString(),
+//           endTime: endTime.toISOString(),
+//           status: true,
+//         };
+//       });
 
-        <div className="flex flex-col gap-4">
-          {days.map((day, i) => (
-            <div key={day.label}>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-[#1e2d4f]">
-                  {day.label}
-                </span>
-                <div className="flex items-center gap-3">
-                  <Switch
-                    checked={day.enabled}
-                    onCheckedChange={() => toggle(i)}
-                  />
-                  <span
-                    className={`w-20 text-xs ${day.enabled ? "text-primary" : "text-gray-400"}`}
-                  >
-                    {day.enabled ? "Available" : "Not available"}
-                  </span>
-                </div>
-              </div>
-              {day.enabled && (
-                <div className="mt-2 flex items-center gap-2 pl-1">
-                  <input
-                    type="text"
-                    value={day.start}
-                    onChange={(e) => setTime(i, "start", e.target.value)}
-                    className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-xs focus:outline-none"
-                  />
-                  <span className="text-gray-400">—</span>
-                  <input
-                    type="text"
-                    value={day.end}
-                    onChange={(e) => setTime(i, "end", e.target.value)}
-                    className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-xs focus:outline-none"
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+//       // Build service provider info payload with task options as keys
+//       const serviceProviderPayload: Record<string, any> = {
+//         specialistsIn: form.specialistsInIds,
+//         bio: form.bio,
+//         perHourPrice: parseFloat(form.perHourPrice) || 0,
+//       };
 
-        {error && <p className="mt-3 text-xs text-red-500">{error.message}</p>}
+//       // Add task options as boolean properties
+//       taskOptions.forEach((option) => {
+//         // Convert option ID/value to camelCase key (e.g., "Palliative Care" -> "palliativeCare")
+//         const key = option.value.split(" ").reduce((acc, word, i) => {
+//           if (i === 0) return word.toLowerCase();
+//           return (
+//             acc + word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+//           );
+//         }, "");
 
-        <button
-          type="button"
-          onClick={handleConfirm}
-          disabled={isPending}
-          className="mt-8 w-full rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {isPending && <Loader2 className="size-4 animate-spin" />}
-          {isPending ? "Saving..." : "Confirm"}
-        </button>
-      </div>
-    </PageShell>
-  );
-}
+//         serviceProviderPayload[key] = form.taskOptions[option.id] || false;
+//       });
 
-// ─── Step 5: Tasks / Specialists / Filters ────────────────────────────────────
+//       console.log("[v0] Work Schedule Payload:", workSchedulePayload);
+//       console.log(
+//         "[v0] Service Provider Info Payload:",
+//         serviceProviderPayload,
+//       );
 
-function TasksAndFilters({
-  onBack,
-  onConfirm,
-}: {
-  onBack: () => void;
-  onConfirm: () => void;
-}) {
-  const { data: taskOptions = [], isLoading: loadingTasks } =
-    useGetOthersTaskOptions();
-  const { data: categories = [], isLoading: loadingCategories } =
-    useCategories();
-  const { data: experienceOptions = [], isLoading: loadingExperience } =
-    useGetExperienceOptions();
-  const { data: profile } = useMyProfile();
-  const { mutate, isPending, error } = useUpdateServiceProviderInfo();
+//       // Make API calls
+//       if (workSchedulePayload.length > 0) {
+//         console.log("[v0] Creating work schedule...");
+//         await createSchedule(workSchedulePayload);
+//       }
 
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const [experienceOptionId, setExperienceOptionId] = useState<string>("");
-  const [palliative, setPalliative] = useState(false);
-  const [driving, setDriving] = useState(false);
-  const [business, setBusiness] = useState(false);
-  const [perHourPrice, setPerHourPrice] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+//       console.log("[v0] Updating service provider info...");
+//       await updateServiceProvider(serviceProviderPayload);
 
-  function toggleTaskId(id: string) {
-    setSelectedTaskIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
+//       console.log("[v0] All submissions completed successfully");
+//       setDone(true);
+//     } catch (error) {
+//       console.error("[v0] Submission error:", error);
+//     }
+//   }
 
-  function toggleCategoryId(id: string) {
-    setSelectedCategoryIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
+//   const canProceed =
+//     step === 0
+//       ? form.specialistsInIds.length > 0
+//       : step === 1
+//         ? true
+//         : step === 2
+//           ? true
+//           : !isSubmitting;
 
-  function handleUpdate() {
-    const fd = new globalThis.FormData();
-    fd.append("palliativeCare", String(palliative));
-    fd.append("drivingLicense", String(driving));
-    fd.append("businessProfiles", String(business));
-    fd.append("bio", profile?.serviceProviderInfo?.bio ?? profile?.bio ?? "");
-    fd.append("perHourPrice", perHourPrice || "0");
-    if (experienceOptionId) fd.append("experienceOptionId", experienceOptionId);
-    for (const id of selectedTaskIds) {
-      fd.append("othersRequiredTaskIds[]", id);
-    }
-    for (const id of selectedCategoryIds) {
-      fd.append("specialistsInIds[]", id);
-    }
-    if (imageFile) fd.append("coverImage", imageFile);
-    mutate(fd, { onSuccess: () => onConfirm() });
-  }
+//   if (done) return <>{children}</>;
 
-  return (
-    <PageShell onBack={onBack}>
-      <div className="mx-auto w-full max-w-2xl px-6 pb-10 pt-4">
-        <div className="flex items-start justify-between">
-          <div />
-          <button
-            type="button"
-            className="text-xs font-semibold text-gray-400 underline"
-            onClick={() => {
-              setSelectedTaskIds(new Set());
-              setSelectedCategoryIds(new Set());
-              setExperienceOptionId("");
-              setPalliative(false);
-              setDriving(false);
-              setBusiness(false);
-            }}
-          >
-            Clear filters
-          </button>
-        </div>
+//   const isScheduleStep = step === 1;
 
-        <div className="mt-4 grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Left column */}
-          <div>
-            <h3 className="mb-3 text-sm font-bold text-[#1e2d4f]">
-              Other required tasks
-            </h3>
-            {loadingTasks ? (
-              <div className="flex items-center gap-2 text-xs text-gray-400">
-                <Loader2 className="size-3 animate-spin" /> Loading...
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {taskOptions.map((t) => (
-                  <label
-                    key={t.id}
-                    className="flex cursor-pointer items-center gap-2"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedTaskIds.has(t.id)}
-                      onChange={() => toggleTaskId(t.id)}
-                      className="size-4 rounded border-gray-300 accent-primary"
-                    />
-                    <span className="text-xs text-gray-600">{t.value}</span>
-                  </label>
-                ))}
-              </div>
-            )}
+//   return (
+//     <div className="z-100 flex flex-col bg-[#f0f0f0] min-h-screen font-sans">
+//       {/* Back / Skip row */}
+//       <div className="flex h-14 items-center justify-between px-6 sm:px-10">
+//         {step > 0 ? (
+//           <button
+//             type="button"
+//             onClick={back}
+//             disabled={isSubmitting}
+//             className="text-sm font-semibold text-blue-600 cursor-pointer hover:underline disabled:opacity-50"
+//           >
+//             Back
+//           </button>
+//         ) : (
+//           <span />
+//         )}
+//         {step < 3 && (
+//           <button
+//             type="button"
+//             onClick={() => setStep(3)}
+//             className="text-sm font-semibold text-blue-600 cursor-pointer hover:underline"
+//           >
+//             Skip
+//           </button>
+//         )}
+//       </div>
 
-            <h3 className="mb-3 mt-6 text-sm font-bold text-[#1e2d4f]">
-              Specialises in:
-            </h3>
-            {loadingCategories ? (
-              <div className="flex items-center gap-2 text-xs text-gray-400">
-                <Loader2 className="size-3 animate-spin" /> Loading...
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {categories.map((c) => (
-                  <label
-                    key={c.id}
-                    className="flex cursor-pointer items-center gap-2"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedCategoryIds.has(c.id)}
-                      onChange={() => toggleCategoryId(c.id)}
-                      className="size-4 rounded border-gray-300 accent-primary"
-                    />
-                    <span className="text-xs text-gray-600">{c.name}</span>
-                  </label>
-                ))}
-              </div>
-            )}
+//       {/* Illustration — hidden for schedule step */}
+//       {!isScheduleStep && (
+//         <div className="flex flex-1 items-end justify-center pb-8 min-h-[200px]">
+//           <div className="relative h-64 w-80 sm:h-80 sm:w-96 flex items-end justify-center">
+//             <img
+//               key={slide.id}
+//               src={slide.illustration}
+//               alt={slide.title}
+//               className="max-h-full max-w-full object-contain object-bottom transition-all duration-300 drop-shadow-sm"
+//             />
+//           </div>
+//         </div>
+//       )}
 
-            <h3 className="mb-3 mt-6 text-sm font-bold text-[#1e2d4f]">
-              Experience level
-            </h3>
-            {loadingExperience ? (
-              <div className="flex items-center gap-2 text-xs text-gray-400">
-                <Loader2 className="size-3 animate-spin" /> Loading...
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {experienceOptions.map((e) => (
-                  <label
-                    key={e.id}
-                    className="flex cursor-pointer items-center gap-2"
-                  >
-                    <input
-                      type="radio"
-                      name="experienceOptionId"
-                      checked={experienceOptionId === e.id}
-                      onChange={() => setExperienceOptionId(e.id)}
-                      className="size-4 accent-primary"
-                    />
-                    <span className="text-xs text-gray-600">{e.value}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
+//       {/* Text + controls */}
+//       <div className="flex flex-col items-start gap-3 px-8 pb-10 sm:items-center sm:px-16 sm:text-center w-full max-w-2xl mx-auto">
+//         <h2 className="text-2xl font-bold leading-snug text-[#1e2d4f] sm:text-3xl tracking-tight">
+//           {slide.title.split("\n").map((line, i, arr) => (
+//             <span key={i}>
+//               {line}
+//               {i < arr.length - 1 && <br />}
+//             </span>
+//           ))}
+//         </h2>
+//         <p className="max-w-sm text-sm leading-relaxed text-gray-500">
+//           {slide.description}
+//         </p>
 
-          {/* Right column */}
-          <div className="flex flex-col gap-5">
-            {[
-              {
-                label: "Palliative care",
-                sub: "Only show professionals specialising in palliative care",
-                val: palliative,
-                set: setPalliative,
-              },
-              {
-                label: "Driving licence",
-                sub: "Only show professionals with a driving licence",
-                val: driving,
-                set: setDriving,
-              },
-              {
-                label: "Business profiles",
-                sub: "Only profiles that correspond to a validated business or self-employed professional.",
-                val: business,
-                set: setBusiness,
-              },
-            ].map(({ label, sub, val, set }) => (
-              <div key={label} className="border-b border-gray-200 pb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[#1e2d4f]">
-                    {label}
-                  </span>
-                  <Switch checked={val} onCheckedChange={set} />
-                </div>
-                <p className="mt-1 text-xs text-gray-400">{sub}</p>
-              </div>
-            ))}
+//         {/* Step 0: Category selection */}
+//         {step === 0 && (
+//           <div className="mt-2 w-full max-w-md">
+//             {loadingCategories ? (
+//               <div className="flex justify-center py-6">
+//                 <Loader2 className="size-5 animate-spin text-gray-400" />
+//               </div>
+//             ) : categories.length > 0 ? (
+//               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+//                 {categories.map((cat) => (
+//                   <button
+//                     key={cat.id}
+//                     type="button"
+//                     onClick={() => toggleCategory(cat.id)}
+//                     className={`rounded-xl px-4 py-3 text-sm font-medium transition-all cursor-pointer ${
+//                       form.specialistsInIds.includes(cat.id)
+//                         ? "bg-blue-600 text-white shadow-md scale-[1.02]"
+//                         : "bg-white text-gray-700 shadow-sm hover:shadow-md hover:bg-gray-50"
+//                     }`}
+//                   >
+//                     {cat.name}
+//                   </button>
+//                 ))}
+//               </div>
+//             ) : (
+//               <p className="text-sm text-gray-400">No categories available</p>
+//             )}
+//             {form.specialistsInIds.length > 0 && (
+//               <p className="mt-3 text-center text-xs text-blue-600 font-semibold">
+//                 {form.specialistsInIds.length} selected
+//               </p>
+//             )}
+//           </div>
+//         )}
 
-            {/* Per hour price */}
-            <div className="border-b border-gray-200 pb-4">
-              <p className="mb-2 text-sm font-semibold text-[#1e2d4f]">
-                Hourly rate ($)
-              </p>
-              <Input
-                type="number"
-                min={0}
-                placeholder="e.g. 25"
-                value={perHourPrice}
-                onChange={(e) => setPerHourPrice(e.target.value)}
-                className="rounded-lg border-gray-300 bg-white text-sm"
-              />
-            </div>
+//         {/* Step 1: Work schedule */}
+//         {step === 1 && (
+//           <div className="mt-2 w-full max-w-sm divide-y divide-gray-200/80 bg-white rounded-2xl px-5 py-2 shadow-sm">
+//             {DAYS.map((day) => {
+//               const sched = form.schedule[day];
+//               return (
+//                 <div key={day} className="py-3.5">
+//                   <div className="flex items-center justify-between">
+//                     <span className="text-sm font-semibold text-gray-800">
+//                       {DAY_FULL[day]}
+//                     </span>
+//                     <div className="flex items-center gap-3">
+//                       <button
+//                         type="button"
+//                         onClick={() => toggleDay(day)}
+//                         className={`relative h-7 w-12 rounded-full transition-colors cursor-pointer ${
+//                           sched.status ? "bg-blue-600" : "bg-gray-200"
+//                         }`}
+//                       >
+//                         <span
+//                           className={`absolute top-0.5 left-0.5 size-6 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+//                             sched.status ? "translate-x-5" : "translate-x-0"
+//                           }`}
+//                         />
+//                       </button>
+//                       <span
+//                         className={`w-24 text-xs font-medium text-right ${
+//                           sched.status ? "text-gray-700" : "text-gray-400"
+//                         }`}
+//                       >
+//                         {sched.status ? "Available" : "Not available"}
+//                       </span>
+//                     </div>
+//                   </div>
+//                   {sched.status && (
+//                     <div className="mt-2.5 flex items-center justify-end gap-2 text-right">
+//                       <input
+//                         type="time"
+//                         value={sched.startTime}
+//                         onChange={(e) =>
+//                           updateDayTime(day, "startTime", e.target.value)
+//                         }
+//                         className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 outline-none focus:border-blue-500 w-22"
+//                       />
+//                       <span className="text-gray-400 text-xs font-medium">
+//                         to
+//                       </span>
+//                       <input
+//                         type="time"
+//                         value={sched.endTime}
+//                         onChange={(e) =>
+//                           updateDayTime(day, "endTime", e.target.value)
+//                         }
+//                         className="rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-700 outline-none focus:border-blue-500 w-22"
+//                       />
+//                     </div>
+//                   )}
+//                 </div>
+//               );
+//             })}
+//           </div>
+//         )}
 
-            {/* Image upload */}
-            <div>
-              <p className="mb-2 text-sm font-semibold text-[#1e2d4f]">Image</p>
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="flex w-full items-center gap-2 rounded border border-gray-300 bg-white px-3 py-2 text-xs text-gray-400"
-              >
-                <svg
-                  className="size-4 shrink-0"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="M21 15l-5-5L5 21" />
-                </svg>
-                {imageFile ? imageFile.name : "browse image"}
-              </button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
-              />
-            </div>
-          </div>
-        </div>
+//         {/* Step 2: Task Options */}
+//         {step === 2 && (
+//           <div className="mt-2 flex w-full max-w-sm flex-col gap-2.5">
+//             {loadingTasks ? (
+//               <div className="flex justify-center py-6">
+//                 <Loader2 className="size-5 animate-spin text-gray-400" />
+//               </div>
+//             ) : taskOptions.length > 0 ? (
+//               taskOptions.map((option: TaskOption) => (
+//                 <label
+//                   key={option.id}
+//                   className={`flex cursor-pointer items-center gap-3 rounded-xl px-4 py-3 shadow-sm transition-all border ${
+//                     form.taskOptions[option.id]
+//                       ? "bg-blue-50 border-blue-200 shadow-md"
+//                       : "bg-white border-transparent hover:shadow-md"
+//                   }`}
+//                 >
+//                   <input
+//                     type="checkbox"
+//                     checked={form.taskOptions[option.id] || false}
+//                     onChange={() => toggleTaskOption(option.id)}
+//                     className="accent-blue-600 size-4 rounded cursor-pointer"
+//                   />
+//                   <span className="text-sm font-medium text-gray-700">
+//                     {option.value}
+//                   </span>
+//                 </label>
+//               ))
+//             ) : (
+//               <p className="text-sm text-gray-400">No task options available</p>
+//             )}
+//           </div>
+//         )}
 
-        {error && <p className="mt-3 text-xs text-red-500">{error.message}</p>}
+//         {/* Step 3: Success */}
+//         {step === 3 && (
+//           <div className="mt-2 w-full max-w-sm rounded-xl bg-white px-6 py-8 shadow-sm text-center border border-green-100">
+//             <CheckCircle2 className="mx-auto mb-3 size-12 text-green-500 animate-bounce" />
+//             <p className="text-sm font-medium text-gray-700">
+//               All set! Your profile is ready to go live.
+//             </p>
+//           </div>
+//         )}
 
-        <button
-          type="button"
-          onClick={handleUpdate}
-          disabled={isPending}
-          className="mt-8 w-full rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {isPending && <Loader2 className="size-4 animate-spin" />}
-          {isPending ? "Saving..." : "Update"}
-        </button>
-      </div>
-    </PageShell>
-  );
-}
+//         {/* Dots */}
+//         <div className="mt-4 flex gap-2 justify-center w-full">
+//           {slides.map((s, i) => (
+//             <span
+//               key={s.id}
+//               className={`size-2.5 rounded-full transition-colors ${
+//                 i === step ? "bg-blue-600 w-6" : "bg-gray-300"
+//               }`}
+//             />
+//           ))}
+//         </div>
 
-// ─── Step 6: Profile picture ──────────────────────────────────────────────────
+//         {/* Next / Submit */}
+//         <button
+//           type="button"
+//           onClick={next}
+//           disabled={!canProceed}
+//           className="mt-4 w-full max-w-sm rounded-xl bg-blue-600 py-4 text-sm font-semibold text-white transition-all cursor-pointer hover:bg-blue-700 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+//         >
+//           {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+//           {step < 3
+//             ? isScheduleStep
+//               ? "Confirm"
+//               : "Next"
+//             : isSubmitting
+//               ? "Saving..."
+//               : "Go Live"}
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
 
-function ProfilePicture({
-  onBack,
-  onConfirm,
-}: {
-  onBack: () => void;
-  onConfirm: () => void;
-}) {
-  const [preview, setPreview] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const { mutate, isPending, error } = useUpdateProfile();
+import React from "react";
 
-  function pick(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    setFile(f);
-    setPreview(URL.createObjectURL(f));
-  }
-
-  function handleConfirm() {
-    if (!file) {
-      onConfirm();
-      return;
-    }
-    const fd = new globalThis.FormData();
-    fd.append("profile", file);
-    mutate(fd, { onSuccess: () => onConfirm() });
-  }
-
-  return (
-    <PageShell onBack={onBack}>
-      <div className="mx-auto flex w-full max-w-sm flex-col items-start px-6 pb-10 pt-4">
-        <h2 className="mb-1 text-xl font-bold text-[#1e2d4f]">
-          Profile picture
-        </h2>
-        <p className="mb-8 text-xs text-gray-400">
-          This will be the picture that clients will see of you. Try to make it
-          as trustworthy as possible.
-        </p>
-
-        {/* Upload circle */}
-        <div className="mb-8 flex w-full justify-center">
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="relative flex size-28 items-center justify-center overflow-hidden rounded-full bg-blue-100 transition-opacity hover:opacity-80"
-          >
-            {preview ? (
-              <Image
-                src={preview}
-                alt="Profile preview"
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <Plus className="size-8 text-primary" />
-            )}
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={pick}
-          />
-        </div>
-
-        {/* Tips card */}
-        <div className="w-full rounded-xl border border-gray-200 bg-white p-4">
-          <p className="mb-3 text-xs font-semibold text-primary">
-            What makes a good profile picture?
-          </p>
-          <div className="mb-4 flex gap-4">
-            {/* Good example */}
-            <div className="relative">
-              <div className="size-14 overflow-hidden rounded-full bg-gray-100">
-                <Image
-                  src="https://i.pravatar.cc/56?u=good-prof"
-                  alt="Good example"
-                  width={56}
-                  height={56}
-                  className="object-cover"
-                />
-              </div>
-              <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-green-500">
-                <Check className="size-3 text-white" strokeWidth={3} />
-              </span>
-            </div>
-            {/* Bad example */}
-            <div className="relative">
-              <div className="size-14 overflow-hidden rounded-full bg-gray-100">
-                <Image
-                  src="https://i.pravatar.cc/56?u=bad-prof"
-                  alt="Bad example"
-                  width={56}
-                  height={56}
-                  className="object-cover"
-                />
-              </div>
-              <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full bg-red-500">
-                <X className="size-3 text-white" strokeWidth={3} />
-              </span>
-            </div>
-          </div>
-          {["Good lighting", "Good resolution", "Visible face", "Smile"].map(
-            (tip) => (
-              <div key={tip} className="flex items-center gap-2 py-0.5">
-                <Check
-                  className="size-3.5 shrink-0 text-primary"
-                  strokeWidth={3}
-                />
-                <span className="text-xs text-gray-600">{tip}</span>
-              </div>
-            ),
-          )}
-        </div>
-
-        {error && <p className="mt-3 text-xs text-red-500">{error.message}</p>}
-
-        <button
-          type="button"
-          onClick={handleConfirm}
-          disabled={isPending}
-          className="mt-8 w-full rounded-lg bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {isPending && <Loader2 className="size-4 animate-spin" />}
-          {isPending ? "Uploading..." : "Confirm"}
-        </button>
-      </div>
-    </PageShell>
-  );
-}
-
-// ─── Done placeholder ─────────────────────────────────────────────────────────
-
-function ProfessionalDashboard() {
-  const router = useRouter();
-  useEffect(() => {
-    router.replace("/profile");
-  }, [router]);
-  return null;
-}
-
-// ─── Root ─────────────────────────────────────────────────────────────────────
-
-type Step = "slides" | "schedule" | "tasks" | "photo" | "done";
-
-export default function ProfessionalPage() {
-  const { data: profile } = useMyProfile();
-  const [step, setStep] = useState<Step>("slides");
-
-  useEffect(() => {
-    if (profile?.serviceProviderInfo) {
-      setStep("done");
-    }
-  }, [profile]);
-
-  if (step === "slides")
-    return <InfoSlides onDone={() => setStep("schedule")} />;
-
-  if (step === "schedule")
-    return (
-      <WorkSchedule
-        onBack={() => setStep("slides")}
-        onConfirm={() => setStep("tasks")}
-      />
-    );
-
-  if (step === "tasks")
-    return (
-      <TasksAndFilters
-        onBack={() => setStep("schedule")}
-        onConfirm={() => setStep("photo")}
-      />
-    );
-
-  if (step === "photo")
-    return (
-      <ProfilePicture
-        onBack={() => setStep("tasks")}
-        onConfirm={() => setStep("done")}
-      />
-    );
-
-  return <ProfessionalDashboard />;
+export default function Page() {
+  return <div>Page</div>;
 }
