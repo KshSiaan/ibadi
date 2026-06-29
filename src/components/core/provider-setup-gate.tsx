@@ -449,7 +449,7 @@ export default function ProviderSetupGate({
                 <Loader2 className="size-5 animate-spin text-gray-400" />
               </div>
             ) : taskOptions.length > 0 ? (
-              taskOptions.map((option: TaskOption) => (
+              taskOptions.map((option: any) => (
                 <label
                   key={option.id}
                   className="flex cursor-pointer items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm hover:shadow-md transition-shadow"
