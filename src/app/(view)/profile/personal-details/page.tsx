@@ -100,7 +100,9 @@ export default function PersonalDetailsPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">Personal details</h1>
+        <h1 className="text-lg font-semibold text-gray-900">
+          Personal details
+        </h1>
       </div>
 
       {/* Main Content */}

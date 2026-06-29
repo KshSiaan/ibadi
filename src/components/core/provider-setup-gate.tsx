@@ -335,6 +335,7 @@ export default function ProviderSetupGate({
       <div className="flex flex-col items-start gap-3 px-8 pb-10 sm:items-center sm:px-16 sm:text-center">
         <h2 className="text-2xl font-bold leading-snug text-[#1e2d4f] sm:text-3xl">
           {slide.title.split("\n").map((line, i, arr) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
             <span key={i}>
               {line}
               {i < arr.length - 1 && <br />}
@@ -449,7 +450,7 @@ export default function ProviderSetupGate({
                 <Loader2 className="size-5 animate-spin text-gray-400" />
               </div>
             ) : taskOptions.length > 0 ? (
-              taskOptions.map((option: TaskOption) => (
+              taskOptions.map((option: any) => (
                 <label
                   key={option.id}
                   className="flex cursor-pointer items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm hover:shadow-md transition-shadow"

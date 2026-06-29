@@ -8,6 +8,7 @@ import {
   CreateBookingRequest,
 } from "@/lib/api/types";
 import { useCookies } from "react-cookie";
+import { toast } from "sonner";
 
 export function useCreateBooking() {
   const [cookies] = useCookies(["accessToken"]);
@@ -162,7 +163,10 @@ export function useCheckout() {
         data,
         cookies.accessToken,
       );
-      if (!response.success) throw new Error(response.message);
+      console.log("response.message", response.message)
+      if (!response.success){
+         throw new Error(response.message)
+      };
       return response.data;
     },
   });
