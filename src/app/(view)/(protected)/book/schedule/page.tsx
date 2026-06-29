@@ -68,7 +68,8 @@ export default function SchedulePage() {
       dateStr = `${year}-${month}-${String(selectedDay).padStart(2, "0")}`;
     }
 
-    const taskIds = checkedTasks.size > 0 ? Array.from(checkedTasks).join(",") : undefined;
+    const taskIds =
+      checkedTasks.size > 0 ? Array.from(checkedTasks).join(",") : undefined;
 
     const filters: HomepageFilters = {
       categoryId: selectedCategoryId || undefined,
@@ -286,12 +287,13 @@ export default function SchedulePage() {
         )}
 
         <div className="flex gap-3">
-          <Link
-            href="/book"
+          <button
+            type="button"
+            onClick={handleSearch}
             className="flex-1 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-600 text-center"
           >
             Skip
-          </Link>
+          </button>
           <button
             type="button"
             onClick={handleSearch}

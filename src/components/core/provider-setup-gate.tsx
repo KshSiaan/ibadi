@@ -335,6 +335,7 @@ export default function ProviderSetupGate({
       <div className="flex flex-col items-start gap-3 px-8 pb-10 sm:items-center sm:px-16 sm:text-center">
         <h2 className="text-2xl font-bold leading-snug text-[#1e2d4f] sm:text-3xl">
           {slide.title.split("\n").map((line, i, arr) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
             <span key={i}>
               {line}
               {i < arr.length - 1 && <br />}

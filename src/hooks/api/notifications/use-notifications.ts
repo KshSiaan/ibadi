@@ -16,7 +16,7 @@ export function useNotifications() {
         cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);
-      return response.data.data;
+      return response.data.data??[];
     },
     enabled: !!cookies.accessToken,
     staleTime: 1000 * 30,

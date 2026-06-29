@@ -58,7 +58,9 @@ export default function PaymentsMethodsPage() {
       data: string;
     }> => {
       const res: any = await howl("/stripe/get-customer", {
-        token: accessToken,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
       return res;
     },
@@ -112,25 +114,47 @@ export default function PaymentsMethodsPage() {
         )}
 
         <div className="space-y-3 mb-6">
-          {cards?.map((card) => (
+          {cards?.map((card: any) => (
             <div
               key={card.id}
-              className="flex items-center justify-between px-4 py-3 bg-white border border-gray-300 rounded-lg hover:border-gray-400 transition-colors relative"
+              className="relative flex items-center justify-between rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md hover:border-primary/30"
             >
-              <div className="flex items-center gap-3">
-                <CardIcon brand={card.brand} />
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-900 capitalize">
-                    {card.brand}
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+                  <CardIcon brand={card.display_brand} />
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-gray-900 capitalize">
+                      {card.display_brand}
+                    </h3>
+
                     {card.isDefault && (
-                      <span className="ml-2 text-xs text-primary">
-                        (Default)
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        Default
                       </span>
                     )}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    •••• •••• •••• {card.last4} · {card.expMonth}/{card.expYear}
-                  </span>
+                  </div>
+
+                  <p className="mt-1 text-lg font-mono tracking-wider text-gray-900">
+                    •••• {card.last4digit}
+                  </p>
+
+                  <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
+                    <span>
+                      Expires {String(card.exp_month).padStart(2, "0")}/
+                      {card.exp_year}
+                    </span>
+
+                    <span>•</span>
+
+                    <span className="capitalize">{card.funding}</span>
+
+                    <span>•</span>
+
+                    <span>{card.country}</span>
+                  </div>
                 </div>
               </div>
 
@@ -140,13 +164,13 @@ export default function PaymentsMethodsPage() {
                   onClick={() =>
                     setShowMenuId(showMenuId === card.id ? null : card.id)
                   }
-                  className="flex items-center justify-center w-8 h-8 hover:bg-gray-100 rounded transition-colors"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100"
                 >
-                  <MoreVertical className="w-5 h-5 text-gray-600" />
+                  <MoreVertical className="h-5 w-5 text-gray-500" />
                 </button>
 
                 {showMenuId === card.id && (
-                  <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-md z-10">
+                  <div className="absolute right-0 top-full z-10 mt-2 w-40 rounded-lg border bg-white shadow-lg">
                     <button
                       type="button"
                       onClick={() => {
@@ -154,9 +178,9 @@ export default function PaymentsMethodsPage() {
                         setShowDeleteDialog(true);
                         setShowMenuId(null);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+                      className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
                     >
-                      Delete
+                      Delete card
                     </button>
                   </div>
                 )}

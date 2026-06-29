@@ -20,7 +20,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
 
-  const { fcmToken, permissionStatus, isLoading: fcmLoading, requestPermission } = useFcmContext();
+  const {
+    fcmToken,
+    permissionStatus,
+    isLoading: fcmLoading,
+    requestPermission,
+  } = useFcmContext();
   const { mutate: login, isPending: loading, error } = useLogin();
   const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
 
@@ -32,7 +37,10 @@ export default function LoginPage() {
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken },
         {
-          onSuccess: (data) => router.push(data.user.role === "service_provider" ? "/professional" : "/"),
+          onSuccess: (data) =>
+            router.push(
+              data.user.role === "service_provider" ? "/professional" : "/",
+            ),
           onError: (err) => {
             console.error("[Google Login] API error:", err);
             setGoogleError(err.message || "Server rejected Google sign-in");
@@ -64,12 +72,21 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    login({ email, password, fcmToken }, { onSuccess: (data) => router.push(data.user.role === "service_provider" ? "/professional" : "/") });
+    login(
+      { email, password, fcmToken },
+      {
+        onSuccess: (data) =>
+          router.push(
+            data.user.role === "service_provider" ? "/professional" : "/",
+          ),
+      },
+    );
   };
 
   const errorMessage = error?.message || googleError || "";
   const busy = loading || googleLoading;
-  const notificationBlocked = permissionStatus === "denied" || permissionStatus === "unsupported";
+  const notificationBlocked =
+    permissionStatus === "denied" || permissionStatus === "unsupported";
 
   const disabledReason = (() => {
     if (busy || fcmLoading) return null;
@@ -93,14 +110,14 @@ export default function LoginPage() {
 
           {notificationBlocked && (
             <div className="flex flex-col gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-              <div className="flex gap-3">
+              {/* <div className="flex gap-3">
                 <AlertCircle className="size-5 shrink-0" />
                 <span>
                   {permissionStatus === "unsupported"
                     ? "Your browser does not support notifications. Please use a supported browser to sign in."
                     : "Notifications are blocked. Please enable notifications in your browser settings, then click Try Again."}
                 </span>
-              </div>
+              </div> */}
               {permissionStatus === "denied" && (
                 <button
                   type="button"
@@ -192,7 +209,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              disabled={busy || !email || !password || !fcmToken || fcmLoading}
+              disabled={busy || !email || !password}
               className="w-full rounded-lg py-2.5 font-medium"
             >
               {loading ? (
@@ -210,7 +227,9 @@ export default function LoginPage() {
               )}
             </Button>
             {disabledReason && (
-              <p className="text-center text-xs text-slate-400">{disabledReason}</p>
+              <p className="text-center text-xs text-slate-400">
+                {disabledReason}
+              </p>
             )}
           </form>
 
@@ -225,7 +244,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               className="w-full rounded-lg border-slate-200"
-              disabled={busy || !fcmToken}
+              disabled={busy}
               onClick={() => triggerGoogleLogin()}
             >
               {googleLoading ? (

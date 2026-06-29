@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowLeft, Calendar, ClipboardCheck, Clock, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  ClipboardCheck,
+  Clock,
+  Loader2,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,6 +18,7 @@ import {
 } from "@/hooks/api/bookings/use-bookings";
 import type { Booking } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 type Tab = "request" | "ongoing" | "cancelled";
 
@@ -37,13 +44,7 @@ function formatDate(iso: string) {
   });
 }
 
-function BookingCard({
-  booking,
-  tab,
-}: {
-  booking: Booking;
-  tab: Tab;
-}) {
+function BookingCard({ booking, tab }: { booking: Booking; tab: Tab }) {
   const { mutate: accept, isPending: accepting } = useAcceptBooking();
   const { mutate: cancel, isPending: cancelling } = useCancelBooking();
   const firstDay = booking.bookingDays[0];
@@ -189,9 +190,7 @@ export default function RequestPage() {
   const { data: completedBookings, isLoading: loadingComplete } =
     useProviderBookings({ past: true });
 
-  const filtered = bookings?.filter(
-    (b) => b.status === STATUS_MAP[activeTab],
-  );
+  const filtered = bookings?.filter((b) => b.status === STATUS_MAP[activeTab]);
 
   if (showComplete) {
     return (
@@ -228,18 +227,19 @@ export default function RequestPage() {
 
   return (
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
-      <div className="relative mb-6 flex items-center gap-6 justify-center w-full">
+      <div className="relative mb-6 flex items-center justify-center gap-28 w-full">
         <h1 className="text-2xl font-bold text-gray-800 inline-block">
           Request
         </h1>
-        <button
+        <Button
           type="button"
           onClick={() => setShowComplete(true)}
+          variant="outline"
           className="text-primary"
           aria-label="View completed bookings"
         >
-          <ClipboardCheck className="size-6" />
-        </button>
+          Completed
+        </Button>
       </div>
 
       <div className="mb-6 flex justify-center">

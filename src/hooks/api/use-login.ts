@@ -12,7 +12,11 @@ export function useLogin() {
     mutationFn: async (credentials: LoginRequest) => {
       const response = await apiClient.post<ApiResponse<LoginResponse>>(
         "/auth/login",
-        credentials,
+        {
+          email: credentials.email,
+          password: credentials.password,
+          fcmToken: credentials.fcmToken??undefined,
+        },
       );
 
       if (!response.success || !response.data) {

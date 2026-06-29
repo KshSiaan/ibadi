@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Sparkles,
   LogIn,
+  Book,
 } from "lucide-react";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useCookies } from "react-cookie";
@@ -43,6 +44,53 @@ const menuItems: MenuItem[] = [
   },
   {
     label: "Change password",
+    href: "/profile/password",
+    icon: <Lock className="w-5 h-5" />,
+  },
+  {
+    label: "Language",
+    href: "/profile/language",
+    icon: <Globe className="w-5 h-5" />,
+  },
+  {
+    label: "About Us",
+    href: "/profile/about",
+    icon: <Info className="w-5 h-5" />,
+  },
+  {
+    label: "Terms and conditions",
+    href: "/profile/terms",
+    icon: <FileText className="w-5 h-5" />,
+  },
+  {
+    label: "Privacy policy",
+    href: "/profile/privacy",
+    icon: <Shield className="w-5 h-5" />,
+  },
+];
+const ProfessionalMenu: MenuItem[] = [
+  {
+    label: "Personal details",
+    href: "/profile/personal-details",
+    icon: <User className="w-5 h-5" />,
+  },
+  {
+    label: "My Balance",
+    href: "/profile/balance",
+    icon: <CreditCard className="w-5 h-5" />,
+  },
+  {
+    label: "My Listing",
+    href: "/profile/payments",
+    icon: <Sparkles className="w-5 h-5" />,
+  },
+  {
+    label: "Booking Preferences",
+    href: "/profile/password",
+    icon: <Book className="w-5 h-5" />,
+  },
+  {
+    label: "My Review",
     href: "/profile/password",
     icon: <Lock className="w-5 h-5" />,
   },
@@ -169,9 +217,11 @@ export default function ProfilePage() {
         </h2>
 
         <div className="border border-gray-200 rounded-lg overflow-hidden">
-          {menuItems.map((item) => (
-            <MenuItem key={item.href} item={item} />
-          ))}
+          {profile?.role === "service_provider"
+            ? ProfessionalMenu.map((item) => (
+                <MenuItem key={item.href} item={item} />
+              ))
+            : menuItems.map((item) => <MenuItem key={item.href} item={item} />)}
         </div>
       </div>
     </div>

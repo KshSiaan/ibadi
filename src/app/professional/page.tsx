@@ -521,8 +521,9 @@
 //   );
 // }
 
+import { redirect } from "next/navigation";
 import React from "react";
 
 export default function Page() {
-  return <div>Page</div>;
+  return redirect("/professional/request");
 }

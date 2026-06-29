@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CreditCard, Wallet, ChevronRight } from "lucide-react";
+import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 
 interface MenuItem {
   label: string;
@@ -10,22 +11,31 @@ interface MenuItem {
   icon: React.ReactNode;
 }
 
-const menuItems: MenuItem[] = [
-  {
-    label: "My booking",
-    href: "/profile/payments/bookings",
-    icon: <Wallet className="w-5 h-5" />,
-  },
-  {
-    label: "Payments methods",
-    href: "/profile/payments/methods",
-    icon: <CreditCard className="w-5 h-5" />,
-  },
-];
-
 export default function PaymentAndRefundsPage() {
   const router = useRouter();
+  const { data } = useMyProfile();
 
+  let menuItems: MenuItem[] = [
+    {
+      label: "My booking",
+      href: "/profile/payments/bookings",
+      icon: <Wallet className="w-5 h-5" />,
+    },
+  ];
+  if (data?.role !== "service_provider") {
+    menuItems = [
+      {
+        label: "My booking",
+        href: "/profile/payments/bookings",
+        icon: <Wallet className="w-5 h-5" />,
+      },
+      {
+        label: "Payments methods",
+        href: "/profile/payments/methods",
+        icon: <CreditCard className="w-5 h-5" />,
+      },
+    ];
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}

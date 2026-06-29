@@ -3,7 +3,22 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
-import { useUserBookings } from "@/hooks/api/bookings/use-bookings";
+import {
+  useCheckout,
+  useUserBookings,
+} from "@/hooks/api/bookings/use-bookings";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
@@ -30,7 +45,9 @@ const formatDate = (iso: string) => {
 
 export default function BookingsPage() {
   const router = useRouter();
+  const [additionalComment, setAdditionalComment] = useState("");
   const { data: bookings, isLoading } = useUserBookings();
+  const { mutate, isPending, isError, error } = useCheckout();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -49,7 +66,9 @@ export default function BookingsPage() {
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-8">
         {isLoading && (
-          <p className="text-sm text-gray-500 text-center py-12">Loading bookings...</p>
+          <p className="text-sm text-gray-500 text-center py-12">
+            Loading bookings...
+          </p>
         )}
 
         {!isLoading && bookings?.length === 0 && (
@@ -87,14 +106,62 @@ export default function BookingsPage() {
                   </p>
                 </div>
               </div>
-
               <p className="text-xs text-gray-600 mb-2">
                 Service date: {formatDate(booking.startDate)}
               </p>
-
-              <p className={`text-xs font-medium ${getStatusColor(booking.status)}`}>
-                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+              <p
+                className={`text-xs font-medium ${getStatusColor(booking.status)}`}
+              >
+                {booking.status.charAt(0).toUpperCase() +
+                  booking.status.slice(1)}
               </p>
+              {booking.status === "pending" && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full mt-3">Complete Payment</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirm Payment</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to complete the payment for this
+                        booking?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="">
+                      <Label className="text-xs font-medium mb-2">
+                        Additional Comment:
+                      </Label>
+                      <Textarea
+                        placeholder="..."
+                        value={additionalComment}
+                        onChange={(e) => setAdditionalComment(e.target.value)}
+                      />
+                      <Button
+                        className="w-full mt-6"
+                        onClick={() =>
+                          mutate({
+                            bookingId: booking.id,
+                            additionalComment: additionalComment ?? "",
+                          })
+                        }
+                        disabled={isPending}
+                      >
+                        {isPending ? (
+                          "Processing..."
+                        ) : (
+                          <>Confirm Payment ( ${booking.price} )</>
+                        )}
+                      </Button>
+                      {isError && (
+                        <p className="text-red-500 text-xs mt-2">
+                          {error.message}
+                        </p>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           ))}
         </div>
