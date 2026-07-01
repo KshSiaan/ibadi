@@ -4,6 +4,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetOthersTaskOptions } from "@/hooks/api/others-task-options/use-others-task-options";
 import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
@@ -393,19 +394,10 @@ export default function ProviderSetupGate({
                       {DAY_FULL[day]}
                     </span>
                     <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleDay(day)}
-                        className={`relative h-7 w-12 rounded-full transition-colors ${
-                          sched.status ? "bg-primary" : "bg-gray-200"
-                        }`}
-                      >
-                        <span
-                          className={`absolute top-0.5 size-6 rounded-full bg-white shadow-sm transition-transform ${
-                            sched.status ? "translate-x-5" : "translate-x-0.5"
-                          }`}
-                        />
-                      </button>
+                      <Switch
+                        checked={sched.status}
+                        onCheckedChange={() => toggleDay(day)}
+                      />
                       <span
                         className={`w-24 text-xs ${
                           sched.status ? "text-gray-700" : "text-gray-400"

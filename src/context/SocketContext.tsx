@@ -5,8 +5,7 @@ import {
   type ReactNode,
   useContext,
   useEffect,
-  useMemo,
-  useRef,
+  useState,
 } from "react";
 import { useCookies } from "react-cookie";
 import { io, type Socket } from "socket.io-client";
@@ -25,21 +24,13 @@ export function useSocket() {
 export function SocketProvider({ children }: { children: ReactNode }) {
   const [cookies] = useCookies(["accessToken"]);
   const token: string | undefined = cookies.accessToken;
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-  const socketRef = useRef<Socket | null>(null);
-
-  const socket = useMemo<Socket | null>(() => {
+  useEffect(() => {
     if (!token) {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-      return null;
+      setSocket(null);
+      return;
     }
-
-    if (socketRef.current?.connected) return socketRef.current;
-
-    if (socketRef.current) socketRef.current.disconnect();
 
     const s = io(socket_url, {
       transports: ["websocket"],
@@ -47,16 +38,22 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       autoConnect: true,
     });
 
-    socketRef.current = s;
-    return s;
-  }, [token]);
+    s.onAny((event, ...args) => {
+      console.log("[socket:in]", event, ...args);
+    });
+    s.onAnyOutgoing((event, ...args) => {
+      console.log("[socket:out]", event, ...args);
+    });
+    s.on("connect", () => console.log("[socket:connect]", s.id));
+    s.on("disconnect", (reason) => console.log("[socket:disconnect]", reason));
+    s.on("connect_error", (err) => console.log("[socket:connect_error]", err));
 
-  useEffect(() => {
+    setSocket(s);
+
     return () => {
-      socketRef.current?.disconnect();
-      socketRef.current = null;
+      s.disconnect();
     };
-  }, []);
+  }, [token]);
 
   return (
     <SocketContext.Provider value={{ socket }}>

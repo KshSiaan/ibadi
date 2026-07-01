@@ -70,6 +70,25 @@ export function useGetMyAddresses() {
   });
 }
 
+export function useDeleteAddress() {
+  const [cookies] = useCookies(["accessToken"]);
+  const queryClient = useQueryClient();
+
+  return useMutation<{ message: string }, Error, string>({
+    mutationFn: async (addressId: string) => {
+      const response = await apiClient.delete<ApiResponse<{ message: string }>>(
+        `/address/${addressId}`,
+        cookies.accessToken,
+      );
+      if (!response.success) throw new Error(response.message);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["address"] });
+    },
+  });
+}
+
 export function useGetAddressById(addressId: string) {
   const [cookies] = useCookies(["accessToken"]);
 
