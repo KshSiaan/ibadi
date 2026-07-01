@@ -144,8 +144,8 @@ export interface ServiceProviderInfo {
   drivingLicense?: boolean;
   businessProfiles?: boolean;
   experienceOptionId?: string;
-  othersRequiredTaskIds?: string[];
-  specialistsInIds?: string[];
+  othersRequiredTasks?: string[];
+  specialistsIn?: string[];
   coverImage?: File;
 }
 

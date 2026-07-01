@@ -14,20 +14,6 @@ export default async function Layout({
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
-  if (token) {
-    const res = await fetch(`${base_url}${base_api}/users/my-profile`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    }).catch(() => null);
-
-    if (res?.ok) {
-      const json: ApiResponse<User> = await res.json();
-      if (json.data?.role === "service_provider") {
-        redirect("/professional");
-      }
-    }
-  }
-
   if (!token) {
     return <AuthProtectionCard />;
   }

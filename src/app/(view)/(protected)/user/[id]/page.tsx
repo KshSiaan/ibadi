@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
+import { useGetFaqsByUser } from "@/hooks/api/faq/use-faq";
 import {
   useCreateFavorite,
   useGetFavorites,
@@ -38,6 +40,7 @@ export default function UserProfilePage({
   const router = useRouter();
   const [cookies] = useCookies(["accessToken", "user"]);
   const { data: user, isLoading, error } = useGetUserById(id);
+  const { data: faqs = [], isLoading: faqsLoading } = useGetFaqsByUser(id);
   const { data: favorites = [] } = useGetFavorites();
   const { mutate: createFavorite, isPending: isCreatingFavorite } =
     useCreateFavorite();
@@ -275,12 +278,30 @@ export default function UserProfilePage({
 
         {/* ── Right column ── */}
         <div className="mt-6 flex flex-col gap-6 lg:mt-0">
-          {/* Q&A — experience + tasks */}
+          {/* Q&A */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <h2 className="mb-4 text-sm font-bold text-gray-500">
               Some question about me
             </h2>
             <div className="flex flex-col gap-4">
+              {faqsLoading ? (
+                <>
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </>
+              ) : faqs.length === 0 ? (
+                <p className="text-xs text-gray-400">No questions yet.</p>
+              ) : (
+                faqs.map((faq) => (
+                  <div key={faq.id}>
+                    <p className="mb-1 text-sm font-semibold text-[#1e2d4f]">
+                      {faq.question}
+                    </p>
+                    <p className="text-xs text-gray-500">{faq.answer}</p>
+                  </div>
+                ))
+              )}
               {experience && (
                 <div>
                   <p className="mb-1 text-sm font-semibold text-[#1e2d4f]">
