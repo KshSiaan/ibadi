@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 import {
   useCheckout,
   useUserBookings,
@@ -46,6 +47,7 @@ const formatDate = (iso: string) => {
 export default function BookingsPage() {
   const router = useRouter();
   const [additionalComment, setAdditionalComment] = useState("");
+  const [openBookingId, setOpenBookingId] = useState<string | null>(null);
   const { data: bookings, isLoading } = useUserBookings();
   const { mutate, isPending, isError, error } = useCheckout();
 
@@ -116,7 +118,12 @@ export default function BookingsPage() {
                   booking.status.slice(1)}
               </p>
               {booking.status === "pending" && (
-                <Dialog>
+                <Dialog
+                  open={openBookingId === booking.id}
+                  onOpenChange={(open) =>
+                    setOpenBookingId(open ? booking.id : null)
+                  }
+                >
                   <DialogTrigger asChild>
                     <Button className="w-full mt-3">Complete Payment</Button>
                   </DialogTrigger>
@@ -140,10 +147,19 @@ export default function BookingsPage() {
                       <Button
                         className="w-full mt-6"
                         onClick={() =>
-                          mutate({
-                            bookingId: booking.id,
-                            additionalComment: additionalComment ?? "",
-                          })
+                          mutate(
+                            {
+                              bookingId: booking.id,
+                              additionalComment: additionalComment ?? "",
+                            },
+                            {
+                              onSuccess: () => {
+                                toast.success("Requested successfully");
+                                setAdditionalComment("");
+                                setOpenBookingId(null);
+                              },
+                            },
+                          )
                         }
                         disabled={isPending}
                       >

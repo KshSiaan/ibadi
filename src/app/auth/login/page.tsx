@@ -52,7 +52,10 @@ export default function LoginPage() {
         { token: idToken, email: result.user.email ?? "", fcmToken },
         {
           onSuccess: (data) => {
-            if (!data.user.isVerified) {
+            if (
+              data.user.role === "service_provider" &&
+              !data.user.isVerified
+            ) {
               rejectUnverified();
               return;
             }
@@ -95,10 +98,10 @@ export default function LoginPage() {
       { email, password, fcmToken },
       {
         onSuccess: (data) => {
-          if (!data.user.isVerified) {
-            rejectUnverified();
-            return;
-          }
+          // if (data.user.role === "service_provider" && !data.user.isVerified) {
+          //   // rejectUnverified();
+          //   return;
+          // }
           if (data.user.role === "service_provider") {
             window.location.href = "/professional";
           } else {
