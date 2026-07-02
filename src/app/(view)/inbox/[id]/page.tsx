@@ -301,7 +301,7 @@ export default function ChatPage() {
       ]);
 
       socket.emit("send_message", { receiverId: participantId, text });
-      reset();
+      reset({ message: "" });
 
       // mark optimistic as sent after short delay (server echo replaces it)
       setTimeout(() => {
@@ -314,6 +314,7 @@ export default function ChatPage() {
         );
       }, 800);
     },
+
     [socket, currentUserId, chatId, participantId, reset],
   );
 
@@ -346,7 +347,7 @@ export default function ChatPage() {
   return (
     <div className="flex min-h-dvh flex-col container mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center lg:px-[34%] justify-between px-4 py-3">
         <button
           type="button"
           onClick={() => router.back()}
@@ -381,7 +382,7 @@ export default function ChatPage() {
 
       {/* Connection banner */}
       {!socket?.connected && (
-        <div className="bg-amber-50 px-4 py-2 text-center text-xs text-amber-600">
+        <div className="bg-amber-50 lg:px-[34%] px-4 py-2 text-center text-xs text-amber-600">
           Reconnecting…
         </div>
       )}
@@ -389,7 +390,7 @@ export default function ChatPage() {
       {/* Messages */}
       <div
         ref={chatBoxRef}
-        className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-2"
+        className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-2 lg:px-[34%]"
       >
         {isLoading ? (
           (["s0", "s1", "s2", "s3", "s4"] as const).map((sk, i) => (
@@ -504,7 +505,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="px-4 py-4">
+      <div className="px-4 py-4 lg:px-[34%]">
         <div className="flex items-end gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-sm focus-within:ring-2 focus-within:ring-primary/20">
           <Textarea
             placeholder="Message"
@@ -567,7 +568,7 @@ export default function ChatPage() {
               onClick={() => setBlockOpen(false)}
               className="w-full rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700"
             >
-              No, Don&apos;t Block
+              No, Don't Block
             </button>
           </div>
         </DialogContent>

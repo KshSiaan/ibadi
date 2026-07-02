@@ -112,10 +112,7 @@ export default function FaqManagementPage() {
 
         <div className="space-y-3">
           {faqs.map((faq) => (
-            <div
-              key={faq.id}
-              className="border border-gray-200 rounded-lg p-4"
-            >
+            <div key={faq.id} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-gray-800">

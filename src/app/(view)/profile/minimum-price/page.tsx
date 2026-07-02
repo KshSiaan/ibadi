@@ -42,7 +42,7 @@ export default function MinimumPricePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-4">
+      <div className="sticky top-0 bg-white border-b  lg:px-[38%] border-gray-200 px-4 py-4 flex items-center gap-4">
         <button
           type="button"
           onClick={() => router.back()}
@@ -86,8 +86,8 @@ export default function MinimumPricePage() {
           <div className="mt-4 flex items-start gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
             <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
             <p className="text-xs text-gray-600">
-              This will avoid being booked for a price so low that it&apos;s
-              not worth your time to commute to the service.
+              This will avoid being booked for a price so low that it&apos;s not
+              worth your time to commute to the service.
             </p>
           </div>
 

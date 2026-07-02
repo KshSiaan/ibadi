@@ -4,10 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import {
-  useCheckout,
-  useUserBookings,
-} from "@/hooks/api/bookings/use-bookings";
+import { useCheckout, useAllBookings } from "@/hooks/api/bookings/use-bookings";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -48,13 +45,14 @@ export default function BookingsPage() {
   const router = useRouter();
   const [additionalComment, setAdditionalComment] = useState("");
   const [openBookingId, setOpenBookingId] = useState<string | null>(null);
-  const { data: bookings, isLoading } = useUserBookings();
+  // Use all bookings for the current user as the endpoint may require explicit include
+  const { data: bookings, isLoading } = useAllBookings();
   const { mutate, isPending, isError, error } = useCheckout();
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-4">
+      <div className="sticky top-0 bg-white  lg:px-[38%] border-b border-gray-200 px-4 py-4 flex items-center gap-4">
         <button
           type="button"
           onClick={() => router.back()}

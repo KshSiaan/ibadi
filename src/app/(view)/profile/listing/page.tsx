@@ -32,7 +32,9 @@ export default function ListingPage() {
     const info = profile?.serviceProviderInfo;
     if (info) {
       setBio(info.bio ?? "");
-      setPerHourPrice(info.perHourPrice != null ? String(info.perHourPrice) : "");
+      setPerHourPrice(
+        info.perHourPrice != null ? String(info.perHourPrice) : "",
+      );
       setExperienceOptionId(info.experience?.id ?? "");
       setTaskIds(info.othersRequiredTasks?.map((t) => t.othersTask.id) ?? []);
       setSpecialistIds(info.specialistsIn?.map((s) => s.category.id) ?? []);
@@ -57,7 +59,8 @@ export default function ListingPage() {
     const formData = new FormData();
     formData.append("bio", bio);
     formData.append("perHourPrice", perHourPrice);
-    if (experienceOptionId) formData.append("experienceOptionId", experienceOptionId);
+    if (experienceOptionId)
+      formData.append("experienceOptionId", experienceOptionId);
     taskIds.forEach((id) => {
       formData.append("othersRequiredTasks[]", id);
     });
@@ -84,7 +87,7 @@ export default function ListingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-4">
+      <div className="sticky top-0 bg-white border-b  lg:px-[38%] border-gray-200 px-4 py-4 flex items-center gap-4">
         <button
           type="button"
           onClick={() => router.back()}
@@ -192,7 +195,9 @@ export default function ListingPage() {
                   <button
                     key={cat.id}
                     type="button"
-                    onClick={() => setSpecialistIds((prev) => toggleId(prev, cat.id))}
+                    onClick={() =>
+                      setSpecialistIds((prev) => toggleId(prev, cat.id))
+                    }
                     className={`px-3 py-2 rounded-full text-sm border transition-colors ${
                       specialistIds.includes(cat.id)
                         ? "bg-primary text-white border-primary"
@@ -217,7 +222,9 @@ export default function ListingPage() {
                   <button
                     key={task.id}
                     type="button"
-                    onClick={() => setTaskIds((prev) => toggleId(prev, task.id))}
+                    onClick={() =>
+                      setTaskIds((prev) => toggleId(prev, task.id))
+                    }
                     className={`px-3 py-2 rounded-full text-sm border transition-colors ${
                       taskIds.includes(task.id)
                         ? "bg-primary text-white border-primary"

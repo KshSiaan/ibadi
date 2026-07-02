@@ -149,28 +149,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {notificationBlocked && (
-            <div className="flex flex-col gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-              {/* <div className="flex gap-3">
-                <AlertCircle className="size-5 shrink-0" />
-                <span>
-                  {permissionStatus === "unsupported"
-                    ? "Your browser does not support notifications. Please use a supported browser to sign in."
-                    : "Notifications are blocked. Please enable notifications in your browser settings, then click Try Again."}
-                </span>
-              </div> */}
-              {permissionStatus === "denied" && (
-                <button
-                  type="button"
-                  onClick={requestPermission}
-                  className="self-end text-xs font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-700"
-                >
-                  Try Again
-                </button>
-              )}
-            </div>
-          )}
-
           {errorMessage && (
             <div className="flex gap-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">
               <AlertCircle className="size-5 shrink-0" />
@@ -257,11 +235,6 @@ export default function LoginPage() {
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
                   Signing in...
-                </>
-              ) : fcmLoading ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Generating device token...
                 </>
               ) : (
                 "Sign in"
