@@ -23,7 +23,9 @@ export default function AddressesPage() {
 
   const [showMenuId, setShowMenuId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null,
+  );
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteAddress = async () => {
@@ -51,7 +53,7 @@ export default function AddressesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-4">
+      <div className="sticky top-0  lg:px-[38%] bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-4">
         <button
           type="button"
           onClick={() => router.back()}
@@ -69,11 +71,15 @@ export default function AddressesPage() {
         </h2>
 
         {isLoading && (
-          <p className="text-sm text-gray-500 text-center py-6">Loading addresses...</p>
+          <p className="text-sm text-gray-500 text-center py-6">
+            Loading addresses...
+          </p>
         )}
 
         {!isLoading && addresses?.length === 0 && (
-          <p className="text-sm text-gray-500 text-center py-6">No addresses found</p>
+          <p className="text-sm text-gray-500 text-center py-6">
+            No addresses found
+          </p>
         )}
 
         <div className="space-y-3 mb-6">
@@ -87,7 +93,12 @@ export default function AddressesPage() {
                   {address.addressLine1}
                 </h3>
                 <p className="text-sm text-gray-600 mb-1">
-                  {[address.addressLine2, address.city, address.state, address.country]
+                  {[
+                    address.addressLine2,
+                    address.city,
+                    address.state,
+                    address.country,
+                  ]
                     .filter(Boolean)
                     .join(", ")}
                 </p>

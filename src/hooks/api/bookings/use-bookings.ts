@@ -53,17 +53,67 @@ export function useUserBookings(params?: { upcoming?: boolean; past?: boolean; i
   });
 }
 
-export function useProviderBookings(params?: { upcoming?: boolean; past?: boolean }) {
+export function useProviderBookings(params?: {
+  upcoming?: boolean;
+  past?: boolean;
+  status?: string;
+}) {
   const [cookies] = useCookies(["accessToken"]);
   const query = new URLSearchParams();
   if (params?.upcoming) query.set("upcoming", "true");
   if (params?.past) query.set("past", "true");
+  if (params?.status) query.set("status", params.status);
 
-  return useQuery<Booking[]>({
+  return useQuery<{
+            id: string
+            userId: string
+            addressId: any
+            providerId: string
+            isPaid: boolean
+            bookingType: string
+            status: string
+            price: number
+            startDate: string
+            endDate: any
+            totalHours: number
+            isActive: boolean
+            nextBooking: any
+            isDeleted: boolean
+            createdAt: string
+            updatedAt: string
+          }[]>({
     queryKey: ["bookings", "provider", params],
     queryFn: async () => {
       const qs = query.toString();
-      const response = await apiClient.get<ApiResponse<PaginatedResponse<Booking>>>(
+      const response = await apiClient.get<Promise<{
+        success: boolean
+        message: string
+        data: {
+          data: Array<{
+            id: string
+            userId: string
+            addressId: any
+            providerId: string
+            isPaid: boolean
+            bookingType: string
+            status: string
+            price: number
+            startDate: string
+            endDate: any
+            totalHours: number
+            isActive: boolean
+            nextBooking: any
+            isDeleted: boolean
+            createdAt: string
+            updatedAt: string
+          }>
+          meta: {
+            page: number
+            limit: number
+            total: number
+          }
+        }
+      }>>(
         `/bookings/provider-booking${qs ? `?${qs}` : ""}`,
         cookies.accessToken,
       );
@@ -128,7 +178,7 @@ export function useAcceptBooking() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["bookings", "provider"] });
     },
   });
 }
@@ -148,7 +198,7 @@ export function useCancelBooking() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["bookings", "provider"] });
     },
   });
 }

@@ -44,10 +44,32 @@ function formatDate(iso: string) {
   });
 }
 
-function BookingCard({ booking, tab }: { booking: Booking; tab: Tab }) {
+function BookingCard({
+  booking,
+  tab,
+}: {
+  booking: {
+    id: string;
+    userId: string;
+    addressId: any;
+    providerId: string;
+    isPaid: boolean;
+    bookingType: string;
+    status: string;
+    price: number;
+    startDate: string;
+    endDate: any;
+    totalHours: number;
+    isActive: boolean;
+    nextBooking: any;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+  tab: Tab;
+}) {
   const { mutate: accept, isPending: accepting } = useAcceptBooking();
   const { mutate: cancel, isPending: cancelling } = useCancelBooking();
-  const firstDay = booking.bookingDays[0];
 
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
@@ -70,7 +92,7 @@ function BookingCard({ booking, tab }: { booking: Booking; tab: Tab }) {
               ${booking.price.toFixed(2)}
             </span>
           </div>
-          {firstDay && (
+          {/* {firstDay && (
             <>
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <Clock className="size-3.5 shrink-0" />
@@ -84,7 +106,7 @@ function BookingCard({ booking, tab }: { booking: Booking; tab: Tab }) {
                 <span>{formatDate(booking.startDate)}</span>
               </div>
             </>
-          )}
+          )} */}
           <div className="mt-1 flex flex-wrap gap-2">
             {tab === "request" && (
               <>
@@ -127,8 +149,29 @@ function BookingCard({ booking, tab }: { booking: Booking; tab: Tab }) {
   );
 }
 
-function CompleteCard({ booking }: { booking: Booking }) {
-  const firstDay = booking.bookingDays[0];
+function CompleteCard({
+  booking,
+}: {
+  booking: {
+    id: string;
+    userId: string;
+    addressId: any;
+    providerId: string;
+    isPaid: boolean;
+    bookingType: string;
+    status: string;
+    price: number;
+    startDate: string;
+    endDate: any;
+    totalHours: number;
+    isActive: boolean;
+    nextBooking: any;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+}) {
+  // const firstDay = booking.bookingDays?.[0];
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
       <div className="flex gap-3">
@@ -150,7 +193,7 @@ function CompleteCard({ booking }: { booking: Booking }) {
               ${booking.price.toFixed(2)}
             </span>
           </div>
-          {firstDay && (
+          {/* {firstDay && (
             <>
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <Clock className="size-3.5 shrink-0" />
@@ -164,7 +207,7 @@ function CompleteCard({ booking }: { booking: Booking }) {
                 <span>{formatDate(booking.startDate)}</span>
               </div>
             </>
-          )}
+          )} */}
           <div className="mt-1">
             <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               Complete
@@ -177,7 +220,7 @@ function CompleteCard({ booking }: { booking: Booking }) {
 }
 
 const STATUS_MAP: Record<Tab, string> = {
-  request: "pending",
+  request: "requested",
   ongoing: "ongoing",
   cancelled: "cancelled",
 };
@@ -186,11 +229,17 @@ export default function RequestPage() {
   const [activeTab, setActiveTab] = useState<Tab>("request");
   const [showComplete, setShowComplete] = useState(false);
 
-  const { data: bookings, isLoading, error } = useProviderBookings();
+  const {
+    data: bookings,
+    isLoading,
+    error,
+  } = useProviderBookings({
+    status: STATUS_MAP[activeTab],
+  });
   const { data: completedBookings, isLoading: loadingComplete } =
-    useProviderBookings({ past: true });
+    useProviderBookings({ status: "completed" });
 
-  const filtered = bookings?.filter((b) => b.status === STATUS_MAP[activeTab]);
+  const filtered = bookings;
 
   if (showComplete) {
     return (

@@ -17,6 +17,7 @@ import {
   Calendar,
   DollarSign,
   Star,
+  HelpCircle,
 } from "lucide-react";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useCookies } from "react-cookie";
@@ -100,6 +101,11 @@ const ProfessionalMenu: MenuItem[] = [
     label: "My Reviews",
     href: "/profile/reviews",
     icon: <Star className="w-5 h-5" />,
+  },
+  {
+    label: "FAQ management",
+    href: "/profile/faq",
+    icon: <HelpCircle className="w-5 h-5" />,
   },
   {
     label: "Language",

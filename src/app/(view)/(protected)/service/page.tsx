@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Calendar, Clock, Loader2, Star } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   useUserBookings,
   useProviderBookings,
@@ -56,8 +57,15 @@ function RatingDialog({
         review: feedback || selectedTags.join(", "),
         userId: booking.providerId,
       });
-    } finally {
+      toast.success("Review submitted");
+      setRating(4);
+      setSelectedTags([]);
+      setFeedback("");
       onClose();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to submit review",
+      );
     }
   };
 

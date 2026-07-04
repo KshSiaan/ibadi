@@ -3,10 +3,8 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
-import {
-  useCheckout,
-  useUserBookings,
-} from "@/hooks/api/bookings/use-bookings";
+import { toast } from "sonner";
+import { useCheckout, useAllBookings } from "@/hooks/api/bookings/use-bookings";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -46,13 +44,15 @@ const formatDate = (iso: string) => {
 export default function BookingsPage() {
   const router = useRouter();
   const [additionalComment, setAdditionalComment] = useState("");
-  const { data: bookings, isLoading } = useUserBookings();
+  const [openBookingId, setOpenBookingId] = useState<string | null>(null);
+  // Use all bookings for the current user as the endpoint may require explicit include
+  const { data: bookings, isLoading } = useAllBookings();
   const { mutate, isPending, isError, error } = useCheckout();
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-4">
+      <div className="sticky top-0 bg-white  lg:px-[38%] border-b border-gray-200 px-4 py-4 flex items-center gap-4">
         <button
           type="button"
           onClick={() => router.back()}
@@ -116,7 +116,12 @@ export default function BookingsPage() {
                   booking.status.slice(1)}
               </p>
               {booking.status === "pending" && (
-                <Dialog>
+                <Dialog
+                  open={openBookingId === booking.id}
+                  onOpenChange={(open) =>
+                    setOpenBookingId(open ? booking.id : null)
+                  }
+                >
                   <DialogTrigger asChild>
                     <Button className="w-full mt-3">Complete Payment</Button>
                   </DialogTrigger>
@@ -140,10 +145,19 @@ export default function BookingsPage() {
                       <Button
                         className="w-full mt-6"
                         onClick={() =>
-                          mutate({
-                            bookingId: booking.id,
-                            additionalComment: additionalComment ?? "",
-                          })
+                          mutate(
+                            {
+                              bookingId: booking.id,
+                              additionalComment: additionalComment ?? "",
+                            },
+                            {
+                              onSuccess: () => {
+                                toast.success("Requested successfully");
+                                setAdditionalComment("");
+                                setOpenBookingId(null);
+                              },
+                            },
+                          )
                         }
                         disabled={isPending}
                       >

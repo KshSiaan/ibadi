@@ -1,12 +1,13 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient, ApiResponse, PaginatedResponse } from "@/lib/api/client";
 import { CreateReviewRequest, Review, ReviewStatistic } from "@/lib/api/types";
 import { useCookies } from "react-cookie";
 
 export function useCreateReview() {
   const [cookies] = useCookies(["accessToken"]);
+  const queryClient = useQueryClient();
 
   return useMutation<Review, Error, CreateReviewRequest>({
     mutationFn: async (data: CreateReviewRequest) => {
@@ -17,6 +18,14 @@ export function useCreateReview() {
       );
       if (!response.success) throw new Error(response.message);
       return response.data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["reviews", "user", variables.userId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["reviews", "statistic", variables.userId],
+      });
     },
   });
 }

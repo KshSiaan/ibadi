@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { ArrowLeft } from "lucide-react";
@@ -100,25 +101,21 @@ export default function SchedulePage() {
 
       <div className="mx-auto w-full max-w-lg flex-1 px-6 py-6">
         <h3 className="mb-3 text-base font-bold text-gray-800">Frequency</h3>
-        <div className="mb-6 grid grid-cols-2 gap-2">
-          {(["one_time", "weekly"] as const).map((f) => (
-            <button
-              type="button"
-              key={f}
-              onClick={() => setFrequency(f)}
-              className={cn(
-                "flex flex-col items-center rounded-full px-5 py-2 text-xs font-semibold transition-colors",
-                frequency === f
-                  ? "bg-primary text-white"
-                  : "bg-white text-gray-500",
-              )}
-            >
-              <span>{f === "one_time" ? "Just once" : "Weekly"}</span>
-              <span className="text-[10px] font-normal opacity-70">
-                {f === "one_time" ? "One-Time" : "Recurring"}
-              </span>
-            </button>
-          ))}
+        <div className="mb-6 flex items-center justify-between rounded-xl bg-white px-4 py-3">
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-gray-800">
+              {frequency === "one_time" ? "Just once" : "Weekly"}
+            </span>
+            <span className="text-xs text-gray-400">
+              {frequency === "one_time" ? "One-Time" : "Recurring"}
+            </span>
+          </div>
+          <Switch
+            checked={frequency === "weekly"}
+            onCheckedChange={(checked) =>
+              setFrequency(checked ? "weekly" : "one_time")
+            }
+          />
         </div>
 
         {frequency === "one_time" ? (

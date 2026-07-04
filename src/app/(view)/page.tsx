@@ -16,6 +16,8 @@ import {
   PhoneIcon,
   PhoneOutgoing,
   MessageSquareIcon,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -26,17 +28,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  InputGroupInput,
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-} from "@/components/ui/input-group";
 import { useState } from "react";
-import { CheckCircle2 } from "lucide-react";
 import { useCategories } from "@/hooks/api/use-categories";
-import type { Category } from "@/lib/api/types";
+import type { Address, Category } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
+import {
+  useGetMyAddresses,
+  useCreateAddress,
+  useUpdateAddress,
+  useDeleteAddress,
+} from "@/hooks/api/address/use-address";
 
 /* ─── Fallback Data ─── */
 const fallbackServices: Category[] = [
@@ -198,9 +199,285 @@ function NotificationPopoverContent() {
   );
 }
 
+/* ─── Address Manager ─── */
+type AddressFormState = {
+  addressLine1: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+};
+
+const emptyAddressForm: AddressFormState = {
+  addressLine1: "",
+  city: "",
+  state: "",
+  postalCode: "",
+  country: "",
+};
+
+function AddressForm({
+  initial,
+  onCancel,
+  onSubmit,
+  isPending,
+}: {
+  initial: AddressFormState;
+  onCancel: () => void;
+  onSubmit: (form: AddressFormState) => void;
+  isPending: boolean;
+}) {
+  const [form, setForm] = useState(initial);
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(form);
+      }}
+      className="flex flex-col gap-3"
+    >
+      <input
+        value={form.addressLine1}
+        onChange={(e) => setForm((f) => ({ ...f, addressLine1: e.target.value }))}
+        placeholder="Address line"
+        required
+        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+      />
+      <div className="grid grid-cols-2 gap-2">
+        <input
+          value={form.city}
+          onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+          placeholder="City"
+          required
+          className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+        />
+        <input
+          value={form.state}
+          onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
+          placeholder="State"
+          required
+          className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <input
+          value={form.postalCode}
+          onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))}
+          placeholder="Postal code"
+          required
+          className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+        />
+        <input
+          value={form.country}
+          onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+          placeholder="Country"
+          required
+          className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+        />
+      </div>
+      <div className="flex gap-2 pt-1">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isPending}
+          className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          {isPending ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function AddressManager({ onClose }: { onClose: () => void }) {
+  const { setServiceAddress } = useServiceBooking();
+  const { data: addresses = [], isLoading } = useGetMyAddresses();
+  const createAddress = useCreateAddress();
+  const updateAddress = useUpdateAddress();
+  const deleteAddress = useDeleteAddress();
+
+  const [mode, setMode] = useState<"list" | "create" | Address>("list");
+  const [deleteTarget, setDeleteTarget] = useState<Address | null>(null);
+
+  const getCoords = (): Promise<[number, number]> =>
+    new Promise((resolve) => {
+      if (!navigator.geolocation) {
+        resolve([0, 0]);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve([pos.coords.longitude, pos.coords.latitude]),
+        () => resolve([0, 0]),
+      );
+    });
+
+  const handleSelect = (address: Address) => {
+    setServiceAddress(
+      [address.addressLine1, address.city, address.state]
+        .filter(Boolean)
+        .join(", "),
+    );
+    onClose();
+  };
+
+  const handleCreate = async (form: AddressFormState) => {
+    const coords = await getCoords();
+    await createAddress.mutateAsync({
+      ...form,
+      location: { type: "Point", coordinates: coords },
+    });
+    setMode("list");
+  };
+
+  const handleUpdate = async (id: string, form: AddressFormState) => {
+    const coords = await getCoords();
+    await updateAddress.mutateAsync({
+      id,
+      ...form,
+      location: { type: "Point", coordinates: coords },
+    });
+    setMode("list");
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    await deleteAddress.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
+  };
+
+  if (mode === "create") {
+    return (
+      <AddressForm
+        initial={emptyAddressForm}
+        onCancel={() => setMode("list")}
+        onSubmit={handleCreate}
+        isPending={createAddress.isPending}
+      />
+    );
+  }
+
+  if (mode !== "list") {
+    const editing = mode;
+    return (
+      <AddressForm
+        initial={{
+          addressLine1: editing.addressLine1,
+          city: editing.city,
+          state: editing.state,
+          postalCode: editing.postalCode,
+          country: editing.country,
+        }}
+        onCancel={() => setMode("list")}
+        onSubmit={(form) => handleUpdate(editing.id, form)}
+        isPending={updateAddress.isPending}
+      />
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {isLoading && (
+        <p className="py-4 text-center text-sm text-gray-400">Loading...</p>
+      )}
+
+      {!isLoading && addresses.length === 0 && (
+        <p className="py-4 text-center text-sm text-gray-400">
+          No saved addresses yet.
+        </p>
+      )}
+
+      <div className="flex max-h-64 flex-col gap-2 overflow-y-auto">
+        {addresses.map((address) => (
+          <div
+            key={address.id}
+            className="flex items-start justify-between gap-2 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5"
+          >
+            <button
+              type="button"
+              onClick={() => handleSelect(address)}
+              className="flex-1 text-left"
+            >
+              <p className="text-sm font-semibold text-gray-800">
+                {address.addressLine1}
+              </p>
+              <p className="text-xs text-gray-500">
+                {[address.city, address.state, address.country]
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
+            </button>
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setMode(address)}
+                className="rounded-md p-1.5 text-gray-400 hover:text-primary"
+              >
+                <Pencil className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(address)}
+                className="rounded-md p-1.5 text-gray-400 hover:text-red-500"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setMode("create")}
+        className="flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-primary/50 py-2.5 text-sm font-semibold text-primary"
+      >
+        <Plus className="size-4" />
+        Add new address
+      </button>
+
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <DialogContent className="max-w-xs">
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-base font-semibold">
+              Delete this address?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setDeleteTarget(null)}
+              className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleteAddress.isPending}
+              className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {deleteAddress.isPending ? "Deleting..." : "Delete"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 /* ─── Page ─── */
 export default function Page() {
-  const { setSelectedService } = useServiceBooking();
+  const { setSelectedService, serviceAddress } = useServiceBooking();
   const [addressOpen, setAddressOpen] = useState(false);
   const { data: categories = [], isLoading } = useCategories();
 
@@ -340,13 +617,13 @@ export default function Page() {
         })}
       </div>
 
-      {/* Add address button */}
+      {/* Address button */}
       <button
         type="button"
         onClick={() => setAddressOpen(true)}
         className="mt-8 flex items-center gap-1 text-lg font-bold text-primary"
       >
-        + Add address
+        {serviceAddress || "+ Add address"}
         <ChevronDown className="size-5" />
       </button>
 
@@ -362,28 +639,7 @@ export default function Page() {
             Select where you want to receive the service
           </p>
 
-          <InputGroup className="rounded-xl border-gray-100 bg-gray-50 px-4 py-3">
-            <InputGroupAddon>
-              <CheckCircle2 className="size-5 text-primary" />
-            </InputGroupAddon>
-            <InputGroupInput
-              placeholder="Your address"
-              className="border-0 bg-transparent text-sm text-gray-600 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:shadow-none"
-            />
-            <InputGroupAddon align="inline-end">
-              <InputGroupButton size="icon-xs" variant="ghost">
-                <Pencil className="size-4 text-gray-400 hover:text-primary" />
-              </InputGroupButton>
-            </InputGroupAddon>
-          </InputGroup>
-
-          <Link
-            href="/book"
-            onClick={() => setAddressOpen(false)}
-            className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 text-center block"
-          >
-            Add address
-          </Link>
+          <AddressManager onClose={() => setAddressOpen(false)} />
         </DialogContent>
       </Dialog>
     </section>

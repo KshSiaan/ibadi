@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { useCookies } from "react-cookie";
+import AuthProtectionCard from "@/components/core/auth-protection-card";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -178,6 +180,7 @@ export default function InboxPage() {
   // need it to pick the *other* participant; fall back to empty string which
   // means participants[0] is used (server usually puts other person first)
   const currentUserIdRef = useRef<string>("");
+  const [cookies] = useCookies(["accessToken"]);
 
   const { data: notifications, isLoading: notifLoading } = useNotifications();
   const markAll = useMarkNotifications();
@@ -245,6 +248,10 @@ export default function InboxPage() {
       socket.off("new_message", handleNewMessage);
     };
   }, [socket]);
+
+  if (!cookies.accessToken) {
+    return <AuthProtectionCard />;
+  }
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);

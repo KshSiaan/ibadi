@@ -1,10 +1,12 @@
 "use client";
 
 import { signInWithPopup } from "firebase/auth";
-import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowLeftIcon, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useCookies } from "react-cookie";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,18 @@ export default function LoginPage() {
   } = useFcmContext();
   const { mutate: login, isPending: loading, error } = useLogin();
   const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
+  const [, , removeCookie] = useCookies([
+    "accessToken",
+    "refreshToken",
+    "user",
+  ]);
+
+  const rejectUnverified = () => {
+    removeCookie("accessToken", { path: "/" });
+    removeCookie("refreshToken", { path: "/" });
+    removeCookie("user", { path: "/" });
+    toast.error("Your account is not verified yet. You can't log in.");
+  };
 
   const triggerGoogleLogin = async () => {
     setGoogleError(null);
@@ -39,10 +53,18 @@ export default function LoginPage() {
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken },
         {
-          onSuccess: (data) =>
+          onSuccess: (data) => {
+            if (
+              data.user.role === "service_provider" &&
+              !data.user.isVerified
+            ) {
+              rejectUnverified();
+              return;
+            }
             router.push(
               data.user.role === "service_provider" ? "/professional" : "/",
-            ),
+            );
+          },
           onError: (err) => {
             console.error("[Google Login] API error:", err);
             setGoogleError(err.message || "Server rejected Google sign-in");
@@ -82,10 +104,17 @@ export default function LoginPage() {
     login(
       body,
       {
-        onSuccess: (data) =>
-          router.push(
-            data.user.role === "service_provider" ? "/professional" : "/",
-          ),
+        onSuccess: (data) => {
+          // if (data.user.role === "service_provider" && !data.user.isVerified) {
+          //   // rejectUnverified();
+          //   return;
+          // }
+          if (data.user.role === "service_provider") {
+            window.location.href = "/professional";
+          } else {
+            window.location.href = "/";
+          }
+        },
       },
     );
   };
@@ -106,7 +135,19 @@ export default function LoginPage() {
 
   return (
     <main className="flex h-dvh w-full items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 px-4">
-      <Card className="w-full max-w-md border-0 shadow-lg">
+      <Card className="w-full relative max-w-md border-0 shadow-lg">
+        <div className="absolute left-4 top-4">
+          <Button
+            variant="ghost"
+            className="text-primary"
+            onClick={() => {
+              router.push("/");
+            }}
+          >
+            <ArrowLeftIcon />
+            Back to Home
+          </Button>
+        </div>
         <CardContent className="space-y-6 p-8">
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-bold text-slate-900">Welcome back</h1>
@@ -114,28 +155,6 @@ export default function LoginPage() {
               Sign in to your account to continue
             </p>
           </div>
-
-          {notificationBlocked && (
-            <div className="flex flex-col gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-              {/* <div className="flex gap-3">
-                <AlertCircle className="size-5 shrink-0" />
-                <span>
-                  {permissionStatus === "unsupported"
-                    ? "Your browser does not support notifications. Please use a supported browser to sign in."
-                    : "Notifications are blocked. Please enable notifications in your browser settings, then click Try Again."}
-                </span>
-              </div> */}
-              {permissionStatus === "denied" && (
-                <button
-                  type="button"
-                  onClick={requestPermission}
-                  className="self-end text-xs font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-700"
-                >
-                  Try Again
-                </button>
-              )}
-            </div>
-          )}
 
           {errorMessage && (
             <div className="flex gap-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -223,11 +242,6 @@ export default function LoginPage() {
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
                   Signing in...
-                </>
-              ) : fcmLoading ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Generating device token...
                 </>
               ) : (
                 "Sign in"

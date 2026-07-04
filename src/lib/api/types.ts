@@ -435,8 +435,9 @@ export interface Faq {
   id: string;
   question: string;
   answer: string;
-  categoryId: string;
+  categoryId: string | null;
   category?: Category;
+  userId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -444,7 +445,7 @@ export interface Faq {
 export interface CreateFaqRequest {
   question: string;
   answer: string;
-  categoryId: string;
+  userId: string;
 }
 
 export interface UpdateFaqRequest {
