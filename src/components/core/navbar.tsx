@@ -3,11 +3,12 @@
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useCookies } from "react-cookie";
 import Image from "next/image";
@@ -42,7 +43,10 @@ export default function Navbar() {
     "user",
   ]);
   const router = useRouter();
-  const isLoggedIn = !!cookies.accessToken;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const isLoggedIn = mounted && !!cookies.accessToken;
   const user = cookies.user as
     | { name?: string; profile?: string; role?: string }
     | undefined;
@@ -78,24 +82,35 @@ export default function Navbar() {
         </Link>
 
         <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
-          {links.slice(0, 5).map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className={cn(
-                "text-sm font-medium transition-colors",
-                isActive(link.href)
-                  ? activeColor
-                  : `text-gray-600 ${hoverColor}`,
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {!mounted ? (
+            ["a", "b", "c", "d", "e"].map((k) => (
+              <Skeleton key={k} className="h-4 w-16" />
+            ))
+          ) : (
+            links.slice(0, 5).map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className={cn(
+                  "text-sm font-medium transition-colors",
+                  isActive(link.href)
+                    ? activeColor
+                    : `text-gray-600 ${hoverColor}`,
+                )}
+              >
+                {link.label}
+              </Link>
+            ))
+          )}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          {isLoggedIn ? (
+          {!mounted ? (
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-8 rounded-full" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+          ) : isLoggedIn ? (
             <div className="flex items-center gap-3">
               <Link href="/profile" className="flex items-center gap-2">
                 <Avatar className="size-8">

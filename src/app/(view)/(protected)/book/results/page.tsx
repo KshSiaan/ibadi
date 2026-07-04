@@ -27,15 +27,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetFaqs } from "@/hooks/api/faq/use-faq";
+import { useGetFaqsByCategory } from "@/hooks/api/faq/use-faq";
 import { useHomepage } from "@/hooks/api/homepage/use-homepage";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { cn } from "@/lib/utils";
 
 export default function ResultsPage() {
-  const { selectedService } = useServiceBooking();
+  const { selectedService, selectedCategoryId } = useServiceBooking();
   const { data: professionals = [], isLoading, error } = useHomepage();
-  const { data: faqs = [], isLoading: faqsLoading } = useGetFaqs();
+  const { data: faqs = [], isLoading: faqsLoading } =
+    useGetFaqsByCategory(selectedCategoryId);
   const [faqOpen, setFaqOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 

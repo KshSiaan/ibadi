@@ -20,6 +20,36 @@ export function useGetFaqs(include?: string) {
   });
 }
 
+export function useGetFaqsByCategory(categoryId: string) {
+  return useQuery<Faq[]>({
+    queryKey: ["faqs", "category", categoryId],
+    queryFn: async () => {
+      const response = await apiClient.get<ApiResponse<PaginatedResponse<Faq>>>(
+        `/faq?categoryId=${categoryId}`,
+      );
+      if (!response.success) throw new Error(response.message);
+      return response.data.data;
+    },
+    enabled: !!categoryId,
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
+export function useGetFaqsByUser(userId: string) {
+  return useQuery<Faq[]>({
+    queryKey: ["faqs", "user", userId],
+    queryFn: async () => {
+      const response = await apiClient.get<ApiResponse<PaginatedResponse<Faq>>>(
+        `/faq?userId=${userId}`,
+      );
+      if (!response.success) throw new Error(response.message);
+      return response.data.data;
+    },
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
 export function useGetFaqById(faqId: string) {
   return useQuery<Faq>({
     queryKey: ["faqs", faqId],
