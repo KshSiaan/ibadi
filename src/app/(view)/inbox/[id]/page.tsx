@@ -478,7 +478,9 @@ export default function ChatPage() {
                           msg.isPending && "opacity-60",
                         )}
                       >
-                        <p className="text-sm leading-relaxed">{msg.text}</p>
+                        <p className="text-sm leading-relaxed text-wrap wrap-break-word">
+                          {msg.text}
+                        </p>
                         <p
                           className={cn(
                             "mt-1 text-right text-[10px]",
