@@ -1,12 +1,13 @@
 "use client";
 
+import { ChevronDown, Plus, RefreshCw, Trash2, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Suspense, use, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Plus, RefreshCw, Trash2, X } from "lucide-react";
-import Link from "next/link";
-import { use, Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 
 const weekDays = [
   { short: "Mon", date: 13 },
@@ -108,6 +109,7 @@ function DayPanel({
   onClose: () => void;
   pricePerHour: number;
 }) {
+  const t = useTranslations("BookingTime");
   const endTime = selectedTime ? addHours(selectedTime, duration) : null;
   const totalPrice = duration * pricePerHour;
 
@@ -122,7 +124,8 @@ function DayPanel({
 
       <div className="flex-1 overflow-y-auto px-5 py-5">
         <p className="mb-4 text-sm font-semibold text-gray-800">
-          Duration <span className="font-bold text-primary">{duration}h</span>
+          {t("duration")}{" "}
+          <span className="font-bold text-primary">{duration}h</span>
         </p>
         <div className="mb-8">
           <Slider
@@ -134,7 +137,9 @@ function DayPanel({
           />
         </div>
 
-        <p className="mb-4 text-sm font-semibold text-gray-800">Start time</p>
+        <p className="mb-4 text-sm font-semibold text-gray-800">
+          {t("startTime")}
+        </p>
         <TimeGrid selectedTime={selectedTime} onSelect={onTimeSelect} />
       </div>
 
@@ -146,8 +151,8 @@ function DayPanel({
           className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white disabled:opacity-40"
         >
           {selectedTime && endTime
-            ? `Save ${selectedTime} - ${endTime}`
-            : "Select a start time"}
+            ? t("saveTime", { start: selectedTime, end: endTime })
+            : t("selectStartTime")}
         </button>
       </div>
     </div>
@@ -167,18 +172,19 @@ function WeeklyView({
   onClose: () => void;
   onFrequencyToggle: () => void;
 }) {
+  const t = useTranslations("BookingTime");
   const [slots, setSlots] = useState<Record<string, DaySlot>>({});
   const [activeDay, setActiveDay] = useState<string | null>(null);
   const [panelDuration, setPanelDuration] = useState(2);
   const [panelTime, setPanelTime] = useState<string | null>(null);
 
   const days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
+    t("monday"),
+    t("tuesday"),
+    t("wednesday"),
+    t("thursday"),
+    t("friday"),
+    t("saturday"),
   ];
 
   function openDay(day: string) {
@@ -226,7 +232,7 @@ function WeeklyView({
           className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm"
         >
           <RefreshCw className="size-4 text-primary" />
-          Weekly
+          {t("weekly")}
           <ChevronDown className="size-4 text-gray-400" />
         </button>
         <button type="button" onClick={onClose} className="text-gray-500">
@@ -270,8 +276,8 @@ function WeeklyView({
         })}
 
         <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm text-gray-500">Sunday</span>
-          <span className="text-xs text-gray-400">Not available</span>
+          <span className="text-sm text-gray-500">{t("sunday")}</span>
+          <span className="text-xs text-gray-400">{t("notAvailable")}</span>
         </div>
       </div>
 
@@ -279,8 +285,8 @@ function WeeklyView({
         <Button type="button" className="w-full" disabled={!hasSlots} asChild>
           <Link href={confirmHref}>
             {hasSlots
-              ? `Save ${Object.keys(slots).length} day(s)`
-              : "Select at least one day"}
+              ? t("saveDays", { count: Object.keys(slots).length })
+              : t("selectAtLeastOneDay")}
           </Link>
         </Button>
       </div>
@@ -312,6 +318,7 @@ function OnceView({
   onClose: () => void;
   onFrequencyToggle: () => void;
 }) {
+  const t = useTranslations("BookingTime");
   const [duration, setDuration] = useState(2);
   const [selectedDay, setSelectedDay] = useState(13);
   const [selectedTime, setSelectedTime] = useState<string | null>("16:30");
@@ -332,7 +339,7 @@ function OnceView({
           className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm"
         >
           <span className="text-base">🎯</span>
-          Just once
+          {t("justOnce")}
           <ChevronDown className="size-4 text-gray-400" />
         </button>
         <button type="button" onClick={onClose} className="text-gray-500">
@@ -342,7 +349,8 @@ function OnceView({
 
       <div className="flex-1 overflow-y-auto px-5 py-2">
         <p className="mb-4 text-sm font-semibold text-gray-800">
-          Duration <span className="font-bold text-primary">{duration}h</span>
+          {t("duration")}{" "}
+          <span className="font-bold text-primary">{duration}h</span>
         </p>
         <div className="mb-8">
           <Slider
@@ -361,7 +369,7 @@ function OnceView({
               type="button"
               className="rounded-full border border-gray-200 bg-white px-3 py-0.5 text-xs text-gray-500"
             >
-              Show month
+              {t("showMonth")}
             </button>
           </div>
           <div className="flex gap-1.5">
@@ -384,7 +392,9 @@ function OnceView({
           </div>
         </div>
 
-        <p className="mb-4 text-sm font-semibold text-gray-800">Start time</p>
+        <p className="mb-4 text-sm font-semibold text-gray-800">
+          {t("startTime")}
+        </p>
         <TimeGrid selectedTime={selectedTime} onSelect={setSelectedTime} />
       </div>
 
@@ -392,8 +402,8 @@ function OnceView({
         <Button disabled={!selectedTime} className="w-full" asChild>
           <Link href={confirmHref}>
             {selectedTime && endTime
-              ? `Save ${selectedTime} - ${endTime}`
-              : "Select a start time"}
+              ? t("saveTime", { start: selectedTime, end: endTime })
+              : t("selectStartTime")}
           </Link>
         </Button>
       </div>

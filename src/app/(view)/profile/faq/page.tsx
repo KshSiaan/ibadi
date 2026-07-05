@@ -17,8 +17,10 @@ import {
   useDeleteFaq,
 } from "@/hooks/api/faq/use-faq";
 import { Faq } from "@/lib/api/types";
+import { useTranslations } from "next-intl";
 
 export default function FaqManagementPage() {
+  const t = useTranslations("Faq");
   const router = useRouter();
   const { data: profile } = useMyProfile();
   const userId = profile?.id ?? "";
@@ -62,7 +64,7 @@ export default function FaqManagementPage() {
       }
       setDialogOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save FAQ");
+      setError(err instanceof Error ? err.message : t("failedToSave"));
     }
   };
 
@@ -72,7 +74,7 @@ export default function FaqManagementPage() {
       await deleteFaq.mutateAsync(deleteTarget.id);
       setDeleteTarget(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete FAQ");
+      setError(err instanceof Error ? err.message : t("failedToDelete"));
       setDeleteTarget(null);
     }
   };
@@ -90,7 +92,7 @@ export default function FaqManagementPage() {
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
         <h1 className="text-lg font-semibold text-gray-900 flex-1">
-          FAQ management
+          {t("title")}
         </h1>
         <button
           type="button"
@@ -102,11 +104,11 @@ export default function FaqManagementPage() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-8">
-        {isLoading && <p className="text-gray-500 text-sm">Loading...</p>}
+        {isLoading && <p className="text-gray-500 text-sm">{t("loading")}</p>}
 
         {!isLoading && faqs.length === 0 && (
           <p className="text-gray-500 text-sm text-center py-8">
-            No questions yet. Add one to help clients learn more about you.
+            {t("noQuestions")}
           </p>
         )}
 
@@ -147,7 +149,7 @@ export default function FaqManagementPage() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {editingFaq ? "Edit question" : "Add question"}
+              {editingFaq ? t("editQuestion") : t("addQuestion")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4">
@@ -158,25 +160,25 @@ export default function FaqManagementPage() {
             )}
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Question
+                {t("question")}
               </label>
               <input
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="e.g. Where are you from?"
+                placeholder={t("questionPlaceholder")}
                 className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
               />
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Answer
+                {t("answer")}
               </label>
               <textarea
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 rows={3}
-                placeholder="Your answer"
+                placeholder={t("answerPlaceholder")}
                 className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
               />
             </div>
@@ -185,7 +187,7 @@ export default function FaqManagementPage() {
               disabled={isSaving || !question || !answer}
               className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? t("saving") : t("save")}
             </button>
           </form>
         </DialogContent>
@@ -199,11 +201,11 @@ export default function FaqManagementPage() {
         <DialogContent className="max-w-sm">
           <DialogHeader className="text-center">
             <DialogTitle className="text-lg font-semibold">
-              Delete this question?
+              {t("deleteQuestionTitle")}
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-gray-500 text-center">
-            This action is permanent and cannot be undone.
+            {t("deleteDescription")}
           </p>
           <div className="flex gap-3 mt-4 flex-col sm:flex-row">
             <button
@@ -212,14 +214,14 @@ export default function FaqManagementPage() {
               disabled={deleteFaq.isPending}
               className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 order-2 sm:order-1"
             >
-              {deleteFaq.isPending ? "Deleting..." : "DELETE"}
+              {deleteFaq.isPending ? t("deleting") : t("deleteButton")}
             </button>
             <button
               type="button"
               onClick={() => setDeleteTarget(null)}
               className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-600 hover:bg-gray-50 font-medium rounded-lg transition-colors order-1 sm:order-2"
             >
-              CANCEL
+              {t("cancel")}
             </button>
           </div>
         </DialogContent>

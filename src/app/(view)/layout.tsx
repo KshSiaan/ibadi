@@ -7,50 +7,46 @@ import Footer from "@/components/core/footer";
 import Navbar from "@/components/core/navbar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-/* ─── Radial satellite node ─── */
-
-/* ─── Data ─── */
-const aboutPoints = [
-  "Lorem ipsum dolor sit amet consectetur.",
-  "Augue non malesuada placerat faucibus nam purus sem.",
-  "Uma pulvinar porttitor dignissim congue pellentesque ac hac.",
-  "Eu adipiscing massa ut proin mauris orci tincidunt ac in.",
-];
-
-const serviceCards = [
-  {
-    id: "rc-1",
-    title: "Resident Care",
-    description:
-      "Lorem ipsum dolor sit amet consectetur. Augue non malesuada placerat faucibus nam purus sem. Uma pulvinar porttitor dignissim congue pellentesque ac hac.",
-  },
-  {
-    id: "en-1",
-    title: "Elderly Nutrition",
-    description:
-      "Lorem ipsum dolor sit amet consectetur. Augue non malesuada placerat faucibus nam purus sem. Uma pulvinar porttitor dignissim congue pellentesque ac hac.",
-  },
-  {
-    id: "rc-2",
-    title: "Resident Care",
-    description:
-      "Lorem ipsum dolor sit amet consectetur. Augue non malesuada placerat faucibus nam purus sem. Uma pulvinar porttitor dignissim congue pellentesque ac hac.",
-  },
-  {
-    id: "en-2",
-    title: "Elderly Nutrition",
-    description:
-      "Lorem ipsum dolor sit amet consectetur. Augue non malesuada placerat faucibus nam purus sem. Uma pulvinar porttitor dignissim congue pellentesque ac hac.",
-  },
-];
+import { getTranslations } from "next-intl/server";
 
 /* ─── Page ─── */
-export default function HomeLayout({
+export default async function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const t = await getTranslations("HomeLayout");
+
+  const aboutPoints = [
+    t("aboutPoint1"),
+    t("aboutPoint2"),
+    t("aboutPoint3"),
+    t("aboutPoint4"),
+  ];
+
+  const serviceCards = [
+    {
+      id: "rc-1",
+      title: t("serviceCard1Title"),
+      description: t("serviceCard1Description"),
+    },
+    {
+      id: "en-1",
+      title: t("serviceCard2Title"),
+      description: t("serviceCard2Description"),
+    },
+    {
+      id: "rc-2",
+      title: t("serviceCard3Title"),
+      description: t("serviceCard3Description"),
+    },
+    {
+      id: "en-2",
+      title: t("serviceCard4Title"),
+      description: t("serviceCard4Description"),
+    },
+  ];
+
   return (
     <>
       <Navbar />
@@ -82,11 +78,9 @@ export default function HomeLayout({
 
           {/* Text */}
           <div className="flex flex-col gap-5">
-            <h2 className="text-4xl font-bold text-gray-900">About Us</h2>
+            <h2 className="text-4xl font-bold text-gray-900">{t("aboutUs")}</h2>
             <p className="text-sm leading-relaxed text-gray-500">
-              Lorem ipsum dolor sit amet consectetur. Augue non malesuada
-              placerat faucibus nam purus sem. Uma pulvinar porttitor dignissim
-              congue pellentesque ac hac.
+              {t("aboutDescription")}
             </p>
             <ul className="flex flex-col gap-3">
               {aboutPoints.map((pt) => (
@@ -100,7 +94,7 @@ export default function HomeLayout({
               ))}
             </ul>
             <div className="pt-2">
-              <Button className="rounded-md px-8">Booking</Button>
+              <Button className="rounded-md px-8">{t("booking")}</Button>
             </div>
           </div>
         </div>
@@ -110,7 +104,7 @@ export default function HomeLayout({
       <section className="bg-background py-16 md:py-24">
         <div className="container mx-auto px-6 lg:px-16">
           <h2 className="mb-12 text-center text-3xl font-bold text-primary">
-            Our Services
+            {t("ourServices")}
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             {serviceCards.map((card, index) => (
@@ -147,7 +141,7 @@ export default function HomeLayout({
       <section className="bg-[#eaf7f7] py-16 md:py-24">
         <div className="container mx-auto px-6 lg:px-16">
           <h2 className="mb-12 text-center text-3xl font-bold text-primary">
-            Client Reviews
+            {t("clientReviews")}
           </h2>
           <ClientReviews />
         </div>
@@ -159,18 +153,15 @@ export default function HomeLayout({
           {/* Text — left */}
           <div className="flex flex-col gap-5">
             <h2 className="text-4xl font-bold leading-tight text-gray-900">
-              The Best Eldery Care
-              <br className="hidden sm:block" /> Center For You
+              {t("bestElderlyCareTitle")}
+              <br className="hidden sm:block" />{" "}
+              {t("bestElderlyCareTitleLine2")}
             </h2>
             <p className="text-sm leading-relaxed text-gray-500">
-              Lorem ipsum dolor sit amet consectetur. Augue non malesuada
-              placerat faucibus nam purus sem. Uma pulvinar porttitor dignissim
-              congue pellentesque ac hac. Viverra donec nulla-id orci ipsum
-              tellus dolor. Eu adipiscing massa ut proin mauris orci tincidunt
-              ac in.
+              {t("bestElderlyCareDescription")}
             </p>
             <div className="pt-2">
-              <Button className="rounded-md px-8">Booking</Button>
+              <Button className="rounded-md px-8">{t("booking")}</Button>
             </div>
           </div>
 
@@ -195,19 +186,17 @@ export default function HomeLayout({
             {/* Left text */}
             <div className="max-w-md">
               <h2 className="mb-3 text-2xl sm:text-3xl font-bold text-white">
-                Looking for a Better Care?
+                {t("lookingForBetterCare")}
               </h2>
               <p className="mb-7 text-xs sm:text-sm leading-relaxed text-white/80">
-                Lorem ipsum dolor sit amet consectetur. Augue non malesuada
-                placerat faucibus nam purus sem. Uma pulvinar porttitor
-                dignissim congue pellentesque ac hac.
+                {t("lookingForBetterCareDescription")}
               </p>
               <Button
                 variant="outline"
                 className="border-white bg-white text-primary hover:bg-white/90 hover:text-primary"
                 asChild
               >
-                <Link href="/service">Booking</Link>
+                <Link href="/service">{t("booking")}</Link>
               </Button>
             </div>
 

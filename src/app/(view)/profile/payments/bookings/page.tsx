@@ -2,8 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { useCheckout, useAllBookings } from "@/hooks/api/bookings/use-bookings";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
@@ -42,9 +42,11 @@ const formatDate = (iso: string) => {
 };
 
 export default function BookingsPage() {
+  const t = useTranslations("BookingsPage");
   const router = useRouter();
   const [additionalComment, setAdditionalComment] = useState("");
   const [openBookingId, setOpenBookingId] = useState<string | null>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   // Use all bookings for the current user as the endpoint may require explicit include
   const { data: bookings, isLoading } = useAllBookings();
   const { mutate, isPending, isError, error } = useCheckout();
@@ -60,20 +62,20 @@ export default function BookingsPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">My booking</h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-8">
         {isLoading && (
           <p className="text-sm text-gray-500 text-center py-12">
-            Loading bookings...
+            {t("loadingBookings")}
           </p>
         )}
 
         {!isLoading && bookings?.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-600">No bookings found</p>
+            <p className="text-gray-600">{t("noBookings")}</p>
           </div>
         )}
 
@@ -95,19 +97,19 @@ export default function BookingsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h3 className="font-semibold text-gray-900 text-sm">
-                      Booking #{booking.id.slice(0, 8)}
+                      {t("bookingRef", { id: booking.id.slice(0, 8) })}
                     </h3>
                     <span className="text-cyan-600 font-semibold text-sm whitespace-nowrap">
                       ${booking.price}/hr
                     </span>
                   </div>
                   <p className="text-xs text-gray-600">
-                    Paid on {formatDate(booking.createdAt)}
+                    {t("paidOn", { date: formatDate(booking.createdAt) })}
                   </p>
                 </div>
               </div>
               <p className="text-xs text-gray-600 mb-2">
-                Service date: {formatDate(booking.startDate)}
+                {t("serviceDate", { date: formatDate(booking.startDate) })}
               </p>
               <p
                 className={`text-xs font-medium ${getStatusColor(booking.status)}`}
@@ -123,19 +125,20 @@ export default function BookingsPage() {
                   }
                 >
                   <DialogTrigger asChild>
-                    <Button className="w-full mt-3">Complete Payment</Button>
+                    <Button className="w-full mt-3">
+                      {t("completePayment")}
+                    </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Confirm Payment</DialogTitle>
+                      <DialogTitle>{t("confirmPayment")}</DialogTitle>
                       <DialogDescription>
-                        Are you sure you want to complete the payment for this
-                        booking?
+                        {t("confirmPaymentDescription")}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="">
                       <Label className="text-xs font-medium mb-2">
-                        Additional Comment:
+                        {t("additionalComment")}
                       </Label>
                       <Textarea
                         placeholder="..."
@@ -152,9 +155,9 @@ export default function BookingsPage() {
                             },
                             {
                               onSuccess: () => {
-                                toast.success("Requested successfully");
                                 setAdditionalComment("");
                                 setOpenBookingId(null);
+                                setPaymentSuccess(true);
                               },
                             },
                           )
@@ -162,9 +165,13 @@ export default function BookingsPage() {
                         disabled={isPending}
                       >
                         {isPending ? (
-                          "Processing..."
+                          t("processing")
                         ) : (
-                          <>Confirm Payment ( ${booking.price} )</>
+                          <>
+                            {t("confirmPaymentButton", {
+                              price: booking.price,
+                            })}
+                          </>
                         )}
                       </Button>
                       {isError && (
@@ -180,6 +187,31 @@ export default function BookingsPage() {
           ))}
         </div>
       </div>
+
+      {/* Payment Success Dialog */}
+      <Dialog open={paymentSuccess} onOpenChange={setPaymentSuccess}>
+        <DialogContent className="max-w-xs gap-0 p-8 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex size-20 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle2 className="size-10 text-green-500" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-800">
+                {t("paymentConfirmed")}
+              </h2>
+              <p className="mt-2 text-sm text-gray-500">
+                {t("paymentSuccessDescription")}
+              </p>
+            </div>
+            <Button
+              onClick={() => setPaymentSuccess(false)}
+              className="w-full rounded-xl py-3"
+            >
+              {t("done")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

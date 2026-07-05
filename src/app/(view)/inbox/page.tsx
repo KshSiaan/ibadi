@@ -10,16 +10,14 @@ import {
   Search,
   ShoppingBag,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useCookies } from "react-cookie";
+import AuthProtectionCard from "@/components/core/auth-protection-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useSocket } from "@/context/SocketContext";
-import {
-  useMarkNotifications,
-  useNotifications,
-} from "@/hooks/api/notifications/use-notifications";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -27,10 +25,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { useCookies } from "react-cookie";
-import AuthProtectionCard from "@/components/core/auth-protection-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSocket } from "@/context/SocketContext";
+import {
+  useMarkNotifications,
+  useNotifications,
+} from "@/hooks/api/notifications/use-notifications";
+import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -146,12 +147,14 @@ function AlertIcon({ type, color }: { type: string; color: string }) {
   );
 }
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, t: ReturnType<typeof useTranslations<"Inbox">>) {
   const diff = Date.now() - new Date(iso).getTime();
   const hrs = Math.floor(diff / 3600000);
-  if (hrs < 1) return "Just now";
-  if (hrs < 24) return `${hrs} hr${hrs > 1 ? "s" : ""} ago`;
-  return `${Math.floor(hrs / 24)} day${Math.floor(hrs / 24) > 1 ? "s" : ""} ago`;
+  if (hrs < 1) return t("justNow");
+  if (hrs < 24)
+    return t("hoursAgo", { hours: hrs, plural: hrs > 1 ? "s" : "" });
+  const days = Math.floor(hrs / 24);
+  return t("daysAgo", { days, plural: days > 1 ? "s" : "" });
 }
 
 // ─── Chat row skeleton ────────────────────────────────────────────────────────
@@ -171,6 +174,7 @@ function ChatRowSkeleton() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function InboxPage() {
+  const t = useTranslations("Inbox");
   const { socket } = useSocket();
   const [activeTab, setActiveTab] = useState<Tab>("chat");
   const [search, setSearch] = useState("");
@@ -269,7 +273,7 @@ export default function InboxPage() {
   return (
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
       <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
-        {activeTab === "chat" ? "Inbox" : "Alerts"}
+        {activeTab === "chat" ? t("inbox") : t("alerts")}
       </h1>
 
       {/* Tabs */}
@@ -288,10 +292,10 @@ export default function InboxPage() {
               )}
             >
               {tab === "chat" ? (
-                "Chat"
+                t("chat")
               ) : (
                 <span className="flex items-center justify-center gap-1">
-                  Alerts
+                  {t("alerts")}
                   {unreadAlerts > 0 && (
                     <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
                       {unreadAlerts}
@@ -309,7 +313,7 @@ export default function InboxPage() {
             <div className="mb-4 flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 shadow-sm">
               <input
                 type="text"
-                placeholder="Search conversations"
+                placeholder={t("searchConversations")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="flex-1 bg-transparent text-sm text-gray-600 placeholder:text-gray-400 focus:outline-none"
@@ -325,9 +329,7 @@ export default function InboxPage() {
                 ))
               ) : filtered.length === 0 ? (
                 <p className="py-10 text-center text-sm text-gray-400">
-                  {search
-                    ? "No conversations match your search"
-                    : "No conversations yet"}
+                  {search ? t("noConversationsSearch") : t("noConversations")}
                 </p>
               ) : (
                 filtered.map((chat) => (
@@ -366,7 +368,7 @@ export default function InboxPage() {
 
             {!isChatLoading && !socket?.connected && (
               <p className="mt-3 text-center text-xs text-amber-500">
-                Connecting to chat server…
+                {t("connectingToChat")}
               </p>
             )}
 
@@ -378,7 +380,7 @@ export default function InboxPage() {
                     className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white"
                   >
                     <Headphones className="size-4" />
-                    Support
+                    {t("support")}
                   </button>
                 </DialogTrigger>
                 <DialogContent>
@@ -394,11 +396,11 @@ export default function InboxPage() {
                       className="mx-auto size-48"
                     />
                     <Button className="mt-4 w-full" size="lg">
-                      <PhoneOutgoing /> Call
+                      <PhoneOutgoing /> {t("call")}
                     </Button>
                     <Button className="mt-4 w-full" size="lg" asChild>
                       <Link href="/inbox">
-                        <MessageSquareIcon /> Message
+                        <MessageSquareIcon /> {t("message")}
                       </Link>
                     </Button>
                   </div>
@@ -412,11 +414,13 @@ export default function InboxPage() {
         {activeTab === "alerts" && (
           <>
             {notifLoading && (
-              <p className="py-8 text-center text-sm text-gray-500">Loading…</p>
+              <p className="py-8 text-center text-sm text-gray-500">
+                {t("loading")}
+              </p>
             )}
             {!notifLoading && notifications?.length === 0 && (
               <p className="py-8 text-center text-sm text-gray-500">
-                No notifications
+                {t("noNotifications")}
               </p>
             )}
             <div className="flex flex-col divide-y divide-gray-100 rounded-xl bg-white shadow-sm">
@@ -442,7 +446,7 @@ export default function InboxPage() {
                     </div>
                     <div className="flex shrink-0 items-center gap-1 text-xs text-gray-400">
                       <Clock className="size-3.5" />
-                      {timeAgo(notif.createdAt)}
+                      {timeAgo(notif.createdAt, t)}
                     </div>
                   </button>
                 );

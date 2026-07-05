@@ -11,6 +11,7 @@ import type { Favorite } from "@/lib/api/types";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 function formatDate(dateString: string | undefined): string {
   if (!dateString) return "Date unavailable";
@@ -34,11 +35,13 @@ function FavoriteCard({
   onRemove,
   isDeletingFavorite,
   deletingId,
+  tAdded,
 }: {
   fav: Favorite;
   onRemove: (id: string) => void;
   isDeletingFavorite: boolean;
   deletingId: string | null;
+  tAdded: (opts: { date: string }) => string;
 }) {
   const serviceProvider = (fav as unknown as Record<string, unknown>)
     .serviceProvider as
@@ -120,7 +123,7 @@ function FavoriteCard({
         <div className="mt-3 flex flex-wrap gap-2">
           <div className="flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1 text-xs text-gray-600">
             <CalendarDays className="size-3.5 text-primary" />
-            Added {formatDate(serviceProvider?.createdAt)}
+            {tAdded({ date: formatDate(serviceProvider?.createdAt) })}
           </div>
         </div>
       </div>
@@ -129,6 +132,7 @@ function FavoriteCard({
 }
 
 export default function FavouritesPage() {
+  const t = useTranslations("Favourites");
   const { data: favourites, isLoading } = useGetFavorites("serviceProvider");
   const { mutate: deleteFavorite, isPending: isDeletingFavorite } =
     useDeleteFavorite();
@@ -138,11 +142,11 @@ export default function FavouritesPage() {
     setDeletingId(favoriteId);
     deleteFavorite(favoriteId, {
       onSuccess: () => {
-        toast.success("Removed from favorites");
+        toast.success(t("removedFromFavorites"));
         setDeletingId(null);
       },
       onError: (error) => {
-        toast.error(error.message || "Failed to remove from favorites");
+        toast.error(error.message || t("failedToRemove"));
         setDeletingId(null);
       },
     });
@@ -152,7 +156,7 @@ export default function FavouritesPage() {
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
       <div className="mx-auto max-w-lg">
         <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
-          Favourites
+          {t("title")}
         </h1>
 
         {isLoading && (
@@ -168,17 +172,17 @@ export default function FavouritesPage() {
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-800">
-                No favourites yet
+                {t("noFavourites")}
               </p>
               <p className="mt-1 text-xs text-gray-500">
-                Start adding providers you love to your favourites!
+                {t("noFavouritesDescription")}
               </p>
             </div>
             <Link
               href="/user"
               className="mt-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
             >
-              Browse Providers
+              {t("browseProviders")}
             </Link>
           </div>
         )}
@@ -191,6 +195,7 @@ export default function FavouritesPage() {
               onRemove={handleRemoveFavorite}
               isDeletingFavorite={isDeletingFavorite}
               deletingId={deletingId}
+              tAdded={(opts) => t("added", opts)}
             />
           ))}
         </div>

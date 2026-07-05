@@ -9,8 +9,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForgotPassword } from "@/hooks/api/use-forgot-password";
 import { useCookies } from "react-cookie";
+import { useTranslations } from "next-intl";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("ForgotPassword");
   const router = useRouter();
   const [, setCookie] = useCookies(["resetToken"]);
   const [email, setEmail] = useState("");
@@ -49,18 +51,13 @@ export default function ForgotPasswordPage() {
             className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80"
           >
             <ArrowLeft className="size-4" />
-            Back to login
+            {t("backToLogin")}
           </Link>
 
           {/* Header */}
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-slate-900">
-              Reset password
-            </h1>
-            <p className="text-sm text-slate-600">
-              Enter your email address and we'll send you an OTP to reset your
-              password
-            </p>
+            <h1 className="text-3xl font-bold text-slate-900">{t("title")}</h1>
+            <p className="text-sm text-slate-600">{t("description")}</p>
           </div>
 
           {/* Error Alert */}
@@ -76,11 +73,11 @@ export default function ForgotPasswordPage() {
             {/* Email Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">
-                Email address
+                {t("emailAddress")}
               </label>
               <Input
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
@@ -98,20 +95,17 @@ export default function ForgotPasswordPage() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
-                  Sending OTP...
+                  {t("sendingOtp")}
                 </>
               ) : (
-                "Send OTP"
+                t("sendOtp")
               )}
             </Button>
           </form>
 
           {/* Info Box */}
           <div className="rounded-lg bg-blue-50 p-4">
-            <p className="text-sm text-blue-700">
-              We'll send a one-time password (OTP) to your email. Check your
-              inbox for the code.
-            </p>
+            <p className="text-sm text-blue-700">{t("otpInfo")}</p>
           </div>
         </CardContent>
       </Card>

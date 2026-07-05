@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function TermsAndConditionsPage() {
+  const t = useTranslations("Terms");
   const router = useRouter();
 
   const termsContent = `
@@ -27,9 +29,7 @@ export default function TermsAndConditionsPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">
-          Terms and conditions
-        </h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       {/* Main Content */}

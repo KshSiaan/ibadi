@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Info, Lightbulb, DollarSign } from "lucide-react";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
+import { useTranslations } from "next-intl";
 
 export default function MinimumPricePage() {
+  const t = useTranslations("MinimumPrice");
   const router = useRouter();
   const { data: profile, isLoading } = useMyProfile();
   const updateInfo = useUpdateServiceProviderInfo();
@@ -28,14 +30,14 @@ export default function MinimumPricePage() {
       await updateInfo.mutateAsync({ perHourPrice: Number(price) });
       router.back();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save");
+      setError(err instanceof Error ? err.message : t("failedToSave"));
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500 text-sm">Loading...</p>
+        <p className="text-gray-500 text-sm">{t("loading")}</p>
       </div>
     );
   }
@@ -50,14 +52,14 @@ export default function MinimumPricePage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">Minimum price</h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-8">
         <p className="text-sm text-gray-500 mb-1">
-          What is the minimum price a client must pay to book your service?{" "}
+          {t("description")}{" "}
           <span className="text-primary inline-flex items-center gap-0.5">
-            <Info className="w-3.5 h-3.5" /> info
+            <Info className="w-3.5 h-3.5" /> {t("info")}
           </span>
         </p>
 
@@ -69,7 +71,9 @@ export default function MinimumPricePage() {
 
         <form onSubmit={handleSave} className="mt-8">
           <div className="border border-gray-200 rounded-lg p-6 flex flex-col items-center gap-3">
-            <span className="text-sm text-gray-500">Minimum price:</span>
+            <span className="text-sm text-gray-500">
+              {t("minimumPriceLabel")}
+            </span>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -85,10 +89,7 @@ export default function MinimumPricePage() {
 
           <div className="mt-4 flex items-start gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
             <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-            <p className="text-xs text-gray-600">
-              This will avoid being booked for a price so low that it&apos;s not
-              worth your time to commute to the service.
-            </p>
+            <p className="text-xs text-gray-600">{t("hint")}</p>
           </div>
 
           <button
@@ -96,7 +97,7 @@ export default function MinimumPricePage() {
             disabled={updateInfo.isPending}
             className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8"
           >
-            {updateInfo.isPending ? "Saving..." : "Save"}
+            {updateInfo.isPending ? t("saving") : t("save")}
           </button>
         </form>
       </div>

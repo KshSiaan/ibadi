@@ -38,6 +38,7 @@ import {
   useUpdateAddress,
   useDeleteAddress,
 } from "@/hooks/api/address/use-address";
+import { useTranslations } from "next-intl";
 
 /* ─── Fallback Data ─── */
 const fallbackServices: Category[] = [
@@ -131,6 +132,7 @@ function SearchPopoverContent({
   categories: Category[];
   isLoading: boolean;
 }) {
+  const t = useTranslations("Home");
   const [query, setQuery] = useState("");
 
   const filteredCategories = categories.filter((cat) =>
@@ -146,13 +148,13 @@ function SearchPopoverContent({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Find the service you need"
+          placeholder={t("findService")}
           className="flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
         />
       </div>
       <div className="px-4 pb-3 pt-4">
         <p className="mb-3 text-xs font-semibold text-gray-400">
-          Most popular in your area
+          {t("mostPopular")}
         </p>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
@@ -186,14 +188,17 @@ function SearchPopoverContent({
 
 /* ─── Notification Popover Content ─── */
 function NotificationPopoverContent() {
+  const t = useTranslations("Home");
   return (
     <div className="w-[300px] p-0">
       <div className="border-b border-gray-100 px-4 py-3">
-        <p className="text-sm font-semibold text-gray-800">Notifications</p>
+        <p className="text-sm font-semibold text-gray-800">
+          {t("notifications")}
+        </p>
       </div>
       <div className="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center text-sm text-gray-400">
         <Bell className="size-8 text-gray-200" />
-        No notifications yet
+        {t("noNotifications")}
       </div>
     </div>
   );
@@ -239,7 +244,9 @@ function AddressForm({
     >
       <input
         value={form.addressLine1}
-        onChange={(e) => setForm((f) => ({ ...f, addressLine1: e.target.value }))}
+        onChange={(e) =>
+          setForm((f) => ({ ...f, addressLine1: e.target.value }))
+        }
         placeholder="Address line"
         required
         className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -263,7 +270,9 @@ function AddressForm({
       <div className="grid grid-cols-2 gap-2">
         <input
           value={form.postalCode}
-          onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, postalCode: e.target.value }))
+          }
           placeholder="Postal code"
           required
           className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"

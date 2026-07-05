@@ -8,8 +8,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useResetPassword } from "@/hooks/api/use-reset-password";
+import { useTranslations } from "next-intl";
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("ResetPassword");
+  const tCommon = useTranslations("Common");
   const router = useRouter();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -79,17 +82,13 @@ export default function ResetPasswordPage() {
             className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80"
           >
             <ArrowLeft className="size-4" />
-            Back
+            {tCommon("back")}
           </Link>
 
           {/* Header */}
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-slate-900">
-              Set new password
-            </h1>
-            <p className="text-sm text-slate-600">
-              Enter a new password for your account
-            </p>
+            <h1 className="text-3xl font-bold text-slate-900">{t("title")}</h1>
+            <p className="text-sm text-slate-600">{t("description")}</p>
           </div>
 
           {/* Error Alert */}
@@ -105,12 +104,12 @@ export default function ResetPasswordPage() {
             {/* New Password Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">
-                New password
+                {t("newPassword")}
               </label>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter new password"
+                  placeholder={t("newPasswordPlaceholder")}
                   value={newPassword}
                   onChange={handlePasswordChange}
                   disabled={loading}
@@ -136,12 +135,12 @@ export default function ResetPasswordPage() {
             {/* Confirm Password Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">
-                Confirm password
+                {t("confirmPassword")}
               </label>
               <div className="relative">
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm new password"
+                  placeholder={t("confirmPasswordPlaceholder")}
                   value={confirmPassword}
                   onChange={handleConfirmPasswordChange}
                   disabled={loading}
@@ -167,19 +166,21 @@ export default function ResetPasswordPage() {
                 </button>
               </div>
               {!passwordMatch && confirmPassword && (
-                <p className="text-xs text-red-600">Passwords don't match</p>
+                <p className="text-xs text-red-600">
+                  {t("passwordsDontMatch")}
+                </p>
               )}
             </div>
 
             {/* Password Requirements */}
             <div className="rounded-lg bg-blue-50 p-4">
               <p className="mb-2 text-xs font-semibold text-blue-900">
-                Password requirements:
+                {t("passwordRequirements")}
               </p>
               <ul className="space-y-1 text-xs text-blue-700">
-                <li>• At least 6 characters</li>
-                <li>• Mix of uppercase and lowercase letters</li>
-                <li>• Include numbers and special characters</li>
+                <li>• {t("passwordMinChars")}</li>
+                <li>• {t("passwordMixCase")}</li>
+                <li>• {t("passwordNumbersSpecial")}</li>
               </ul>
             </div>
 
@@ -192,10 +193,10 @@ export default function ResetPasswordPage() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
-                  Resetting...
+                  {t("resetting")}
                 </>
               ) : (
-                "Reset password"
+                t("resetPassword")
               )}
             </Button>
           </form>

@@ -3,6 +3,7 @@
 import { ArrowLeft, EllipsisVertical, MinusCircle, Send } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useForm } from "react-hook-form";
@@ -90,7 +91,10 @@ function formatTime(iso?: string): string {
   }
 }
 
-function formatDateDivider(iso?: string): string {
+function formatDateDivider(
+  iso?: string,
+  t?: ReturnType<typeof useTranslations<"Chat">>,
+): string {
   if (!iso) return "";
   try {
     const date = new Date(iso);
@@ -98,8 +102,8 @@ function formatDateDivider(iso?: string): string {
     const diffDays = Math.floor(
       (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
     );
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
+    if (diffDays === 0 && t) return t("today");
+    if (diffDays === 1 && t) return t("yesterday");
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       month: "long",
@@ -143,6 +147,7 @@ function TypingBubble() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ChatPage() {
+  const t = useTranslations("Chat");
   const { socket } = useSocket();
   const router = useRouter();
   const params = useParams();
@@ -150,7 +155,7 @@ export default function ChatPage() {
   const [cookies] = useCookies(["accessToken"]);
 
   const chatId = params.id as string;
-  const participantName = searchParams.get("name") ?? "Chat";
+  const participantName = searchParams.get("name") ?? t("chat");
   const participantImage = searchParams.get("image") ?? "";
   const participantId = searchParams.get("participantId") ?? "";
 
@@ -383,7 +388,7 @@ export default function ChatPage() {
       {/* Connection banner */}
       {!socket?.connected && (
         <div className="bg-amber-50 lg:px-[34%] px-4 py-2 text-center text-xs text-amber-600">
-          Reconnecting…
+          {t("reconnecting")}
         </div>
       )}
 
@@ -412,9 +417,7 @@ export default function ChatPage() {
           ))
         ) : messages.length === 0 ? (
           <div className="flex flex-1 items-center justify-center">
-            <p className="text-sm text-gray-400">
-              No messages yet — start the conversation!
-            </p>
+            <p className="text-sm text-gray-400">{t("noMessagesYet")}</p>
           </div>
         ) : (
           messages.map((msg, idx) => {
@@ -429,7 +432,7 @@ export default function ChatPage() {
                   <div className="flex items-center gap-3 py-2">
                     <div className="h-px flex-1 bg-gray-200" />
                     <span className="text-[11px] text-gray-400">
-                      {formatDateDivider(msg.timestamp)}
+                      {formatDateDivider(msg.timestamp, t)}
                     </span>
                     <div className="h-px flex-1 bg-gray-200" />
                   </div>
@@ -510,7 +513,7 @@ export default function ChatPage() {
       <div className="px-4 py-4 lg:px-[34%]">
         <div className="flex items-end gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-sm focus-within:ring-2 focus-within:ring-primary/20">
           <Textarea
-            placeholder="Message"
+            placeholder={t("messagePlaceholder")}
             disabled={!socket?.connected}
             rows={1}
             onKeyDown={handleKeyDown}
@@ -532,7 +535,7 @@ export default function ChatPage() {
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent className="max-w-xs gap-0 p-6">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">
-            User Setting
+            {t("userSetting")}
           </p>
           <button
             type="button"
@@ -543,7 +546,7 @@ export default function ChatPage() {
             className="flex items-center gap-2 text-sm font-semibold text-primary"
           >
             <MinusCircle className="size-4" />
-            Block this user
+            {t("blockUser")}
           </button>
         </DialogContent>
       </Dialog>
@@ -552,10 +555,10 @@ export default function ChatPage() {
       <Dialog open={blockOpen} onOpenChange={setBlockOpen}>
         <DialogContent className="max-w-xs gap-0 p-6 text-center">
           <p className="mb-5 text-xs font-semibold uppercase tracking-wide text-gray-400">
-            Block
+            {t("block")}
           </p>
           <p className="mb-6 text-base font-bold text-gray-800">
-            Are you sure you want to Block this User?
+            {t("blockConfirm")}
           </p>
           <div className="flex flex-col gap-3">
             <button
@@ -563,14 +566,14 @@ export default function ChatPage() {
               onClick={handleBlock}
               className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white"
             >
-              Yes, Block
+              {t("yesBlock")}
             </button>
             <button
               type="button"
               onClick={() => setBlockOpen(false)}
               className="w-full rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700"
             >
-              No, Don't Block
+              {t("noDontBlock")}
             </button>
           </div>
         </DialogContent>

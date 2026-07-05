@@ -9,8 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useGetClientReviews } from "@/hooks/api/client-review/use-client-review";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export default function FindingPage() {
+  const t = useTranslations("BookFinding");
   const router = useRouter();
   const [progress, setProgress] = useState(0);
   const { data: reviews = [], isLoading } = useGetClientReviews();
@@ -99,11 +101,11 @@ export default function FindingPage() {
       {/* Finding text */}
       <div className="flex flex-col items-center gap-4">
         <p className="text-center text-lg text-gray-500">
-          Finding{" "}
+          {t("finding")}{" "}
           <span className="font-bold text-gray-800">
-            {selectedService || "professionals"}
+            {selectedService || t("professionals")}
           </span>{" "}
-          {selectedService ? "professionals" : ""}
+          {selectedService ? t("professionals") : ""}
         </p>
         <Progress value={progress} className="h-1.5 w-48" />
       </div>

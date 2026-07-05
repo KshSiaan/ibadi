@@ -22,112 +22,13 @@ import {
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useCookies } from "react-cookie";
 import AuthProtectionCard from "@/components/core/auth-protection-card";
+import { useTranslations } from "next-intl";
 
 interface MenuItem {
   label: string;
   href: string;
   icon: ReactNode;
 }
-
-const menuItems: MenuItem[] = [
-  {
-    label: "Personal details",
-    href: "/profile/personal-details",
-    icon: <User className="w-5 h-5" />,
-  },
-  {
-    label: "My addresses",
-    href: "/profile/addresses",
-    icon: <MapPin className="w-5 h-5" />,
-  },
-  {
-    label: "Payments and refunds",
-    href: "/profile/payments",
-    icon: <CreditCard className="w-5 h-5" />,
-  },
-  {
-    label: "Change password",
-    href: "/profile/password",
-    icon: <Lock className="w-5 h-5" />,
-  },
-  {
-    label: "Language",
-    href: "/profile/language",
-    icon: <Globe className="w-5 h-5" />,
-  },
-  {
-    label: "About Us",
-    href: "/profile/about",
-    icon: <Info className="w-5 h-5" />,
-  },
-  {
-    label: "Terms and conditions",
-    href: "/profile/terms",
-    icon: <FileText className="w-5 h-5" />,
-  },
-  {
-    label: "Privacy policy",
-    href: "/profile/privacy",
-    icon: <Shield className="w-5 h-5" />,
-  },
-];
-const ProfessionalMenu: MenuItem[] = [
-  {
-    label: "Personal details",
-    href: "/profile/personal-details",
-    icon: <User className="w-5 h-5" />,
-  },
-  {
-    label: "My Balance",
-    href: "/profile/balance",
-    icon: <CreditCard className="w-5 h-5" />,
-  },
-  {
-    label: "My Listing",
-    href: "/profile/listing",
-    icon: <Sparkles className="w-5 h-5" />,
-  },
-  {
-    label: "My schedule",
-    href: "/profile/schedule",
-    icon: <Calendar className="w-5 h-5" />,
-  },
-  {
-    label: "Minimum booking amount",
-    href: "/profile/minimum-price",
-    icon: <DollarSign className="w-5 h-5" />,
-  },
-  {
-    label: "My Reviews",
-    href: "/profile/reviews",
-    icon: <Star className="w-5 h-5" />,
-  },
-  {
-    label: "FAQ management",
-    href: "/profile/faq",
-    icon: <HelpCircle className="w-5 h-5" />,
-  },
-  {
-    label: "Language",
-    href: "/profile/language",
-    icon: <Globe className="w-5 h-5" />,
-  },
-  {
-    label: "About Us",
-    href: "/profile/about",
-    icon: <Info className="w-5 h-5" />,
-  },
-  {
-    label: "Terms and conditions",
-    href: "/profile/terms",
-    icon: <FileText className="w-5 h-5" />,
-  },
-  {
-    label: "Privacy policy",
-    href: "/profile/privacy",
-    icon: <Shield className="w-5 h-5" />,
-  },
-];
 
 function MenuItem({ item }: { item: MenuItem }) {
   return (
@@ -145,8 +46,110 @@ function MenuItem({ item }: { item: MenuItem }) {
 }
 
 export default function ProfilePage() {
+  const t = useTranslations("Profile");
   const [cookies] = useCookies(["accessToken"]);
   const { data: profile } = useMyProfile();
+
+  const menuItems: MenuItem[] = [
+    {
+      label: t("personalDetails"),
+      href: "/profile/personal-details",
+      icon: <User className="w-5 h-5" />,
+    },
+    {
+      label: t("myAddresses"),
+      href: "/profile/addresses",
+      icon: <MapPin className="w-5 h-5" />,
+    },
+    {
+      label: t("paymentsAndRefunds"),
+      href: "/profile/payments",
+      icon: <CreditCard className="w-5 h-5" />,
+    },
+    {
+      label: t("changePassword"),
+      href: "/profile/password",
+      icon: <Lock className="w-5 h-5" />,
+    },
+    {
+      label: t("language"),
+      href: "/profile/language",
+      icon: <Globe className="w-5 h-5" />,
+    },
+    {
+      label: t("aboutUs"),
+      href: "/profile/about",
+      icon: <Info className="w-5 h-5" />,
+    },
+    {
+      label: t("termsAndConditions"),
+      href: "/profile/terms",
+      icon: <FileText className="w-5 h-5" />,
+    },
+    {
+      label: t("privacyPolicy"),
+      href: "/profile/privacy",
+      icon: <Shield className="w-5 h-5" />,
+    },
+  ];
+
+  const ProfessionalMenu: MenuItem[] = [
+    {
+      label: t("personalDetails"),
+      href: "/profile/personal-details",
+      icon: <User className="w-5 h-5" />,
+    },
+    {
+      label: t("myBalance"),
+      href: "/profile/balance",
+      icon: <CreditCard className="w-5 h-5" />,
+    },
+    {
+      label: t("myListing"),
+      href: "/profile/listing",
+      icon: <Sparkles className="w-5 h-5" />,
+    },
+    {
+      label: t("mySchedule"),
+      href: "/profile/schedule",
+      icon: <Calendar className="w-5 h-5" />,
+    },
+    {
+      label: t("minimumBookingAmount"),
+      href: "/profile/minimum-price",
+      icon: <DollarSign className="w-5 h-5" />,
+    },
+    {
+      label: t("myReviews"),
+      href: "/profile/reviews",
+      icon: <Star className="w-5 h-5" />,
+    },
+    {
+      label: t("faqManagement"),
+      href: "/profile/faq",
+      icon: <HelpCircle className="w-5 h-5" />,
+    },
+    {
+      label: t("language"),
+      href: "/profile/language",
+      icon: <Globe className="w-5 h-5" />,
+    },
+    {
+      label: t("aboutUs"),
+      href: "/profile/about",
+      icon: <Info className="w-5 h-5" />,
+    },
+    {
+      label: t("termsAndConditions"),
+      href: "/profile/terms",
+      icon: <FileText className="w-5 h-5" />,
+    },
+    {
+      label: t("privacyPolicy"),
+      href: "/profile/privacy",
+      icon: <Shield className="w-5 h-5" />,
+    },
+  ];
 
   if (!cookies.accessToken) {
     return <AuthProtectionCard />;
@@ -194,7 +197,7 @@ export default function ProfilePage() {
       {/* Account Settings */}
       <div className="px-4 py-4">
         <h2 className="text-sm font-semibold text-primary uppercase tracking-wide px-4 pb-3">
-          Account Settings
+          {t("accountSettings")}
         </h2>
 
         <div className="border border-gray-200 rounded-lg overflow-hidden">

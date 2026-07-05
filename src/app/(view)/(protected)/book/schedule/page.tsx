@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { HomepageFilters } from "@/lib/api/types";
 import { useCookies } from "react-cookie";
+import { useTranslations } from "next-intl";
 
 const weekDays = [
   { short: "Mon", date: 13 },
@@ -24,6 +25,7 @@ const morningSlots = ["9-0", "9-12", "12-15"];
 const eveningSlots = ["15-18", "18-21", "21-00"];
 
 export default function SchedulePage() {
+  const t = useTranslations("BookSchedule");
   const router = useRouter();
   const [cookies] = useCookies(["accessToken"]);
   const {
@@ -94,20 +96,22 @@ export default function SchedulePage() {
             <ArrowLeft className="size-5" />
           </Link>
           <span className="text-base font-semibold text-white">
-            When do you need it?
+            {t("whenDoYouNeedIt")}
           </span>
         </div>
       </div>
 
       <div className="mx-auto w-full max-w-lg flex-1 px-6 py-6">
-        <h3 className="mb-3 text-base font-bold text-gray-800">Frequency</h3>
+        <h3 className="mb-3 text-base font-bold text-gray-800">
+          {t("frequency")}
+        </h3>
         <div className="mb-6 flex items-center justify-between rounded-xl bg-white px-4 py-3">
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-gray-800">
-              {frequency === "one_time" ? "Just once" : "Weekly"}
+              {frequency === "one_time" ? t("justOnce") : t("weekly")}
             </span>
             <span className="text-xs text-gray-400">
-              {frequency === "one_time" ? "One-Time" : "Recurring"}
+              {frequency === "one_time" ? t("oneTime") : t("recurring")}
             </span>
           </div>
           <Switch
@@ -126,7 +130,7 @@ export default function SchedulePage() {
                 type="button"
                 className="rounded-full border border-gray-200 bg-white px-3 py-0.5 text-xs text-gray-500"
               >
-                Show month
+                {t("showMonth")}
               </button>
             </div>
             <div className="mb-6 flex gap-1.5">
@@ -151,7 +155,7 @@ export default function SchedulePage() {
         ) : (
           <>
             <p className="mb-3 text-sm font-semibold text-gray-700">
-              Day(s) of the week
+              {t("daysOfWeek")}
             </p>
             <div className="mb-6 flex flex-wrap gap-2">
               {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
@@ -169,7 +173,7 @@ export default function SchedulePage() {
 
         <div className="mb-6">
           <p className="mb-3 text-sm font-semibold text-gray-700">
-            Duration{" "}
+            {t("duration")}{" "}
             <span className="font-bold text-primary">{duration[0]}h</span>
           </p>
           <Slider
@@ -181,21 +185,23 @@ export default function SchedulePage() {
           />
         </div>
 
-        <p className="mb-3 text-sm font-semibold text-gray-700">Start time</p>
+        <p className="mb-3 text-sm font-semibold text-gray-700">
+          {t("startTime")}
+        </p>
         <div className="mb-6 flex gap-2">
-          {(["flexible", "exact"] as const).map((t) => (
+          {(["flexible", "exact"] as const).map((type) => (
             <button
               type="button"
-              key={t}
-              onClick={() => setStartType(t)}
+              key={type}
+              onClick={() => setStartType(type)}
               className={cn(
                 "rounded-full border px-5 py-1.5 text-xs font-medium capitalize transition-colors",
-                startType === t
+                startType === type
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-gray-200 bg-white text-gray-500",
               )}
             >
-              {t === "flexible" ? "Flexible start" : "Exact start"}
+              {type === "flexible" ? t("flexibleStart") : t("exactStart")}
             </button>
           ))}
         </div>
@@ -235,7 +241,9 @@ export default function SchedulePage() {
           </div>
         ) : (
           <>
-            <p className="mb-2 text-xs font-semibold text-gray-400">Morning</p>
+            <p className="mb-2 text-xs font-semibold text-gray-400">
+              {t("morning")}
+            </p>
             <div className="mb-4 flex gap-2">
               {morningSlots.map((s) => (
                 <button
@@ -258,7 +266,9 @@ export default function SchedulePage() {
               ))}
             </div>
 
-            <p className="mb-2 text-xs font-semibold text-gray-400">Evening</p>
+            <p className="mb-2 text-xs font-semibold text-gray-400">
+              {t("evening")}
+            </p>
             <div className="mb-8 flex gap-2">
               {eveningSlots.map((s) => (
                 <button
@@ -289,14 +299,14 @@ export default function SchedulePage() {
             onClick={handleSearch}
             className="flex-1 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-600 text-center"
           >
-            Skip
+            {t("skip")}
           </button>
           <button
             type="button"
             onClick={handleSearch}
             className="flex-1 rounded-xl bg-primary py-3 text-sm font-semibold text-white"
           >
-            Search
+            {t("search")}
           </button>
         </div>
       </div>

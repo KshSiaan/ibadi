@@ -31,8 +31,10 @@ import { useGetFaqsByCategory } from "@/hooks/api/faq/use-faq";
 import { useHomepage } from "@/hooks/api/homepage/use-homepage";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export default function ResultsPage() {
+  const t = useTranslations("BookResults");
   const { selectedService, selectedCategoryId } = useServiceBooking();
   const { data: professionals = [], isLoading, error } = useHomepage();
   const { data: faqs = [], isLoading: faqsLoading } =
@@ -52,19 +54,19 @@ export default function ResultsPage() {
               className="flex items-center gap-1 text-sm font-semibold text-primary"
             >
               <ArrowLeft className="size-4" />
-              Back
+              {t("back")}
             </button>
             <button
               type="button"
               onClick={() => setFilterOpen(false)}
               className="text-sm font-semibold text-gray-700"
             >
-              Clear filters
+              {t("clearFilters")}
             </button>
           </div>
           <div className="mx-auto max-w-lg px-6 py-8">
             <Link href="/book/filter" className="font-semibold text-primary">
-              Go to filter page
+              {t("goToFilterPage")}
             </Link>
           </div>
         </div>
@@ -75,7 +77,7 @@ export default function ResultsPage() {
         <DialogContent className="max-w-sm gap-0 p-0">
           <DialogHeader className="px-6 pb-4 pt-6">
             <DialogTitle className="text-base font-semibold text-gray-800">
-              How does the {selectedService} service work?
+              {t("howDoesServiceWork", { service: selectedService })}
             </DialogTitle>
           </DialogHeader>
           <div className="px-6 pb-6">
@@ -139,7 +141,7 @@ export default function ResultsPage() {
             className="flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary"
           >
             <CheckCircle2 className="size-3.5" />
-            When?
+            {t("when")}
           </button>
           <button
             type="button"
@@ -147,14 +149,14 @@ export default function ResultsPage() {
             className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-xs font-semibold text-gray-600"
           >
             <SlidersHorizontal className="size-3.5" />
-            Filters
+            {t("filters")}
           </button>
           <button
             type="button"
             onClick={() => setFaqOpen(true)}
             className="ml-auto flex items-center gap-1 text-xs text-primary"
           >
-            <span>How does the service end?</span>
+            <span>{t("howDoesServiceEnd")}</span>
             <ArrowLeft className="size-3.5 rotate-180" />
           </button>
         </div>
@@ -166,11 +168,11 @@ export default function ResultsPage() {
           </div>
         ) : error ? (
           <p className="py-8 text-center text-sm text-red-500">
-            Failed to load professionals. Please try again.
+            {t("failedToLoad")}
           </p>
         ) : professionals.length === 0 ? (
           <p className="py-8 text-center text-sm text-gray-400">
-            No professionals found for your search.
+            {t("noProfessionalsFound")}
           </p>
         ) : (
           <div className="flex flex-col gap-3">

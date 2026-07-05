@@ -8,8 +8,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories } from "@/hooks/api/use-categories";
 import type { Category } from "@/lib/api/types";
 import { useServiceBooking } from "@/lib/store/service-booking";
+import { useTranslations } from "next-intl";
 
 export default function Page() {
+  const t = useTranslations("Book");
   const router = useRouter();
   const {
     setSelectedService,
@@ -37,7 +39,7 @@ export default function Page() {
             <ArrowLeft className="size-5 text-primary" />
           </Link>
           <input
-            placeholder="Find the service you need"
+            placeholder={t("findService")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1 bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
@@ -47,7 +49,7 @@ export default function Page() {
 
       <div className="mx-auto w-full max-w-lg px-6 py-5">
         <p className="mb-3 text-sm font-semibold text-gray-500">
-          Most popular in your area
+          {t("mostPopular")}
         </p>
 
         <ul className="flex flex-col gap-1">

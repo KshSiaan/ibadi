@@ -1,38 +1,44 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
-const slides = [
-  {
-    id: 1,
-    illustration: "/icons/home/1.svg",
-    title: "Find your at -\nhome service",
-    description:
-      "We offer almost everything: cleaning, private classes, beauty...",
-    canSkip: false,
-  },
-  {
-    id: 2,
-    illustration: "/icons/home/2.svg",
-    title: "choose your ideal\nprofessional",
-    description:
-      "Browse through hundreds of professionals and pick the one you like the most.",
-    canSkip: true,
-  },
-  {
-    id: 3,
-    illustration: "/icons/home/3.svg",
-    title: "Enjoy your service",
-    description:
-      "Welcome the professional at the agreed place and time. Thank you for trusting us!",
-    canSkip: true,
-  },
+const slideIllustrations = [
+  "/icons/home/1.svg",
+  "/icons/home/2.svg",
+  "/icons/home/3.svg",
 ];
 
 const STORAGE_KEY = "ibadi_onboarded";
 
 export default function Onboarding({ onDone }: { onDone: () => void }) {
+  const t = useTranslations("Onboarding");
+
+  const slides = [
+    {
+      id: 1,
+      illustration: slideIllustrations[0],
+      title: t("slide1Title"),
+      description: t("slide1Description"),
+      canSkip: false,
+    },
+    {
+      id: 2,
+      illustration: slideIllustrations[1],
+      title: t("slide2Title"),
+      description: t("slide2Description"),
+      canSkip: true,
+    },
+    {
+      id: 3,
+      illustration: slideIllustrations[2],
+      title: t("slide3Title"),
+      description: t("slide3Description"),
+      canSkip: true,
+    },
+  ];
+
   const [step, setStep] = useState(0);
   const slide = slides[step];
 
@@ -59,7 +65,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
             onClick={finish}
             className="text-sm font-semibold text-primary"
           >
-            Skip
+            {t("skip")}
           </button>
         )}
       </div>
@@ -81,7 +87,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
       <div className="flex flex-col items-start gap-3 px-8 pb-10 sm:items-center sm:px-16 sm:text-center">
         <h2 className="text-2xl font-bold leading-snug text-[#1e2d4f] sm:text-3xl">
           {slide.title.split("\n").map((line, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+            // biome-ignore lint/suspicious/noArrayIndexKey: lines from split need index keys
             <span key={i}>
               {line}
               {i < slide.title.split("\n").length - 1 && <br />}
@@ -110,7 +116,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
           onClick={next}
           className="mt-4 w-full max-w-sm rounded-xl bg-primary py-4 text-sm font-semibold text-white transition-opacity hover:opacity-90"
         >
-          Next
+          {t("next")}
         </button>
       </div>
     </div>

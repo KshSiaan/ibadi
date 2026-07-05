@@ -7,6 +7,7 @@ import {
   useGetUserReviews,
   useGetReviewStatistic,
 } from "@/hooks/api/reviews/use-reviews";
+import { useTranslations } from "next-intl";
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -26,6 +27,7 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export default function ReviewsPage() {
+  const t = useTranslations("Reviews");
   const router = useRouter();
   const { data: profile } = useMyProfile();
   const userId = profile?.id ?? "";
@@ -43,7 +45,7 @@ export default function ReviewsPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">My reviews</h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-8">
@@ -56,17 +58,18 @@ export default function ReviewsPage() {
               <Stars rating={stats.averageRating ?? 0} />
             </div>
             <p className="text-sm text-gray-500">
-              {stats.totalReviews ?? 0} review
-              {(stats.totalReviews ?? 0) === 1 ? "" : "s"}
+              {(stats.totalReviews ?? 0) === 1
+                ? t("reviewCount", { count: stats.totalReviews ?? 0 })
+                : t("reviewCountPlural", { count: stats.totalReviews ?? 0 })}
             </p>
           </div>
         )}
 
-        {isLoading && <p className="text-gray-500 text-sm">Loading...</p>}
+        {isLoading && <p className="text-gray-500 text-sm">{t("loading")}</p>}
 
         {!isLoading && reviews?.length === 0 && (
           <p className="text-gray-500 text-sm text-center py-8">
-            No reviews yet
+            {t("noReviews")}
           </p>
         )}
 

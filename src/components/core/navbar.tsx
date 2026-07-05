@@ -12,29 +12,33 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useCookies } from "react-cookie";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 type View = "role" | "register" | "login";
 
-const navLinks = [
-  { label: "Bookings", href: "/profile/payments/bookings" },
-  { label: "Services", href: "/service" },
-  { label: "Calendar", href: "/inbox" },
-  { label: "Payments", href: "/profile/payments" },
-  { label: "Profile", href: "/profile" },
-  { label: "Settings", href: "/profile/personal-details" },
-  { label: "Support", href: "/profile" },
-];
-const professionalNavLinks = [
-  { label: "Calendar", href: "/professional/calendar" },
-  { label: "Notification", href: " /professional/notification" },
-  { label: "Request", href: "/professional/request" },
-  { label: "Payments", href: "/profile/payments" },
-  { label: "Inbox", href: "/inbox" },
-  { label: "Profile", href: "/profile" },
-  { label: "Settings", href: "/profile/personal-details" },
-];
-
 export default function Navbar() {
+  const t = useTranslations("Navbar");
+  const tAuth = useTranslations("AuthDialog");
+
+  const navLinks = [
+    { label: t("bookings"), href: "/profile/payments/bookings" },
+    { label: t("services"), href: "/service" },
+    { label: t("calendar"), href: "/inbox" },
+    { label: t("payments"), href: "/profile/payments" },
+    { label: t("profile"), href: "/profile" },
+    { label: t("settings"), href: "/profile/personal-details" },
+    { label: t("support"), href: "/profile" },
+  ];
+  const professionalNavLinks = [
+    { label: t("calendar"), href: "/professional/calendar" },
+    { label: t("notification"), href: " /professional/notification" },
+    { label: t("request"), href: "/professional/request" },
+    { label: t("payments"), href: "/profile/payments" },
+    { label: t("inbox"), href: "/inbox" },
+    { label: t("profile"), href: "/profile" },
+    { label: t("settings"), href: "/profile/personal-details" },
+  ];
+
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const [cookies, , removeCookie] = useCookies([
@@ -82,26 +86,24 @@ export default function Navbar() {
         </Link>
 
         <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 md:flex">
-          {!mounted ? (
-            ["a", "b", "c", "d", "e"].map((k) => (
-              <Skeleton key={k} className="h-4 w-16" />
-            ))
-          ) : (
-            links.slice(0, 5).map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className={cn(
-                  "text-sm font-medium transition-colors",
-                  isActive(link.href)
-                    ? activeColor
-                    : `text-gray-600 ${hoverColor}`,
-                )}
-              >
-                {link.label}
-              </Link>
-            ))
-          )}
+          {!mounted
+            ? ["a", "b", "c", "d", "e"].map((k) => (
+                <Skeleton key={k} className="h-4 w-16" />
+              ))
+            : links.slice(0, 5).map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors",
+                    isActive(link.href)
+                      ? activeColor
+                      : `text-gray-600 ${hoverColor}`,
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -132,9 +134,9 @@ export default function Navbar() {
                 className="rounded-md border-red-300 text-red-500 hover:bg-red-50"
                 onClick={handleSignOut}
               >
-                Sign Out
+                {t("signOut")}
               </Button>
-              <Button>Download</Button>
+              <Button>{t("download")}</Button>
             </div>
           ) : (
             <>
@@ -146,7 +148,7 @@ export default function Navbar() {
                     size="sm"
                     className="rounded-md border-primary text-primary"
                   >
-                    Log In
+                    {t("logIn")}
                   </Button>
                 }
               />
@@ -154,7 +156,7 @@ export default function Navbar() {
                 defaultView="role"
                 trigger={
                   <Button size="sm" className="rounded-md px-5">
-                    Create Account
+                    {t("createAccount")}
                   </Button>
                 }
               />
@@ -216,7 +218,7 @@ export default function Navbar() {
                 className="rounded-md border-red-300 text-red-500 hover:bg-red-50"
                 onClick={handleSignOut}
               >
-                Sign Out
+                {t("signOut")}
               </Button>
             </div>
           ) : (
@@ -229,7 +231,7 @@ export default function Navbar() {
                     size="sm"
                     className="rounded-md border-primary text-primary"
                   >
-                    Log In
+                    {t("logIn")}
                   </Button>
                 }
               />
@@ -237,7 +239,7 @@ export default function Navbar() {
                 defaultView="role"
                 trigger={
                   <Button size="sm" className="rounded-md px-5">
-                    Create Account
+                    {t("createAccount")}
                   </Button>
                 }
               />
@@ -256,6 +258,7 @@ export function AuthDialog({
   trigger: React.ReactNode;
   defaultView?: View;
 }) {
+  const t = useTranslations("AuthDialog");
   const [view, setView] = useState<View>(defaultView);
   const [role, setRole] = useState<"user" | "service_provider">("user");
 
@@ -268,11 +271,10 @@ export function AuthDialog({
           <div className="flex flex-col gap-6 p-4">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-slate-900">
-                What will you do on iBadi?
+                {t("whatWillYouDo")}
               </h2>
               <p className="mt-2 text-sm text-gray-500">
-                This decision is not final. You can later be both a client and a
-                professional from the account if you wish.
+                {t("whatWillYouDoDescription")}
               </p>
             </div>
             <div className="flex flex-col gap-3">
@@ -287,8 +289,8 @@ export function AuthDialog({
                 <div className="h-16 w-24 rounded-lg bg-gray-200" />{" "}
                 {/* Placeholder for image */}
                 <div className="text-left">
-                  <div className="font-semibold">Book a service</div>
-                  <div className="text-xs text-gray-400">(I'm a Client)</div>
+                  <div className="font-semibold">{t("bookService")}</div>
+                  <div className="text-xs text-gray-400">{t("imClient")}</div>
                 </div>
               </button>
               <button
@@ -302,9 +304,9 @@ export function AuthDialog({
                 <div className="h-16 w-24 rounded-lg bg-gray-200" />{" "}
                 {/* Placeholder for image */}
                 <div className="text-left">
-                  <div className="font-semibold">Offer Services</div>
+                  <div className="font-semibold">{t("offerServices")}</div>
                   <div className="text-xs text-gray-400">
-                    (I'm a Professional)
+                    {t("imProfessional")}
                   </div>
                 </div>
               </button>
@@ -315,23 +317,25 @@ export function AuthDialog({
         {/* VIEW 2: Create Account */}
         {view === "register" && (
           <div className="flex flex-col gap-6 p-4 text-center">
-            <h2 className="text-2xl font-bold">Create your account</h2>
+            <h2 className="text-2xl font-bold">{t("createYourAccount")}</h2>
             <p className="text-sm text-gray-500">
               {role === "service_provider"
-                ? "Set up your service provider account"
-                : "Sign up to book services on iBadi"}
+                ? t("setupProviderAccount")
+                : t("signupToBook")}
             </p>
             <Button className="w-full" asChild>
-              <Link href={`/auth/register?role=${role}`}>Create Account</Link>
+              <Link href={`/auth/register?role=${role}`}>
+                {t("createAccount")}
+              </Link>
             </Button>
             <p className="text-center text-sm">
-              Already have an account?{" "}
+              {t("alreadyHaveAccount")}{" "}
               <button
                 type="button"
                 className="font-bold text-primary"
                 onClick={() => setView("login")}
               >
-                Log in
+                {t("logInLink")}
               </button>
             </p>
           </div>
@@ -340,10 +344,10 @@ export function AuthDialog({
         {/* VIEW 3: Login */}
         {view === "login" && (
           <div className="flex flex-col gap-4 p-4">
-            <h2 className="text-2xl font-bold">Log in</h2>
+            <h2 className="text-2xl font-bold">{t("logInTitle")}</h2>
 
             <Button className="w-full" asChild>
-              <Link href="/auth/login">Log in with email</Link>
+              <Link href="/auth/login">{t("logInWithEmail")}</Link>
             </Button>
           </div>
         )}

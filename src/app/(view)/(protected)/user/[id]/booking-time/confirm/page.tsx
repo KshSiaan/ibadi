@@ -1,14 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { AddCardForm } from "@/components/add-card-form";
-import { useGetMyAddresses } from "@/hooks/api/address/use-address";
-import { useCreateBooking } from "@/hooks/api/bookings/use-bookings";
-import { useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
-import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
-import type { Address, PaymentMethod } from "@/lib/api/types";
-import { cn } from "@/lib/utils";
 import {
   ArrowLeft,
   Calendar,
@@ -18,9 +9,19 @@ import {
   MapPin,
   Star,
 } from "lucide-react";
-import { use, Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Suspense, use, useState } from "react";
+import { AddCardForm } from "@/components/add-card-form";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useGetMyAddresses } from "@/hooks/api/address/use-address";
+import { useCreateBooking } from "@/hooks/api/bookings/use-bookings";
+import { useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
+import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
+import type { Address, PaymentMethod } from "@/lib/api/types";
+import { cn } from "@/lib/utils";
 
 function RadioCircle({ selected }: { selected: boolean }) {
   return (
@@ -42,6 +43,7 @@ function ExpandableSection({
   title: string;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("BookingConfirm");
   const [open, setOpen] = useState(false);
   return (
     <div>
@@ -52,7 +54,7 @@ function ExpandableSection({
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-1 text-xs font-semibold text-primary"
       >
-        {open ? "- Less info" : "+ More info"}
+        {open ? t("lessInfo") : t("moreInfo")}
       </button>
     </div>
   );
@@ -103,6 +105,7 @@ function buildWeeklyISO(dayName: string, time: string): string {
 type DaySlot = { time: string; duration: number };
 
 function ConfirmPageInner({ providerId }: { providerId: string }) {
+  const t = useTranslations("BookingConfirm");
   const router = useRouter();
   const params = useSearchParams();
 
@@ -159,7 +162,9 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
       : Object.keys(weeklySlots).join(", ");
 
   const startTimeLabel =
-    frequency === "one_time" ? time : (Object.values(weeklySlots)[0]?.time ?? "");
+    frequency === "one_time"
+      ? time
+      : (Object.values(weeklySlots)[0]?.time ?? "");
   const endTimeLabel =
     frequency === "one_time"
       ? addHours(time, duration)
@@ -237,7 +242,9 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
         >
           <ArrowLeft className="size-5" />
         </button>
-        <h1 className="text-base font-bold text-gray-800">Confirm and pay</h1>
+        <h1 className="text-base font-bold text-gray-800">
+          {t("confirmAndPay")}
+        </h1>
       </div>
 
       <div className="mx-auto max-w-4xl px-4 pb-8 lg:grid lg:grid-cols-2 lg:gap-8">
@@ -281,14 +288,13 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           {/* How does it work */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <h2 className="mb-2 text-sm font-bold text-[#1e2d4f]">
-              How does it work?
+              {t("howDoesItWork")}
             </h2>
             <p className="text-xs leading-relaxed text-gray-500">
-              The professional has 24 hours to confirm your booking request
+              {t("confirmWithin24h")}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-gray-500">
-              If they decline or don&apos;t respond, you will be refunded the
-              full amount of the service
+              {t("refundPolicy")}
             </p>
           </div>
 
@@ -296,14 +302,14 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-bold text-[#1e2d4f]">
-                Date and time
+                {t("dateAndTime")}
               </h2>
               <button
                 type="button"
                 onClick={() => router.back()}
                 className="text-xs font-semibold text-primary"
               >
-                Edit
+                {t("edit")}
               </button>
             </div>
 
@@ -322,7 +328,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                       <div className="h-8 w-0.5 bg-gray-300" />
                     </div>
                     <span className="text-xs text-gray-600">
-                      Start: {startTimeLabel}
+                      {t("start")}: {startTimeLabel}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
@@ -330,14 +336,14 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                       <div className="size-4 rounded-full bg-gray-700" />
                     </div>
                     <span className="text-xs text-gray-600">
-                      End: {endTimeLabel}
+                      {t("end")}: {endTimeLabel}
                     </span>
                   </div>
                 </div>
                 <div className="mt-2 flex items-center gap-2 pl-1">
                   <Clock className="size-4 text-gray-400" />
                   <span className="text-xs text-gray-500">
-                    (Duration: {duration}h)
+                    {t("duration", { hours: duration })}
                   </span>
                 </div>
               </>
@@ -362,14 +368,16 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           {/* Address */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#1e2d4f]">Address</h2>
+              <h2 className="text-sm font-bold text-[#1e2d4f]">
+                {t("address")}
+              </h2>
               {addresses.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setAddressPickerOpen(true)}
                   className="text-xs font-semibold text-primary"
                 >
-                  Change
+                  {t("change")}
                 </button>
               )}
             </div>
@@ -388,7 +396,9 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                     .join(", ")}
                 </span>
               ) : (
-                <span className="text-xs text-gray-400">No address saved</span>
+                <span className="text-xs text-gray-400">
+                  {t("noAddressSaved")}
+                </span>
               )}
             </div>
           </div>
@@ -396,7 +406,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           {/* Service price */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <h2 className="mb-3 text-sm font-bold text-[#1e2d4f]">
-              Service price
+              {t("servicePrice")}
             </h2>
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -406,25 +416,31 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">Booking hours</span>
+                <span className="text-xs text-gray-600">
+                  {t("bookingHours")}
+                </span>
                 <span className="text-xs font-semibold text-gray-700">
                   {totalHours}h
                 </span>
               </div>
               <div className="my-1 border-t border-gray-100" />
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">Subtotal</span>
+                <span className="text-xs text-gray-400">{t("subtotal")}</span>
                 <span className="text-xs text-gray-500">
                   ${totalPrice.toFixed(2)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">Client protection</span>
-                <span className="text-xs text-gray-500">Free</span>
+                <span className="text-xs text-gray-400">
+                  {t("clientProtection")}
+                </span>
+                <span className="text-xs text-gray-500">{t("free")}</span>
               </div>
               <div className="my-1 border-t border-gray-100" />
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-gray-800">Price:</span>
+                <span className="text-sm font-bold text-gray-800">
+                  {t("price")}
+                </span>
                 <span className="text-sm font-bold text-gray-800">
                   ${totalPrice.toFixed(2)}
                 </span>
@@ -440,12 +456,10 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
             <div className="flex flex-col gap-3">
               {loadingPayments ? (
                 <div className="flex items-center gap-2 py-2 text-xs text-gray-400">
-                  <Loader2 className="size-3 animate-spin" /> Loading...
+                  <Loader2 className="size-3 animate-spin" /> {t("loading")}
                 </div>
               ) : paymentMethods.length === 0 ? (
-                <p className="text-xs text-gray-400">
-                  No payment methods saved.
-                </p>
+                <p className="text-xs text-gray-400">{t("noPaymentMethods")}</p>
               ) : (
                 paymentMethods.map((pm) => (
                   <button
@@ -469,7 +483,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                         </p>
                         {pm.isDefault && (
                           <span className="text-[10px] font-medium text-primary">
-                            Default
+                            {t("default")}
                           </span>
                         )}
                       </div>
@@ -480,39 +494,39 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
               )}
             </div>
             <Link href="/user/payment-methods">
-            <button
-              type="button"
-              
-              className="mt-3 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Add payment method
-            </button></Link>
+              <button
+                type="button"
+                className="mt-3 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                {t("addPaymentMethod")}
+              </button>
+            </Link>
           </div>
 
           {/* Remember that */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
-            <ExpandableSection title="Remember that...">
-              Please, if you have any special requirements for the service,
-              include them in the message you can add to your booking. This way,
-              the professional can take them into account.
+            <ExpandableSection title={t("rememberThat")}>
+              {t("rememberDescription")}
             </ExpandableSection>
           </div>
 
           {/* Additional comments */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <h2 className="mb-1 text-sm font-bold text-[#1e2d4f]">
-              Additional comments
+              {t("additionalComments")}
             </h2>
             <p className="mb-3 text-xs text-gray-400">
-              Feel free to include any additional details if needed{" "}
+              {t("additionalCommentsDescription")}{" "}
               <span className="font-semibold text-gray-600">
-                (please avoid contact details)
+                {t("avoidContactDetails")}
               </span>
             </p>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder={`Hi ${provider?.name ?? ""}! I would like to book your service...`}
+              placeholder={t("commentPlaceholder", {
+                name: provider?.name ?? "",
+              })}
               rows={4}
               className="w-full resize-none rounded-lg border border-gray-200 p-3 text-xs text-gray-600 placeholder:text-gray-300 focus:border-primary/50 focus:outline-none"
             />
@@ -520,9 +534,8 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
 
           {/* Cancellation policy */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
-            <ExpandableSection title="Cancellation policy">
-              Free cancellation up to 24h before the service. If you cancel
-              later, you will receive a partial refund.
+            <ExpandableSection title={t("cancellationPolicy")}>
+              {t("cancellationDescription")}
             </ExpandableSection>
           </div>
         </div>
@@ -539,20 +552,19 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
             className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {isPending && <Loader2 className="size-4 animate-spin" />}
-            {isPending ? "Confirming..." : "Confirm Booking"}
+            {isPending ? t("confirming") : t("confirmBooking")}
           </button>
         </div>
       </div>
 
       {/* Add Card Dialog */}
 
-
       {/* Address Picker Dialog */}
       <Dialog open={addressPickerOpen} onOpenChange={setAddressPickerOpen}>
         <DialogContent className="max-w-sm gap-0 p-0">
           <div className="px-6 pb-4 pt-6">
             <h2 className="text-base font-bold text-gray-800">
-              Select address
+              {t("selectAddress")}
             </h2>
           </div>
           <div className="flex flex-col gap-2 px-6 pb-6">
@@ -582,7 +594,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                   </p>
                   {a.isDefault && (
                     <span className="text-[10px] font-medium text-primary">
-                      Default
+                      {t("default")}
                     </span>
                   )}
                 </div>
@@ -632,10 +644,10 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
             </div>
             <div>
               <h2 className="text-base font-bold text-gray-800">
-                Booking Confirmed
+                {t("bookingConfirmed")}
               </h2>
               <p className="mt-1 text-xs text-gray-500">
-                Your booking has been successfully confirmed!
+                {t("bookingConfirmedDescription")}
               </p>
             </div>
             <button
@@ -643,7 +655,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
               onClick={() => router.push("/")}
               className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white"
             >
-              Ok
+              {t("ok")}
             </button>
           </div>
         </DialogContent>

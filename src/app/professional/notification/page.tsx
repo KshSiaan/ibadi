@@ -1,12 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  useDeleteNotifications,
-  useMarkNotifications,
-  useNotifications,
-} from "@/hooks/api/notifications/use-notifications";
-import { cn } from "@/lib/utils";
 import {
   Bell,
   CheckCircle2,
@@ -18,7 +11,15 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  useDeleteNotifications,
+  useMarkNotifications,
+  useNotifications,
+} from "@/hooks/api/notifications/use-notifications";
+import { cn } from "@/lib/utils";
 
 type NotificationTone = "success" | "warning" | "danger" | "neutral";
 
@@ -70,19 +71,25 @@ function getToneClass(tone: NotificationTone) {
   }
 }
 
-function timeAgo(iso: string) {
+function timeAgo(
+  iso: string,
+  t: ReturnType<typeof useTranslations<"ProfessionalNotification">>,
+) {
   const diff = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
 
-  if (minutes < 1) return "Just now";
-  if (hours < 1) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
-  if (days < 1) return `${hours} hr${hours > 1 ? "s" : ""} ago`;
-  return `${days} day${days > 1 ? "s" : ""} ago`;
+  if (minutes < 1) return t("justNow");
+  if (hours < 1)
+    return t("minutesAgo", { count: minutes, plural: minutes > 1 ? "s" : "" });
+  if (days < 1)
+    return t("hoursAgo", { count: hours, plural: hours > 1 ? "s" : "" });
+  return t("daysAgo", { count: days, plural: days > 1 ? "s" : "" });
 }
 
 export default function Page() {
+  const t = useTranslations("ProfessionalNotification");
   const {
     data: notifications = [],
     isLoading,
@@ -129,15 +136,14 @@ export default function Page() {
         <div className="flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-black/5 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-primary">
-              Professional
+              {t("professional")}
             </p>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Notifications
+                {t("notifications")}
               </h1>
               <p className="mt-1 max-w-xl text-sm leading-relaxed text-gray-500">
-                Keep track of booking updates, client actions, and account
-                changes from one place.
+                {t("description")}
               </p>
             </div>
           </div>
@@ -155,7 +161,7 @@ export default function Page() {
               ) : (
                 <RotateCcw className="size-4" />
               )}
-              Mark all read
+              {t("markAllRead")}
             </Button>
             <Button
               type="button"
@@ -173,7 +179,7 @@ export default function Page() {
               ) : (
                 <Trash2 className="size-4" />
               )}
-              Clear all
+              {t("clearAll")}
             </Button>
           </div>
         </div>
@@ -181,7 +187,7 @@ export default function Page() {
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
-              Total
+              {t("total")}
             </p>
             <p className="mt-2 text-2xl font-bold text-gray-900">
               {sortedNotifications.length}
@@ -189,7 +195,7 @@ export default function Page() {
           </div>
           <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
-              Unread
+              {t("unread")}
             </p>
             <p className="mt-2 text-2xl font-bold text-gray-900">
               {unreadCount}
@@ -197,7 +203,7 @@ export default function Page() {
           </div>
           <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
-              Read
+              {t("read")}
             </p>
             <p className="mt-2 text-2xl font-bold text-gray-900">
               {sortedNotifications.length - unreadCount}
@@ -214,18 +220,17 @@ export default function Page() {
         {!isLoading && error && (
           <div className="rounded-3xl bg-white px-6 py-10 text-center shadow-sm ring-1 ring-black/5">
             <p className="text-sm font-semibold text-gray-900">
-              Unable to load notifications
+              {t("unableToLoad")}
             </p>
             <p className="mt-2 text-sm text-gray-500">
-              {error.message ||
-                "Something went wrong while fetching notification data."}
+              {error.message || t("fetchError")}
             </p>
             <Button
               type="button"
               onClick={() => refetch()}
               className="mt-4 rounded-full"
             >
-              Retry
+              {t("retry")}
             </Button>
           </div>
         )}
@@ -236,15 +241,14 @@ export default function Page() {
               <Bell className="size-7 text-primary" />
             </div>
             <h2 className="mt-4 text-lg font-bold text-gray-900">
-              No notifications yet
+              {t("noNotificationsYet")}
             </h2>
             <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-500">
-              New booking and service updates will appear here once clients
-              start interacting with your profile.
+              {t("noNotificationsDescription")}
             </p>
             <div className="mt-5 flex items-center justify-center gap-3">
               <Button asChild type="button" className="rounded-full">
-                <Link href="/professional/request">View requests</Link>
+                <Link href="/professional/request">{t("viewRequests")}</Link>
               </Button>
               <Button
                 type="button"
@@ -252,7 +256,7 @@ export default function Page() {
                 onClick={() => refetch()}
                 className="rounded-full"
               >
-                Refresh
+                {t("refresh")}
               </Button>
             </div>
           </div>
@@ -288,7 +292,7 @@ export default function Page() {
                           </h2>
                           {!notification.isRead && (
                             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-                              New
+                              {t("new")}
                             </span>
                           )}
                         </div>
@@ -299,7 +303,7 @@ export default function Page() {
 
                       <div className="flex shrink-0 items-center gap-1 text-xs text-gray-400">
                         <Clock3 className="size-3.5" />
-                        {timeAgo(notification.createdAt)}
+                        {timeAgo(notification.createdAt, t)}
                       </div>
                     </div>
                   </div>
