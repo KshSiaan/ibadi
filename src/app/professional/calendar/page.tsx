@@ -25,9 +25,28 @@ function formatDate(iso: string) {
   });
 }
 
-function ServiceCard({ booking }: { booking: Booking }) {
-  const firstDay = booking.bookingDays[0];
-
+function ServiceCard({
+  booking,
+}: {
+  booking: {
+    id: string;
+    userId: string;
+    addressId: any;
+    providerId: string;
+    isPaid: boolean;
+    bookingType: string;
+    status: string;
+    price: number;
+    startDate: string;
+    endDate: any;
+    totalHours: number;
+    isActive: boolean;
+    nextBooking: any;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
+}) {
   return (
     <Link href={`/professional/calendar/${booking.id}`} className="block">
       <div className="rounded-2xl bg-white p-4 shadow-sm">
@@ -45,7 +64,7 @@ function ServiceCard({ booking }: { booking: Booking }) {
             <p className="text-sm font-bold text-primary capitalize">
               {booking.bookingType} booking
             </p>
-            {firstDay && (
+            {/* {firstDay && (
               <>
                 <div className="flex items-center gap-1.5 text-xs text-gray-500">
                   <Clock className="size-3.5 shrink-0" />
@@ -59,7 +78,7 @@ function ServiceCard({ booking }: { booking: Booking }) {
                   <span>{formatDate(booking.startDate)}</span>
                 </div>
               </>
-            )}
+            )} */}
             <div className="mt-1 flex flex-wrap gap-2">
               <span
                 className={cn(
@@ -84,7 +103,11 @@ function ServiceCard({ booking }: { booking: Booking }) {
 
 export default function CalendarPage() {
   const [date] = useState<Date | undefined>(undefined);
-  const { data: bookings, isLoading, error } = useProviderBookings({ upcoming: true });
+  const {
+    data: bookings,
+    isLoading,
+    error,
+  } = useProviderBookings({ upcoming: true });
 
   const filtered = date
     ? bookings?.filter((b) => {

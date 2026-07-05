@@ -149,11 +149,27 @@ function BookingCard({
   tab,
   onRate,
 }: {
-  booking: Booking;
+  booking: {
+    id: string;
+    userId: string;
+    addressId: any;
+    providerId: string;
+    isPaid: boolean;
+    bookingType: string;
+    status: string;
+    price: number;
+    startDate: string;
+    endDate: any;
+    totalHours: number;
+    isActive: boolean;
+    nextBooking: any;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+  };
   tab: Tab;
   onRate: () => void;
 }) {
-  const firstDay = booking.bookingDays?.[0];
   const dateStr = booking.startDate
     ? new Date(booking.startDate).toLocaleDateString("en-US", {
         weekday: "long",
@@ -161,9 +177,6 @@ function BookingCard({
         month: "short",
         year: "numeric",
       })
-    : "—";
-  const timeStr = firstDay
-    ? `From ${firstDay.startTime} to ${firstDay.endTime}`
     : "—";
 
   return (
@@ -182,10 +195,10 @@ function BookingCard({
           <p className="text-sm font-bold text-primary">
             Booking #{booking.id.slice(0, 8)}
           </p>
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          {/* <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <Clock className="size-3.5 shrink-0" />
             <span>{timeStr}</span>
-          </div>
+          </div> */}
           <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <Calendar className="size-3.5 shrink-0" />
             <span>{dateStr}</span>
@@ -281,7 +294,7 @@ function UserServicePage() {
         {bookings.map((booking) => (
           <BookingCard
             key={booking.id}
-            booking={booking}
+            booking={booking as any}
             tab={activeTab}
             onRate={() => {
               setSelectedBooking(booking);
@@ -352,7 +365,7 @@ function ProviderServicePage() {
         {bookings.map((booking) => (
           <BookingCard
             key={booking.id}
-            booking={booking}
+            booking={booking as any}
             tab={activeTab}
             onRate={() => {}}
           />

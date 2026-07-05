@@ -133,7 +133,7 @@ export function useAllBookings(include?: string) {
     queryFn: async () => {
       const qs = include ? `?include=${include}` : "";
       const response = await apiClient.get<ApiResponse<PaginatedResponse<Booking>>>(
-        `/bookings${qs}`,
+        `/bookings/user-booking${qs}`,
         cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);
