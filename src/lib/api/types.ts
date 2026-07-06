@@ -38,7 +38,7 @@ export interface User {
   updatedAt: string;
   verification: { status: boolean };
   address?: unknown[];
-  workSchedule?: unknown[];
+  workSchedule?: WorkSchedule[];
   serviceProviderInfo?: ServiceProviderProfile | null;
 }
 

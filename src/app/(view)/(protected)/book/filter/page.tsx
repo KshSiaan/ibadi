@@ -78,16 +78,19 @@ export default function FilterPage() {
             </h3>
             <div className="space-y-2">
               {otherTasks.map((task) => (
-                <label
+                // biome-ignore lint/a11y/noStaticElementInteractions: checkbox inside handles keyboard
+                // biome-ignore lint/a11y/useKeyWithClickEvents: checkbox inside handles keyboard
+                <div
                   key={task}
                   className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => toggleTask(task)}
                 >
                   <Checkbox
                     checked={checkedTasks.has(task)}
                     onCheckedChange={() => toggleTask(task)}
                   />
                   <span className="text-sm text-gray-700">{task}</span>
-                </label>
+                </div>
               ))}
             </div>
           </div>
@@ -99,16 +102,19 @@ export default function FilterPage() {
             </h3>
             <div className="space-y-2">
               {specialistConditions.map((condition) => (
-                <label
+                // biome-ignore lint/a11y/noStaticElementInteractions: checkbox inside handles keyboard
+                // biome-ignore lint/a11y/useKeyWithClickEvents: checkbox inside handles keyboard
+                <div
                   key={condition}
                   className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => toggleCondition(condition)}
                 >
                   <Checkbox
                     checked={checkedConditions.has(condition)}
                     onCheckedChange={() => toggleCondition(condition)}
                   />
                   <span className="text-sm text-gray-700">{condition}</span>
-                </label>
+                </div>
               ))}
             </div>
           </div>

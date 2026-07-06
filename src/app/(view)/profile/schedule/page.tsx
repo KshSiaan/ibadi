@@ -39,6 +39,16 @@ interface DayState {
   endTime: string;
 }
 
+function timeToISO(time: string): string {
+  return `1970-01-01T${time}:00.000Z`;
+}
+
+function isoToTime(iso: string): string {
+  // Extract HH:mm from ISO-8601 like "1970-01-01T09:00:00.000Z"
+  const match = iso.match(/T(\d{2}:\d{2})/);
+  return match ? match[1] : iso;
+}
+
 export default function SchedulePage() {
   const t = useTranslations("Schedule");
   const router = useRouter();
@@ -58,21 +68,30 @@ export default function SchedulePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (schedule) {
+    // Use dedicated endpoint first, fall back to profile's embedded workSchedule
+    const source =
+      Array.isArray(schedule) && schedule.length > 0
+        ? schedule
+        : Array.isArray(profile?.workSchedule) &&
+            profile.workSchedule.length > 0
+          ? profile.workSchedule
+          : null;
+
+    if (source) {
       setDays((prev) => {
         const next = { ...prev };
-        schedule.forEach((entry) => {
+        source.forEach((entry) => {
           next[entry.day] = {
             id: entry.id,
             status: entry.status,
-            startTime: entry.startTime,
-            endTime: entry.endTime,
+            startTime: isoToTime(entry.startTime),
+            endTime: isoToTime(entry.endTime),
           };
         });
         return next;
       });
     }
-  }, [schedule]);
+  }, [schedule, profile]);
 
   const updateDay = (day: string, patch: Partial<DayState>) => {
     setDays((prev) => ({ ...prev, [day]: { ...prev[day], ...patch } }));
@@ -90,16 +109,16 @@ export default function SchedulePage() {
           toUpdate.push({
             id: state.id,
             status: state.status,
-            startTime: state.startTime,
-            endTime: state.endTime,
+            startTime: timeToISO(state.startTime),
+            endTime: timeToISO(state.endTime),
           });
         } else {
           toCreate.push({
             day,
             userId: profile?.id ?? "",
             status: state.status,
-            startTime: state.startTime,
-            endTime: state.endTime,
+            startTime: timeToISO(state.startTime),
+            endTime: timeToISO(state.endTime),
           });
         }
       }

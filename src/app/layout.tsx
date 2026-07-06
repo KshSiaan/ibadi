@@ -34,10 +34,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Resolve locale from cookie (set by next-intl middleware)
+  // Resolve locale from cookie (set by the language page)
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get("NEXT_LOCALE")?.value;
-  const locale = "en"; // TODO: restore dynamic locale once next-intl is properly configured
+  const locale = hasLocale(routing.locales, localeCookie)
+    ? localeCookie
+    : routing.defaultLocale;
 
   const messages = await getMessages();
 
@@ -54,7 +56,7 @@ export default async function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider locale="en" messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <GodProvider>{children}</GodProvider>
           <Toaster richColors />
         </NextIntlClientProvider>
