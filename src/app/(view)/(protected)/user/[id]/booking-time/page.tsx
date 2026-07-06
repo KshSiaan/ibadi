@@ -1,12 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { cn } from "@/lib/utils";
 import { ChevronDown, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import Link from "next/link";
-import { use, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Suspense, use, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
+import { WorkSchedule } from "@/lib/api/types";
+import { cn } from "@/lib/utils";
 
 const weekDays = [
   { short: "Mon", date: 13 },
@@ -17,13 +20,72 @@ const weekDays = [
   { short: "Sat", date: 18 },
 ];
 
-const timeSlots: [string, string, string][] = [
-  ["06:00", "12:00", "18:00"],
-  ["07:00", "13:00", "19:00"],
-  ["08:00", "14:00", "20:00"],
-  ["09:00", "15:00", "21:00"],
-  ["10:00", "16:30", "22:00"],
-  ["11:00", "17:00", "23:00"],
+function isoToTime(iso: string): string {
+  const match = iso.match(/T(\d{2}:\d{2})/);
+  return match ? match[1] : iso;
+}
+
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function getAvailableDays(
+  workSchedule: WorkSchedule[] | undefined,
+  t: (key: string) => string,
+): Set<string> {
+  const available = new Set<string>();
+  if (!workSchedule) return available;
+  for (const entry of workSchedule) {
+    if (entry.status) {
+      available.add(t(dayMap[entry.day] ?? entry.day));
+    }
+  }
+  return available;
+}
+
+function getDayTimeRange(
+  workSchedule: WorkSchedule[] | undefined,
+  dayAbbr: string,
+): { start: string; end: string } | null {
+  if (!workSchedule) return null;
+  const entry = workSchedule.find((e) => e.day === dayAbbr && e.status);
+  if (!entry) return null;
+  return { start: isoToTime(entry.startTime), end: isoToTime(entry.endTime) };
+}
+
+function filterTimesInRange(
+  range: { start: string; end: string } | null,
+): string[] {
+  if (!range) return allTimeSlots;
+  const startMin = timeToMinutes(range.start);
+  const endMin = timeToMinutes(range.end);
+  return allTimeSlots.filter((t) => {
+    const mins = timeToMinutes(t);
+    return mins >= startMin && mins < endMin;
+  });
+}
+
+const allTimeSlots: string[] = [
+  "06:00",
+  "07:00",
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "16:30",
+  "17:00",
+  "18:00",
+  "19:00",
+  "20:00",
+  "21:00",
+  "22:00",
+  "23:00",
 ];
 
 function addHours(time: string, hours: number): string {
@@ -62,28 +124,22 @@ function TimeButton({
 function TimeGrid({
   selectedTime,
   onSelect,
+  availableTimes,
 }: {
   selectedTime: string | null;
   onSelect: (t: string) => void;
+  availableTimes: string[];
 }) {
+  const timeSet = new Set(availableTimes);
   return (
-    <div className="grid grid-cols-3 gap-x-4 gap-y-2.5">
-      {timeSlots.map(([label, mid, right]) => (
-        <div key={label} className="contents">
-          <div className="flex items-center justify-end">
-            <span className="text-xs text-gray-400">{label}</span>
-          </div>
-          <TimeButton
-            time={mid}
-            selected={selectedTime === mid}
-            onClick={() => onSelect(mid)}
-          />
-          <TimeButton
-            time={right}
-            selected={selectedTime === right}
-            onClick={() => onSelect(right)}
-          />
-        </div>
+    <div className="grid grid-cols-3 gap-2 w-full">
+      {availableTimes.map((time) => (
+        <TimeButton
+          key={time}
+          time={time}
+          selected={selectedTime === time}
+          onClick={() => onSelect(time)}
+        />
       ))}
     </div>
   );
@@ -93,6 +149,7 @@ function DayPanel({
   day,
   duration,
   selectedTime,
+  availableTimes,
   onDurationChange,
   onTimeSelect,
   onSave,
@@ -102,17 +159,19 @@ function DayPanel({
   day: string;
   duration: number;
   selectedTime: string | null;
+  availableTimes: string[];
   onDurationChange: (d: number) => void;
   onTimeSelect: (t: string) => void;
   onSave: () => void;
   onClose: () => void;
   pricePerHour: number;
 }) {
+  const t = useTranslations("BookingTime");
   const endTime = selectedTime ? addHours(selectedTime, duration) : null;
   const totalPrice = duration * pricePerHour;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[#f5f5f5] px-[12%]">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#f5f5f5] lg:px-[34%]">
       <div className="flex items-center justify-between bg-white px-5 py-4">
         <h2 className="text-base font-bold text-gray-800">{day}</h2>
         <button type="button" onClick={onClose} className="text-gray-500">
@@ -122,7 +181,8 @@ function DayPanel({
 
       <div className="flex-1 overflow-y-auto px-5 py-5">
         <p className="mb-4 text-sm font-semibold text-gray-800">
-          Duration <span className="font-bold text-primary">{duration}h</span>
+          {t("duration")}{" "}
+          <span className="font-bold text-primary">{duration}h</span>
         </p>
         <div className="mb-8">
           <Slider
@@ -134,8 +194,14 @@ function DayPanel({
           />
         </div>
 
-        <p className="mb-4 text-sm font-semibold text-gray-800">Start time</p>
-        <TimeGrid selectedTime={selectedTime} onSelect={onTimeSelect} />
+        <p className="mb-4 text-sm font-semibold text-gray-800">
+          {t("startTime")}
+        </p>
+        <TimeGrid
+          selectedTime={selectedTime}
+          onSelect={onTimeSelect}
+          availableTimes={availableTimes}
+        />
       </div>
 
       <div className="bg-white px-5 py-4">
@@ -146,12 +212,44 @@ function DayPanel({
           className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white disabled:opacity-40"
         >
           {selectedTime && endTime
-            ? `Save ${selectedTime} - ${endTime}`
-            : "Select a start time"}
+            ? t("saveTime", { start: selectedTime, end: endTime })
+            : t("selectStartTime")}
         </button>
       </div>
     </div>
   );
+}
+
+const dayMap: Record<string, string> = {
+  Mon: "monday",
+  Tue: "tuesday",
+  Wed: "wednesday",
+  Thu: "thursday",
+  Fri: "friday",
+  Sat: "saturday",
+  Sun: "sunday",
+};
+
+function buildInitialSlots(
+  workSchedule: WorkSchedule[] | undefined,
+  t: (key: string) => string,
+): Record<string, DaySlot> {
+  if (!workSchedule || workSchedule.length === 0) return {};
+  const slots: Record<string, DaySlot> = {};
+  for (const entry of workSchedule) {
+    if (!entry.status) continue;
+    const dayName = t(dayMap[entry.day] ?? entry.day);
+    const startTime = isoToTime(entry.startTime);
+    const endTime = isoToTime(entry.endTime);
+    const [sh, sm] = startTime.split(":").map(Number);
+    const [eh, em] = endTime.split(":").map(Number);
+    const duration = Math.max(
+      1,
+      Math.round((eh * 60 + em - (sh * 60 + sm)) / 60),
+    );
+    slots[dayName] = { time: startTime, duration };
+  }
+  return slots;
 }
 
 type DaySlot = { time: string; duration: number };
@@ -159,27 +257,39 @@ type DaySlot = { time: string; duration: number };
 function WeeklyView({
   providerId,
   pricePerHour,
+  workSchedule,
   onClose,
   onFrequencyToggle,
 }: {
   providerId: string;
   pricePerHour: number;
+  workSchedule: WorkSchedule[] | undefined;
   onClose: () => void;
   onFrequencyToggle: () => void;
 }) {
-  const [slots, setSlots] = useState<Record<string, DaySlot>>({});
+  const t = useTranslations("BookingTime");
+  const availableDays = getAvailableDays(workSchedule, t);
+  const [slots, setSlots] = useState<Record<string, DaySlot>>(() =>
+    buildInitialSlots(workSchedule, t),
+  );
   const [activeDay, setActiveDay] = useState<string | null>(null);
   const [panelDuration, setPanelDuration] = useState(2);
   const [panelTime, setPanelTime] = useState<string | null>(null);
 
+  // Reverse map: translated day name → day abbreviation (e.g. "Mon")
+  const translatedToAbbr = Object.fromEntries(
+    Object.entries(dayMap).map(([abbr, key]) => [t(key), abbr]),
+  );
+
+  // Only show days the provider is available for
   const days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
+    t("monday"),
+    t("tuesday"),
+    t("wednesday"),
+    t("thursday"),
+    t("friday"),
+    t("saturday"),
+  ].filter((day) => availableDays.has(day));
 
   function openDay(day: string) {
     const existing = slots[day];
@@ -218,7 +328,7 @@ function WeeklyView({
     : "#";
 
   return (
-    <div className="flex flex-col bg-background container mx-auto">
+    <div className="flex flex-col bg-background lg:px-[34%] px-4">
       <div className="flex items-center justify-between px-5 py-4">
         <button
           type="button"
@@ -226,7 +336,7 @@ function WeeklyView({
           className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm"
         >
           <RefreshCw className="size-4 text-primary" />
-          Weekly
+          {t("weekly")}
           <ChevronDown className="size-4 text-gray-400" />
         </button>
         <button type="button" onClick={onClose} className="text-gray-500">
@@ -237,26 +347,32 @@ function WeeklyView({
       <div className="flex flex-1 flex-col gap-2 px-5">
         {days.map((day) => {
           const slot = slots[day];
-          return slot ? (
-            <div
-              key={day}
-              className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3"
-            >
-              <span className="text-sm font-semibold text-gray-800">{day}</span>
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">
-                  {slot.time} - {addHours(slot.time, slot.duration)}
+          if (slot) {
+            return (
+              <div
+                key={day}
+                className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-4 py-3"
+              >
+                <span className="text-sm font-semibold text-gray-800">
+                  {day}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => removeDay(day)}
-                  className="text-gray-400 hover:text-red-500"
-                >
-                  <Trash2 className="size-4" />
-                </button>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600">
+                    {slot.time} - {addHours(slot.time, slot.duration)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeDay(day)}
+                    className="text-gray-400 hover:text-red-500"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
+            );
+          }
+          // Day is available but no slot picked yet — show add button
+          return (
             <button
               key={day}
               type="button"
@@ -268,19 +384,14 @@ function WeeklyView({
             </button>
           );
         })}
-
-        <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm text-gray-500">Sunday</span>
-          <span className="text-xs text-gray-400">Not available</span>
-        </div>
       </div>
 
       <div className="px-5 py-5 mt-24">
         <Button type="button" className="w-full" disabled={!hasSlots} asChild>
           <Link href={confirmHref}>
             {hasSlots
-              ? `Save ${Object.keys(slots).length} day(s)`
-              : "Select at least one day"}
+              ? t("saveDays", { count: Object.keys(slots).length })
+              : t("selectAtLeastOneDay")}
           </Link>
         </Button>
       </div>
@@ -290,6 +401,9 @@ function WeeklyView({
           day={activeDay}
           duration={panelDuration}
           selectedTime={panelTime}
+          availableTimes={filterTimesInRange(
+            getDayTimeRange(workSchedule, translatedToAbbr[activeDay]),
+          )}
           onDurationChange={setPanelDuration}
           onTimeSelect={setPanelTime}
           onSave={saveDay}
@@ -304,17 +418,38 @@ function WeeklyView({
 function OnceView({
   providerId,
   pricePerHour,
+  workSchedule,
   onClose,
   onFrequencyToggle,
 }: {
   providerId: string;
   pricePerHour: number;
+  workSchedule: WorkSchedule[] | undefined;
   onClose: () => void;
   onFrequencyToggle: () => void;
 }) {
+  const t = useTranslations("BookingTime");
   const [duration, setDuration] = useState(2);
   const [selectedDay, setSelectedDay] = useState(13);
-  const [selectedTime, setSelectedTime] = useState<string | null>("16:30");
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
+  // Get available times for the currently selected day
+  const selectedDayAbbr =
+    weekDays.find((d) => d.date === selectedDay)?.short ?? "";
+  const dayRange = getDayTimeRange(workSchedule, selectedDayAbbr);
+  const availableTimes = filterTimesInRange(dayRange);
+
+  // Auto-select first available time when available times change
+  useEffect(() => {
+    if (
+      availableTimes.length > 0 &&
+      (selectedTime === null || !availableTimes.includes(selectedTime))
+    ) {
+      setSelectedTime(availableTimes[0]!);
+    } else if (availableTimes.length === 0) {
+      setSelectedTime(null);
+    }
+  }, [availableTimes, selectedTime]);
 
   const endTime = selectedTime ? addHours(selectedTime, duration) : null;
   const totalPrice = duration * pricePerHour;
@@ -323,16 +458,24 @@ function OnceView({
     ? `/user/${providerId}/booking-time/confirm?frequency=one_time&day=${selectedDay}&time=${selectedTime}&duration=${duration}&providerId=${providerId}&pricePerHour=${pricePerHour}`
     : "#";
 
+  // Filter week days to only show provider-available days
+  const availableDayAbbrs = new Set<string>(
+    (workSchedule ?? []).filter((e) => e.status).map((e) => e.day),
+  );
+  const visibleWeekDays = weekDays.filter((d) =>
+    availableDayAbbrs.has(d.short),
+  );
+
   return (
-    <div className="flex flex-col container mx-auto">
-      <div className="flex items-center justify-between px-5 py-4">
+    <div className="flex flex-col lg:px-[34%] px-4  ">
+      <div className="flex items-center justify-between py-4">
         <button
           type="button"
           onClick={onFrequencyToggle}
           className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm"
         >
           <span className="text-base">🎯</span>
-          Just once
+          {t("justOnce")}
           <ChevronDown className="size-4 text-gray-400" />
         </button>
         <button type="button" onClick={onClose} className="text-gray-500">
@@ -340,9 +483,10 @@ function OnceView({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-2">
+      <div className="flex-1 overflow-y-auto py-2">
         <p className="mb-4 text-sm font-semibold text-gray-800">
-          Duration <span className="font-bold text-primary">{duration}h</span>
+          {t("duration")}{" "}
+          <span className="font-bold text-primary">{duration}h</span>
         </p>
         <div className="mb-8">
           <Slider
@@ -361,11 +505,11 @@ function OnceView({
               type="button"
               className="rounded-full border border-gray-200 bg-white px-3 py-0.5 text-xs text-gray-500"
             >
-              Show month
+              {t("showMonth")}
             </button>
           </div>
           <div className="flex gap-1.5">
-            {weekDays.map((d) => (
+            {visibleWeekDays.map((d) => (
               <button
                 type="button"
                 key={d.date}
@@ -384,16 +528,28 @@ function OnceView({
           </div>
         </div>
 
-        <p className="mb-4 text-sm font-semibold text-gray-800">Start time</p>
-        <TimeGrid selectedTime={selectedTime} onSelect={setSelectedTime} />
+        {availableTimes.length > 0 ? (
+          <>
+            <p className="mb-4 text-sm font-semibold text-gray-800">
+              {t("startTime")}
+            </p>
+            <TimeGrid
+              selectedTime={selectedTime}
+              onSelect={setSelectedTime}
+              availableTimes={availableTimes}
+            />
+          </>
+        ) : (
+          <p className="text-sm text-gray-400">{t("notAvailable")}</p>
+        )}
       </div>
 
-      <div className="px-5 py-5 mt-24">
+      <div className="py-5 mt-24">
         <Button disabled={!selectedTime} className="w-full" asChild>
           <Link href={confirmHref}>
             {selectedTime && endTime
-              ? `Save ${selectedTime} - ${endTime}`
-              : "Select a start time"}
+              ? t("saveTime", { start: selectedTime, end: endTime })
+              : t("selectStartTime")}
           </Link>
         </Button>
       </div>
@@ -406,6 +562,7 @@ function BookingTimePage({ id }: { id: string }) {
   const params = useSearchParams();
   const freq = params.get("frequency") as "weekly" | "one_time" | null;
   const pricePerHour = Number(params.get("pricePerHour") ?? 10);
+  const { data: provider } = useGetUserById(id);
   const [frequency, setFrequency] = useState<"weekly" | "one_time">(
     freq === "one_time" ? "one_time" : "weekly",
   );
@@ -419,6 +576,7 @@ function BookingTimePage({ id }: { id: string }) {
       <WeeklyView
         providerId={id}
         pricePerHour={pricePerHour}
+        workSchedule={provider?.workSchedule}
         onClose={() => router.back()}
         onFrequencyToggle={toggleFrequency}
       />
@@ -429,6 +587,7 @@ function BookingTimePage({ id }: { id: string }) {
     <OnceView
       providerId={id}
       pricePerHour={pricePerHour}
+      workSchedule={provider?.workSchedule}
       onClose={() => router.back()}
       onFrequencyToggle={toggleFrequency}
     />

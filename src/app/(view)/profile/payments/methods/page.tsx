@@ -17,6 +17,7 @@ import { AddCardForm } from "@/components/add-card-form";
 import { useQuery } from "@tanstack/react-query";
 import { howl } from "@/lib/utils";
 import { useCookies } from "react-cookie";
+import { useTranslations } from "next-intl";
 
 function CardIcon({ brand }: { brand?: string }) {
   const b = (brand ?? "").toLowerCase();
@@ -45,6 +46,7 @@ function CardIcon({ brand }: { brand?: string }) {
 }
 
 export default function PaymentsMethodsPage() {
+  const t = useTranslations("PaymentMethods");
   const router = useRouter();
   const [{ accessToken }] = useCookies(["accessToken"]);
   const { data: cards, isLoading } = useGetPaymentMethods();
@@ -94,22 +96,24 @@ export default function PaymentsMethodsPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">My Cards</h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       {/* Main Content */}
       <div className="max-w-md mx-auto px-4 py-8">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">Your Card</h2>
+        <h2 className="text-sm font-semibold text-gray-700 mb-4">
+          {t("yourCards")}
+        </h2>
 
         {isLoading && (
           <p className="text-sm text-gray-500 text-center py-6">
-            Loading cards...
+            {t("loadingCards")}
           </p>
         )}
 
         {!isLoading && cards?.length === 0 && (
           <p className="text-sm text-gray-500 text-center py-6">
-            No cards saved
+            {t("noCards")}
           </p>
         )}
 
@@ -132,7 +136,7 @@ export default function PaymentsMethodsPage() {
 
                     {card.isDefault && (
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                        Default
+                        {t("default")}
                       </span>
                     )}
                   </div>
@@ -143,7 +147,7 @@ export default function PaymentsMethodsPage() {
 
                   <div className="mt-1 flex flex-wrap gap-3 text-sm text-gray-500">
                     <span>
-                      Expires {String(card.exp_month).padStart(2, "0")}/
+                      {t("expires")} {String(card.exp_month).padStart(2, "0")}/
                       {card.exp_year}
                     </span>
 
@@ -180,7 +184,7 @@ export default function PaymentsMethodsPage() {
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
                     >
-                      Delete card
+                      {t("deleteCard")}
                     </button>
                   </div>
                 )}
@@ -194,7 +198,7 @@ export default function PaymentsMethodsPage() {
           onClick={() => setAddCardOpen(true)}
           className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors"
         >
-          Add New
+          {t("addNew")}
         </button>
       </div>
 
@@ -203,7 +207,7 @@ export default function PaymentsMethodsPage() {
         <DialogContent className="max-w-sm gap-4 p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-gray-800">
-              Add payment method
+              {t("addPaymentMethod")}
             </DialogTitle>
           </DialogHeader>
           <AddCardForm
@@ -219,7 +223,7 @@ export default function PaymentsMethodsPage() {
         <DialogContent className="max-w-sm">
           <DialogHeader className="text-center">
             <DialogTitle className="text-lg font-semibold">
-              Are you sure you want to delete?
+              {t("deleteConfirmTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="flex gap-3 mt-6">
@@ -229,14 +233,14 @@ export default function PaymentsMethodsPage() {
               disabled={deleteCard.isPending}
               className="flex-1 px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
             >
-              {deleteCard.isPending ? "Deleting..." : "YES DELETE"}
+              {deleteCard.isPending ? t("deleting") : t("yesDelete")}
             </button>
             <button
               type="button"
               onClick={() => setShowDeleteDialog(false)}
               className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-lg transition-colors"
             >
-              NO, DON&apos;T
+              {t("noDont")}
             </button>
           </div>
         </DialogContent>

@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useChangePassword } from "@/hooks/api/auth/use-change-password";
+import { useTranslations } from "next-intl";
 
 export default function ChangePasswordPage() {
+  const t = useTranslations("ChangePassword");
   const router = useRouter();
   const changePassword = useChangePassword();
 
@@ -22,15 +24,15 @@ export default function ChangePasswordPage() {
     setError("");
 
     if (!oldPassword || !newPassword || !confirmPassword) {
-      setError("All fields are required");
+      setError(t("allFieldsRequired"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("New passwords do not match");
+      setError(t("passwordsDontMatch"));
       return;
     }
     if (newPassword.length < 6) {
-      setError("New password must be at least 6 characters");
+      setError(t("passwordMinLength"));
       return;
     }
 
@@ -42,9 +44,7 @@ export default function ChangePasswordPage() {
       });
       router.back();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to change password",
-      );
+      setError(err instanceof Error ? err.message : t("failedToChange"));
     }
   };
 
@@ -59,7 +59,7 @@ export default function ChangePasswordPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">Change Password</h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       {/* Main Content */}
@@ -77,7 +77,7 @@ export default function ChangePasswordPage() {
               htmlFor="oldPassword"
               className="text-sm font-medium text-gray-700 mb-2 block"
             >
-              Old password
+              {t("oldPassword")}
             </label>
             <div className="relative">
               <input
@@ -85,7 +85,7 @@ export default function ChangePasswordPage() {
                 type={showOldPassword ? "text" : "password"}
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                placeholder="Password"
+                placeholder={t("passwordPlaceholder")}
                 className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent pr-12"
               />
               <button
@@ -108,7 +108,7 @@ export default function ChangePasswordPage() {
               htmlFor="newPassword"
               className="text-sm font-medium text-gray-700 mb-2 block"
             >
-              New password
+              {t("newPassword")}
             </label>
             <div className="relative">
               <input
@@ -116,7 +116,7 @@ export default function ChangePasswordPage() {
                 type={showNewPassword ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Password"
+                placeholder={t("passwordPlaceholder")}
                 className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent pr-12"
               />
               <button
@@ -139,7 +139,7 @@ export default function ChangePasswordPage() {
               htmlFor="confirmPassword"
               className="text-sm font-medium text-gray-700 mb-2 block"
             >
-              Confirm password
+              {t("confirmPassword")}
             </label>
             <div className="relative">
               <input
@@ -147,7 +147,7 @@ export default function ChangePasswordPage() {
                 type={showConfirmPassword ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Password"
+                placeholder={t("passwordPlaceholder")}
                 className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent pr-12"
               />
               <button
@@ -169,7 +169,7 @@ export default function ChangePasswordPage() {
             disabled={changePassword.isPending}
             className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8"
           >
-            {changePassword.isPending ? "Changing..." : "Change password"}
+            {changePassword.isPending ? t("changing") : t("changePassword")}
           </button>
         </form>
       </div>

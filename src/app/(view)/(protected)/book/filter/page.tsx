@@ -5,32 +5,10 @@ import { Switch } from "@/components/ui/switch";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-
-const otherTasks = [
-  "Basic household cleaning",
-  "Washing and ironing clothes",
-  "Cooking",
-  "Feeding the elderly",
-  "Going for walks",
-  "Medication reminder",
-  "Help with personal hygiene",
-  "Basic exercise",
-  "Grocery shopping",
-];
-
-const specialistConditions = [
-  "Senile dementia",
-  "Alzheimer's",
-  "Parkinson's",
-  "Arthritis or osteoarthritis",
-  "Arteriosclerosis",
-  "Osteoporosis",
-  "Blindness",
-  "Deafness",
-  "Cancer",
-];
+import { useTranslations } from "next-intl";
 
 export default function FilterPage() {
+  const t = useTranslations("BookFilter");
   const {
     checkedTasks,
     toggleTask,
@@ -45,6 +23,30 @@ export default function FilterPage() {
     clearFilters,
   } = useServiceBooking();
 
+  const otherTasks = [
+    t("taskBasicCleaning"),
+    t("taskWashingIroning"),
+    t("taskCooking"),
+    t("taskFeedingElderly"),
+    t("taskWalks"),
+    t("taskMedicationReminder"),
+    t("taskPersonalHygiene"),
+    t("taskBasicExercise"),
+    t("taskGroceryShopping"),
+  ];
+
+  const specialistConditions = [
+    t("conditionSenileDementia"),
+    t("conditionAlzheimers"),
+    t("conditionParkinsons"),
+    t("conditionArthritis"),
+    t("conditionArteriosclerosis"),
+    t("conditionOsteoporosis"),
+    t("conditionBlindness"),
+    t("conditionDeafness"),
+    t("conditionCancer"),
+  ];
+
   return (
     <div className="min-h-dvh bg-gray-50 px-4 py-4 sm:px-6">
       {/* Header */}
@@ -54,14 +56,14 @@ export default function FilterPage() {
           className="flex items-center gap-1 text-sm font-semibold text-primary"
         >
           <ArrowLeft className="size-4" />
-          Back
+          {t("back")}
         </Link>
         <button
           type="button"
           onClick={clearFilters}
           className="text-sm font-semibold text-gray-600 hover:text-gray-800"
         >
-          Clear filters
+          {t("clearFilters")}
         </button>
       </div>
 
@@ -72,20 +74,23 @@ export default function FilterPage() {
           {/* Other required tasks */}
           <div>
             <h3 className="mb-3 text-base font-bold text-gray-800">
-              Other required tasks
+              {t("otherRequiredTasks")}
             </h3>
             <div className="space-y-2">
               {otherTasks.map((task) => (
-                <label
+                // biome-ignore lint/a11y/noStaticElementInteractions: checkbox inside handles keyboard
+                // biome-ignore lint/a11y/useKeyWithClickEvents: checkbox inside handles keyboard
+                <div
                   key={task}
                   className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => toggleTask(task)}
                 >
                   <Checkbox
                     checked={checkedTasks.has(task)}
                     onCheckedChange={() => toggleTask(task)}
                   />
                   <span className="text-sm text-gray-700">{task}</span>
-                </label>
+                </div>
               ))}
             </div>
           </div>
@@ -93,20 +98,23 @@ export default function FilterPage() {
           {/* Show specialists in */}
           <div>
             <h3 className="mb-3 text-base font-bold text-gray-800">
-              Show specialists in:
+              {t("showSpecialistsIn")}
             </h3>
             <div className="space-y-2">
               {specialistConditions.map((condition) => (
-                <label
+                // biome-ignore lint/a11y/noStaticElementInteractions: checkbox inside handles keyboard
+                // biome-ignore lint/a11y/useKeyWithClickEvents: checkbox inside handles keyboard
+                <div
                   key={condition}
                   className="flex items-center gap-2 cursor-pointer"
+                  onClick={() => toggleCondition(condition)}
                 >
                   <Checkbox
                     checked={checkedConditions.has(condition)}
                     onCheckedChange={() => toggleCondition(condition)}
                   />
                   <span className="text-sm text-gray-700">{condition}</span>
-                </label>
+                </div>
               ))}
             </div>
           </div>
@@ -118,10 +126,10 @@ export default function FilterPage() {
           <div className="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4">
             <div>
               <p className="text-sm font-semibold text-gray-700">
-                Palliative care
+                {t("palliativeCare")}
               </p>
               <p className="text-xs text-gray-400">
-                Only show professionals specializing in palliative care
+                {t("palliativeCareDescription")}
               </p>
             </div>
             <Switch checked={palliative} onCheckedChange={setPalliative} />
@@ -131,10 +139,10 @@ export default function FilterPage() {
           <div className="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4">
             <div>
               <p className="text-sm font-semibold text-gray-700">
-                Driving licence
+                {t("drivingLicence")}
               </p>
               <p className="text-xs text-gray-400">
-                Only show professionals with a driving licence
+                {t("drivingLicenceDescription")}
               </p>
             </div>
             <Switch checked={driving} onCheckedChange={setDriving} />
@@ -144,11 +152,10 @@ export default function FilterPage() {
           <div className="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4">
             <div>
               <p className="text-sm font-semibold text-gray-700">
-                Business profiles
+                {t("businessProfiles")}
               </p>
               <p className="text-xs text-gray-400">
-                Only profiles that correspond to a validated business or
-                self-employed professional
+                {t("businessProfilesDescription")}
               </p>
             </div>
             <Switch checked={business} onCheckedChange={setBusiness} />

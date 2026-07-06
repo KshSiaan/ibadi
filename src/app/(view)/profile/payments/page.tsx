@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CreditCard, Wallet, ChevronRight } from "lucide-react";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
+import { useTranslations } from "next-intl";
 
 interface MenuItem {
   label: string;
@@ -12,12 +13,13 @@ interface MenuItem {
 }
 
 export default function PaymentAndRefundsPage() {
+  const t = useTranslations("PaymentsHub");
   const router = useRouter();
   const { data } = useMyProfile();
 
   let menuItems: MenuItem[] = [
     {
-      label: "My booking",
+      label: t("myBooking"),
       href: "/profile/payments/bookings",
       icon: <Wallet className="w-5 h-5" />,
     },
@@ -25,12 +27,12 @@ export default function PaymentAndRefundsPage() {
   if (data?.role !== "service_provider") {
     menuItems = [
       {
-        label: "My booking",
+        label: t("myBooking"),
         href: "/profile/payments/bookings",
         icon: <Wallet className="w-5 h-5" />,
       },
       {
-        label: "Payments methods",
+        label: t("paymentMethods"),
         href: "/profile/payments/methods",
         icon: <CreditCard className="w-5 h-5" />,
       },
@@ -47,9 +49,7 @@ export default function PaymentAndRefundsPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">
-          Payment and refunds
-        </h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       {/* Main Content */}

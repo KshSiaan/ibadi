@@ -9,8 +9,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
-
+import { Button } from "@/components/ui/button";
 import {
   useAcceptBooking,
   useCancelBooking,
@@ -18,15 +19,10 @@ import {
 } from "@/hooks/api/bookings/use-bookings";
 import type { Booking } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 type Tab = "request" | "ongoing" | "cancelled";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "request", label: "Request" },
-  { id: "ongoing", label: "Ongoing" },
-  { id: "cancelled", label: "Cancelled" },
-];
+const TAB_IDS: Tab[] = ["request", "ongoing", "cancelled"];
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], {
@@ -68,6 +64,7 @@ function BookingCard({
   };
   tab: Tab;
 }) {
+  const t = useTranslations("ProfessionalRequest");
   const { mutate: accept, isPending: accepting } = useAcceptBooking();
   const { mutate: cancel, isPending: cancelling } = useCancelBooking();
 
@@ -86,7 +83,7 @@ function BookingCard({
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-start justify-between">
             <p className="text-sm font-bold text-primary capitalize">
-              {booking.bookingType} booking
+              {t("booking", { type: booking.bookingType })}
             </p>
             <span className="text-xs font-semibold text-primary">
               ${booking.price.toFixed(2)}
@@ -117,7 +114,7 @@ function BookingCard({
                   className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary disabled:opacity-50 flex items-center gap-1"
                 >
                   {accepting && <Loader2 className="size-3 animate-spin" />}
-                  Accept
+                  {t("accept")}
                 </button>
                 <button
                   type="button"
@@ -126,20 +123,20 @@ function BookingCard({
                   className="rounded-full bg-red-200 px-3 py-1 text-xs font-semibold text-red-500 disabled:opacity-50 flex items-center gap-1"
                 >
                   {cancelling && <Loader2 className="size-3 animate-spin" />}
-                  Cancel
+                  {t("cancel")}
                 </button>
               </>
             )}
             {tab === "ongoing" && (
               <Link href={`/professional/request/${booking.id}`}>
                 <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
-                  Ongoing
+                  {t("ongoing")}
                 </span>
               </Link>
             )}
             {tab === "cancelled" && (
               <span className="rounded-full bg-red-200 px-3 py-1 text-xs font-semibold text-red-500">
-                Cancelled
+                {t("cancelled")}
               </span>
             )}
           </div>
@@ -171,6 +168,7 @@ function CompleteCard({
     updatedAt: string;
   };
 }) {
+  const t = useTranslations("ProfessionalRequest");
   // const firstDay = booking.bookingDays?.[0];
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
@@ -187,7 +185,7 @@ function CompleteCard({
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-start justify-between">
             <p className="text-sm font-bold text-primary capitalize">
-              {booking.bookingType} booking
+              {t("booking", { type: booking.bookingType })}
             </p>
             <span className="text-xs font-semibold text-primary">
               ${booking.price.toFixed(2)}
@@ -210,7 +208,7 @@ function CompleteCard({
           )} */}
           <div className="mt-1">
             <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              Complete
+              {t("completed")}
             </span>
           </div>
         </div>
@@ -226,6 +224,7 @@ const STATUS_MAP: Record<Tab, string> = {
 };
 
 export default function RequestPage() {
+  const t = useTranslations("ProfessionalRequest");
   const [activeTab, setActiveTab] = useState<Tab>("request");
   const [showComplete, setShowComplete] = useState(false);
 
@@ -253,7 +252,7 @@ export default function RequestPage() {
           >
             <ArrowLeft className="size-5" />
           </button>
-          <h1 className="text-xl font-bold text-gray-800">Complete</h1>
+          <h1 className="text-xl font-bold text-gray-800">{t("completed")}</h1>
         </div>
         <div className="mx-auto max-w-lg flex flex-col gap-3">
           {loadingComplete && (
@@ -263,7 +262,7 @@ export default function RequestPage() {
           )}
           {!loadingComplete && !completedBookings?.length && (
             <p className="text-center text-sm text-gray-400 py-10">
-              No completed bookings.
+              {t("noCompletedBookings")}
             </p>
           )}
           {completedBookings?.map((b) => (
@@ -278,7 +277,7 @@ export default function RequestPage() {
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
       <div className="relative mb-6 flex items-center justify-center gap-28 w-full">
         <h1 className="text-2xl font-bold text-gray-800 inline-block">
-          Request
+          {t("request")}
         </h1>
         <Button
           type="button"
@@ -287,25 +286,25 @@ export default function RequestPage() {
           className="text-primary"
           aria-label="View completed bookings"
         >
-          Completed
+          {t("completed")}
         </Button>
       </div>
 
       <div className="mb-6 flex justify-center">
         <div className="flex rounded-xl bg-white p-1 shadow-sm">
-          {TABS.map((tab) => (
+          {TAB_IDS.map((tabId) => (
             <button
-              key={tab.id}
+              key={tabId}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setActiveTab(tabId)}
               className={cn(
                 "rounded-lg px-5 py-2 text-sm font-semibold transition-colors",
-                activeTab === tab.id
+                activeTab === tabId
                   ? "bg-gray-100 text-gray-800"
                   : "text-gray-500 hover:text-gray-700",
               )}
             >
-              {tab.label}
+              {t(tabId)}
             </button>
           ))}
         </div>
@@ -322,7 +321,9 @@ export default function RequestPage() {
         )}
         {!isLoading && !error && filtered?.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-10">
-            No {activeTab} bookings.
+            {activeTab === "request" && t("noRequestBookings")}
+            {activeTab === "ongoing" && t("noOngoingBookings")}
+            {activeTab === "cancelled" && t("noCancelledBookings")}
           </p>
         )}
         {filtered?.map((booking) => (

@@ -2,85 +2,47 @@
 
 import { CheckCircle2, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
+import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useGetOthersTaskOptions } from "@/hooks/api/others-task-options/use-others-task-options";
-import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
 import { useCategories } from "@/hooks/api/use-categories";
-import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
+import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-service-provider-info";
+import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
 
 type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
 const DAYS: DayKey[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-const DAY_FULL: Record<DayKey, string> = {
-  Mon: "Monday",
-  Tue: "Tuesday",
-  Wed: "Wednesday",
-  Thu: "Thursday",
-  Fri: "Friday",
-  Sat: "Saturday",
-  Sun: "Sunday",
+const DAY_KEY: Record<DayKey, string> = {
+  Mon: "monday",
+  Tue: "tuesday",
+  Wed: "wednesday",
+  Thu: "thursday",
+  Fri: "friday",
+  Sat: "saturday",
+  Sun: "sunday",
 };
 
-const slides = [
-  {
-    id: 1,
-    illustration: "/icons/home/1.svg",
-    title: "Your\nSpecialties",
-    description:
-      "Select the service categories you offer. Clients will use these to find and book you.",
-  },
-  {
-    id: 2,
-    illustration: "/icons/home/1.svg",
-    title: "Work\nschedule",
-    description: "When are you available to offer your services?",
-  },
-  {
-    id: 3,
-    illustration: "/icons/home/1.svg",
-    title: "Services\nyou offer",
-    description:
-      "Tell clients what additional services you can offer. Choose the options that apply to you.",
-  },
-  {
-    id: 4,
-    illustration: "/icons/home/1.svg",
-    title: "Profile\nPhoto",
-    description:
-      "Upload a professional photo to help clients know who you are.",
-  },
-  {
-    id: 5,
-    illustration: "/icons/home/1.svg",
-    title: "About\nyou",
-    description:
-      "Write a short bio and set your hourly rate so clients know what to expect.",
-  },
-  {
-    id: 6,
-    illustration: "/icons/home/3.svg",
-    title: "Review your\ndetails",
-    description: "Review everything before going live and submit.",
-  },
-  {
-    id: 7,
-    illustration: "/icons/home/3.svg",
-    title: "Ready\nto go!",
-    description: "Your profile is all set. Start accepting bookings!",
-  },
-];
+const SLIDE_KEYS = [
+  { title: "specialtiesTitle", description: "specialtiesDescription" },
+  { title: "scheduleTitle", description: "scheduleDescription" },
+  { title: "servicesTitle", description: "servicesDescription" },
+  { title: "photoTitle", description: "photoDescription" },
+  { title: "aboutTitle", description: "aboutDescription" },
+  { title: "reviewTitle", description: "reviewDescription" },
+  { title: "readyTitle", description: "readyDescription" },
+] as const;
 
 interface DaySchedule {
   status: boolean;
@@ -109,6 +71,7 @@ export default function ProviderSetupGate({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("ProviderSetup");
   const router = useRouter();
   const { data: me } = useMyProfile();
   const { data: taskOptions = [], isLoading: loadingTasks } =
@@ -161,7 +124,13 @@ export default function ProviderSetupGate({
     setForm(initializedForm);
   }
 
-  const slide = slides[step];
+  const slideKey = SLIDE_KEYS[step];
+  const slide = {
+    id: step + 1,
+    illustration: step < 5 ? "/icons/home/1.svg" : "/icons/home/3.svg",
+    title: t(slideKey.title as any),
+    description: t(slideKey.description as any),
+  };
   const isSubmitting = loadingSchedule || loadingServiceProvider;
 
   function toggleCategory(id: string) {
@@ -315,7 +284,7 @@ export default function ProviderSetupGate({
               disabled={isSubmitting}
               className="text-sm font-semibold text-primary"
             >
-              Back
+              {t("back")}
             </button>
           ) : (
             <span />
@@ -326,7 +295,7 @@ export default function ProviderSetupGate({
               onClick={() => setStep(6)}
               className="text-sm font-semibold text-primary"
             >
-              Skip
+              {t("skip")}
             </button>
           )}
         </div>
@@ -350,7 +319,7 @@ export default function ProviderSetupGate({
         <div className="flex flex-col items-start gap-3 px-8 pb-10 sm:items-center sm:px-16 sm:text-center">
           <h2 className="text-2xl font-bold leading-snug text-[#1e2d4f] sm:text-3xl">
             {slide.title.split("\n").map((line, i, arr) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              // biome-ignore lint/suspicious/noArrayIndexKey: lines from split need index keys
               <span key={i}>
                 {line}
                 {i < arr.length - 1 && <br />}
@@ -386,11 +355,11 @@ export default function ProviderSetupGate({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400">No categories available</p>
+                <p className="text-sm text-gray-400">{t("noCategories")}</p>
               )}
               {form.specialistsInIds.length > 0 && (
                 <p className="mt-3 text-center text-xs text-primary font-semibold">
-                  {form.specialistsInIds.length} selected
+                  {t("selected", { count: form.specialistsInIds.length })}
                 </p>
               )}
             </div>
@@ -405,7 +374,7 @@ export default function ProviderSetupGate({
                   <div key={day} className="py-3.5">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-gray-800">
-                        {DAY_FULL[day]}
+                        {t(DAY_KEY[day] as any)}
                       </span>
                       <div className="flex items-center gap-3">
                         <Switch
@@ -417,7 +386,7 @@ export default function ProviderSetupGate({
                             sched.status ? "text-gray-700" : "text-gray-400"
                           }`}
                         >
-                          {sched.status ? "Available" : "Not available"}
+                          {sched.status ? t("available") : t("notAvailable")}
                         </span>
                       </div>
                     </div>
@@ -473,9 +442,7 @@ export default function ProviderSetupGate({
                   </label>
                 ))
               ) : (
-                <p className="text-sm text-gray-400">
-                  No task options available
-                </p>
+                <p className="text-sm text-gray-400">{t("noTaskOptions")}</p>
               )}
             </div>
           )}
@@ -491,17 +458,17 @@ export default function ProviderSetupGate({
                         {form.coverImage.name}
                       </span>
                       <span className="text-xs text-gray-500">
-                        Click to change
+                        {t("clickToChange")}
                       </span>
                     </>
                   ) : (
                     <>
                       <span className="text-lg">📸</span>
                       <span className="text-sm font-medium text-gray-700">
-                        Upload photo
+                        {t("uploadPhoto")}
                       </span>
                       <span className="text-xs text-gray-400">
-                        JPG, PNG up to 5MB
+                        {t("jpgPngUpTo5mb")}
                       </span>
                     </>
                   )}
@@ -526,7 +493,7 @@ export default function ProviderSetupGate({
             <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
               <Textarea
                 rows={3}
-                placeholder="Write a short bio..."
+                placeholder={t("bioPlaceholder")}
                 value={form.bio}
                 onChange={(e) =>
                   setForm((p) => ({ ...p, bio: e.target.value }))
@@ -536,7 +503,7 @@ export default function ProviderSetupGate({
               <Input
                 type="number"
                 min={0}
-                placeholder="Hourly rate ($)"
+                placeholder={t("hourlyRatePlaceholder")}
                 value={form.perHourPrice}
                 onChange={(e) =>
                   setForm((p) => ({ ...p, perHourPrice: e.target.value }))
@@ -552,11 +519,11 @@ export default function ProviderSetupGate({
               {/* Bio & Rate */}
               <div className="rounded-xl bg-white px-4 py-3 shadow-sm text-sm text-gray-600 flex flex-col gap-1.5">
                 <p>
-                  <span className="font-medium">Bio:</span>{" "}
+                  <span className="font-medium">{t("bio")}</span>{" "}
                   {form.bio || <span className="text-gray-400">—</span>}
                 </p>
                 <p>
-                  <span className="font-medium">Hourly rate:</span> $
+                  <span className="font-medium">{t("hourlyRate")}</span> $
                   {form.perHourPrice || "0"}
                 </p>
               </div>
@@ -565,7 +532,7 @@ export default function ProviderSetupGate({
               {Object.values(form.taskOptions).some((v) => v) && (
                 <div className="rounded-xl bg-white px-4 py-3 shadow-sm text-sm">
                   <p className="font-medium mb-2 text-gray-600">
-                    Services Offered:
+                    {t("servicesOffered")}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(form.taskOptions)
@@ -589,7 +556,7 @@ export default function ProviderSetupGate({
               {Object.values(form.schedule).some((s) => s.status) && (
                 <div className="rounded-xl bg-white px-4 py-3 shadow-sm text-sm">
                   <p className="font-medium mb-2 text-gray-600">
-                    Work Schedule:
+                    {t("workSchedule")}
                   </p>
                   <div className="space-y-1.5 text-xs text-gray-500">
                     {DAYS.map((day) => {
@@ -597,7 +564,7 @@ export default function ProviderSetupGate({
                       return sched.status ? (
                         <p key={day}>
                           <span className="font-medium text-gray-700">
-                            {DAY_FULL[day]}:
+                            {t(DAY_KEY[day] as any)}:
                           </span>{" "}
                           {sched.startTime} - {sched.endTime}
                         </p>
@@ -613,17 +580,15 @@ export default function ProviderSetupGate({
           {step === 6 && (
             <div className="mt-2 w-full max-w-sm rounded-xl bg-white px-4 py-6 shadow-sm text-center">
               <CheckCircle2 className="mx-auto mb-3 size-12 text-green-500" />
-              <p className="text-sm font-medium text-gray-700">
-                All set! Your profile is ready to go live.
-              </p>
+              <p className="text-sm font-medium text-gray-700">{t("allSet")}</p>
             </div>
           )}
 
           {/* Dots */}
           <div className="mt-4 flex gap-2">
-            {slides.map((s, i) => (
+            {SLIDE_KEYS.map((s, i: number) => (
               <span
-                key={s.id}
+                key={s.title}
                 className={`size-2.5 rounded-full transition-colors ${
                   i === step ? "bg-primary" : "bg-gray-300"
                 }`}
@@ -641,11 +606,11 @@ export default function ProviderSetupGate({
             {isSubmitting && <Loader2 className="size-4 animate-spin" />}
             {step < 6
               ? isScheduleStep
-                ? "Confirm"
-                : "Next"
+                ? t("confirm")
+                : t("next")
               : isSubmitting
-                ? "Saving..."
-                : "Go Live"}
+                ? t("saving")
+                : t("goLive")}
           </button>
         </div>
       </div>
@@ -661,11 +626,9 @@ export default function ProviderSetupGate({
           <div className="flex flex-col items-center justify-center text-center py-6">
             <CheckCircle2 className="size-12 text-green-500 mb-4" />
             <DialogDescription className="text-base font-semibold text-gray-900">
-              Verification request sent
+              {t("verificationSent")}
             </DialogDescription>
-            <p className="text-xs text-gray-500 mt-2">
-              Click anywhere to continue to your profile
-            </p>
+            <p className="text-xs text-gray-500 mt-2">{t("clickToContinue")}</p>
           </div>
         </DialogContent>
       </Dialog>

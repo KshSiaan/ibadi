@@ -1,13 +1,14 @@
 "use client";
 
+import { Calendar, Clock, Loader2, TimerIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { DatePickerDemo } from "@/components/core/date-picker";
 import { useProviderBookings } from "@/hooks/api/bookings/use-bookings";
 import type { Booking } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
-import { Calendar, Clock, Loader2, TimerIcon } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], {
@@ -102,6 +103,7 @@ function ServiceCard({
 }
 
 export default function CalendarPage() {
+  const t = useTranslations("ProfessionalCalendar");
   const [date] = useState<Date | undefined>(undefined);
   const {
     data: bookings,
@@ -125,7 +127,7 @@ export default function CalendarPage() {
       <div className="flex justify-between items-center w-min mx-auto mb-8 gap-6">
         <h1 className="text-2xl font-bold text-gray-800 w-min flex text-nowrap items-center gap-2 mx-auto">
           <TimerIcon className="text-primary" />
-          Upcoming Booking
+          {t("upcomingBooking")}
         </h1>
         <DatePickerDemo />
       </div>
@@ -141,7 +143,7 @@ export default function CalendarPage() {
         )}
         {!isLoading && !error && filtered?.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-10">
-            No upcoming bookings.
+            {t("noUpcomingBookings")}
           </p>
         )}
         {filtered?.map((booking) => (

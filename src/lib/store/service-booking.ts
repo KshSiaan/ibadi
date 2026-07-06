@@ -28,6 +28,24 @@ export interface ServiceBookingState {
   selectedDay: number;
   setSelectedDay: (day: number) => void;
 
+  selectedMonth: number;
+  setSelectedMonth: (month: number) => void;
+
+  selectedYear: number;
+  setSelectedYear: (year: number) => void;
+
+  selectedWeekDays: Set<number>;
+  toggleWeekDay: (day: number) => void;
+
+  exactHour: number;
+  setExactHour: (hour: number) => void;
+
+  exactMinute: number;
+  setExactMinute: (minute: number) => void;
+
+  exactAmPm: "am" | "pm";
+  setExactAmPm: (value: "am" | "pm") => void;
+
   duration: number[];
   setDuration: (duration: number[]) => void;
 
@@ -61,7 +79,6 @@ export interface ServiceBookingState {
   reset: () => void;
 }
 
-
 export const useServiceBooking = create<ServiceBookingState>((set) => ({
   /* ─── Service Selection ─── */
   selectedService: "Elderly care",
@@ -76,7 +93,8 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
 
   /* ─── Homepage Filters ─── */
   homepageFilters: {},
-  setHomepageFilters: (filters: HomepageFilters) => set({ homepageFilters: filters }),
+  setHomepageFilters: (filters: HomepageFilters) =>
+    set({ homepageFilters: filters }),
 
   /* ─── Address ─── */
   serviceAddress: "",
@@ -86,8 +104,32 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
   frequency: "one_time",
   setFrequency: (frequency: "one_time" | "weekly") => set({ frequency }),
 
-  selectedDay: 13,
+  selectedDay: new Date().getDate(),
   setSelectedDay: (day: number) => set({ selectedDay: day }),
+
+  selectedMonth: new Date().getMonth(),
+  setSelectedMonth: (month: number) => set({ selectedMonth: month }),
+
+  selectedYear: new Date().getFullYear(),
+  setSelectedYear: (year: number) => set({ selectedYear: year }),
+
+  selectedWeekDays: new Set<number>(),
+  toggleWeekDay: (day: number) =>
+    set((state) => {
+      const next = new Set(state.selectedWeekDays);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
+      return { selectedWeekDays: next };
+    }),
+
+  exactHour: 9,
+  setExactHour: (hour: number) => set({ exactHour: hour }),
+
+  exactMinute: 0,
+  setExactMinute: (minute: number) => set({ exactMinute: minute }),
+
+  exactAmPm: "am",
+  setExactAmPm: (value: "am" | "pm") => set({ exactAmPm: value }),
 
   duration: [2],
   setDuration: (duration: number[]) => set({ duration }),
@@ -147,7 +189,13 @@ export const useServiceBooking = create<ServiceBookingState>((set) => ({
       homepageFilters: {},
       serviceAddress: "",
       frequency: "one_time",
-      selectedDay: 13,
+      selectedDay: new Date().getDate(),
+      selectedMonth: new Date().getMonth(),
+      selectedYear: new Date().getFullYear(),
+      selectedWeekDays: new Set<number>(),
+      exactHour: 9,
+      exactMinute: 0,
+      exactAmPm: "am",
       duration: [2],
       startType: "flexible",
       selectedMorning: null,

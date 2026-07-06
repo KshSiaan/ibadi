@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { cookies } from "next/headers";
+import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { getMessages, getTranslations } from "next-intl/server";
+import { routing } from "@/i18n/routing";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import GodProvider from "@/provider/god-provider";
@@ -17,20 +21,31 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "iBadi - Find and book",
-  description:
-    "Find and book the best local services with iBadi. From home cleaning to personal training, we connect you with trusted professionals in your area. Experience convenience and quality with just a few clicks.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Metadata");
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Resolve locale from cookie (set by the language page)
+  const cookieStore = await cookies();
+  const localeCookie = cookieStore.get("NEXT_LOCALE")?.value;
+  const locale = hasLocale(routing.locales, localeCookie)
+    ? localeCookie
+    : routing.defaultLocale;
+
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={cn(
         "h-full",
         "antialiased",
@@ -41,8 +56,10 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <GodProvider>{children}</GodProvider>
-        <Toaster richColors />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <GodProvider>{children}</GodProvider>
+          <Toaster richColors />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

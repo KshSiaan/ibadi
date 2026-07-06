@@ -8,8 +8,10 @@ import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-servic
 import { useGetExperienceOptions } from "@/hooks/api/experience-options/use-experience-options";
 import { useGetOthersTaskOptions } from "@/hooks/api/others-task-options/use-others-task-options";
 import { useCategories } from "@/hooks/api/use-categories";
+import { useTranslations } from "next-intl";
 
 export default function ListingPage() {
+  const t = useTranslations("Listing");
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,14 +75,14 @@ export default function ListingPage() {
       await updateInfo.mutateAsync(formData);
       router.back();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save listing");
+      setError(err instanceof Error ? err.message : t("failedToSave"));
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500 text-sm">Loading...</p>
+        <p className="text-gray-500 text-sm">{t("loading")}</p>
       </div>
     );
   }
@@ -95,7 +97,7 @@ export default function ListingPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">My Listing</h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-8">
@@ -137,13 +139,13 @@ export default function ListingPage() {
           {/* Bio */}
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
-              Bio
+              {t("bio")}
             </label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               rows={4}
-              placeholder="Tell clients about yourself and your services"
+              placeholder={t("bioPlaceholder")}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
             />
           </div>
@@ -151,7 +153,7 @@ export default function ListingPage() {
           {/* Per hour price */}
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
-              Price per hour
+              {t("pricePerHour")}
             </label>
             <input
               type="number"
@@ -167,14 +169,14 @@ export default function ListingPage() {
           {experienceOptions && experienceOptions.length > 0 && (
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Experience
+                {t("experience")}
               </label>
               <select
                 value={experienceOptionId}
                 onChange={(e) => setExperienceOptionId(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
               >
-                <option value="">Select experience</option>
+                <option value="">{t("selectExperience")}</option>
                 {experienceOptions.map((opt) => (
                   <option key={opt.id} value={opt.id}>
                     {opt.value}
@@ -188,7 +190,7 @@ export default function ListingPage() {
           {categories && categories.length > 0 && (
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Specialties
+                {t("specialties")}
               </label>
               <div className="flex flex-wrap gap-2">
                 {categories.map((cat) => (
@@ -215,7 +217,7 @@ export default function ListingPage() {
           {taskOptions && taskOptions.length > 0 && (
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Other tasks offered
+                {t("otherTasksOffered")}
               </label>
               <div className="flex flex-wrap gap-2">
                 {taskOptions.map((task) => (
@@ -243,7 +245,7 @@ export default function ListingPage() {
             disabled={updateInfo.isPending}
             className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {updateInfo.isPending ? "Saving..." : "Save"}
+            {updateInfo.isPending ? t("saving") : t("save")}
           </button>
         </form>
       </div>

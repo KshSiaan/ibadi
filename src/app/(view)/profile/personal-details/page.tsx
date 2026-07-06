@@ -13,8 +13,10 @@ import { useUpdateProfile } from "@/hooks/api/user/use-update-profile";
 import { ArrowLeft, Camera, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export default function PersonalDetailsPage() {
+  const t = useTranslations("PersonalDetails");
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,7 +60,7 @@ export default function PersonalDetailsPage() {
       await updateProfile.mutateAsync(formData);
       router.back();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save");
+      setError(err instanceof Error ? err.message : t("failedToSave"));
     }
   };
 
@@ -67,7 +69,7 @@ export default function PersonalDetailsPage() {
       await deleteAccount.mutateAsync();
       router.push("/auth/login");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete account");
+      setError(err instanceof Error ? err.message : t("failedToDelete"));
       setShowDeleteDialog(false);
     }
   };
@@ -84,7 +86,7 @@ export default function PersonalDetailsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500 text-sm">Loading...</p>
+        <p className="text-gray-500 text-sm">{t("loading")}</p>
       </div>
     );
   }
@@ -100,9 +102,7 @@ export default function PersonalDetailsPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">
-          Personal details
-        </h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       {/* Main Content */}
@@ -151,7 +151,7 @@ export default function PersonalDetailsPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              placeholder="Name"
+              placeholder={t("namePlaceholder")}
             />
           </div>
 
@@ -161,7 +161,7 @@ export default function PersonalDetailsPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              placeholder="Email"
+              placeholder={t("emailPlaceholder")}
             />
           </div>
 
@@ -171,7 +171,7 @@ export default function PersonalDetailsPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              placeholder="Phone"
+              placeholder={t("phonePlaceholder")}
             />
           </div>
 
@@ -180,7 +180,7 @@ export default function PersonalDetailsPage() {
             disabled={updateProfile.isPending}
             className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {updateProfile.isPending ? "Saving..." : "Save"}
+            {updateProfile.isPending ? t("saving") : t("save")}
           </button>
         </form>
 
@@ -191,7 +191,7 @@ export default function PersonalDetailsPage() {
             onClick={() => setShowDeleteDialog(true)}
             className="text-gray-700 text-sm font-medium hover:text-gray-900 underline transition-colors"
           >
-            Delete account permanently
+            {t("deleteAccount")}
           </button>
         </div>
       </div>
@@ -201,11 +201,11 @@ export default function PersonalDetailsPage() {
         <DialogContent className="max-w-sm">
           <DialogHeader className="text-center">
             <DialogTitle className="text-lg font-semibold">
-              Are you sure you want to delete your account?
+              {t("deleteConfirmTitle")}
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-gray-500 text-center">
-            This action is permanent and cannot be undone.
+            {t("deleteConfirmDescription")}
           </p>
           <div className="flex gap-3 mt-6 flex-col sm:flex-row">
             <button
@@ -214,14 +214,14 @@ export default function PersonalDetailsPage() {
               disabled={deleteAccount.isPending}
               className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 order-2 sm:order-1"
             >
-              {deleteAccount.isPending ? "Deleting..." : "YES, DELETE"}
+              {deleteAccount.isPending ? t("deleting") : t("yesDelete")}
             </button>
             <button
               type="button"
               onClick={() => setShowDeleteDialog(false)}
               className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-600 hover:bg-gray-50 font-medium rounded-lg transition-colors order-1 sm:order-2"
             >
-              NO, CANCEL
+              {t("noCancel")}
             </button>
           </div>
         </DialogContent>

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { useCookies } from "react-cookie";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -10,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslations } from "next-intl";
 
 const languages = [
   { code: "en", name: "English" },
@@ -25,16 +28,26 @@ const languages = [
 ];
 
 export default function ChangeLanguagePage() {
+  const t = useTranslations("Language");
   const router = useRouter();
+  const [cookies, setCookie] = useCookies(["NEXT_LOCALE"]);
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Read current locale from cookie on mount
+  useEffect(() => {
+    const currentLocale = cookies.NEXT_LOCALE || "en";
+    setSelectedLanguage(currentLocale);
+  }, [cookies.NEXT_LOCALE]);
+
   const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Set the NEXT_LOCALE cookie — the middleware will pick this up
+    setCookie("NEXT_LOCALE", selectedLanguage, { path: "/" });
     setIsSaving(false);
-    router.back();
+    toast.success(t("languageUpdated"));
+    // Reload to apply translations server-side
+    router.refresh();
   };
 
   return (
@@ -48,7 +61,7 @@ export default function ChangeLanguagePage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">Change Language</h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       {/* Main Content */}
@@ -56,7 +69,7 @@ export default function ChangeLanguagePage() {
         <div className="space-y-6">
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium text-gray-700 mb-2 block">
-              Change language
+              {t("changeLanguage")}
             </legend>
 
             {/* Language Select */}
@@ -65,7 +78,7 @@ export default function ChangeLanguagePage() {
               onValueChange={setSelectedLanguage}
             >
               <SelectTrigger className="w-full bg-gray-100 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                <SelectValue placeholder="Select language" />
+                <SelectValue placeholder={t("selectLanguage")} />
               </SelectTrigger>
               <SelectContent>
                 {languages.map((lang) => (
@@ -84,7 +97,7 @@ export default function ChangeLanguagePage() {
             disabled={isSaving}
             className="w-full px-4 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSaving ? "Saving..." : "Save"}
+            {isSaving ? t("saving") : t("save")}
           </button>
         </div>
       </div>

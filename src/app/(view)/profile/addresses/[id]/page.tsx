@@ -8,8 +8,10 @@ import {
   useCreateAddress,
   useUpdateAddress,
 } from "@/hooks/api/address/use-address";
+import { useTranslations } from "next-intl";
 
 export default function AddressFormPage() {
+  const t = useTranslations("AddressForm");
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
@@ -85,7 +87,7 @@ export default function AddressFormPage() {
       }
       router.back();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save address");
+      setError(err instanceof Error ? err.message : t("failedToSave"));
     }
   };
 
@@ -111,7 +113,7 @@ export default function AddressFormPage() {
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
         <h1 className="text-lg font-semibold text-gray-900">
-          {isNew ? "Add Address" : "Edit Address"}
+          {isNew ? t("addAddress") : t("editAddress")}
         </h1>
       </div>
 
@@ -129,7 +131,7 @@ export default function AddressFormPage() {
               htmlFor="addressLine1"
               className="text-sm font-medium text-gray-700 mb-1 block"
             >
-              Address Line 1
+              {t("addressLine1")}
             </label>
             <input
               id="addressLine1"
@@ -138,7 +140,7 @@ export default function AddressFormPage() {
               value={form.addressLine1}
               onChange={handleChange}
               required
-              placeholder="Enter street address"
+              placeholder={t("addressLine1Placeholder")}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
@@ -148,7 +150,7 @@ export default function AddressFormPage() {
               htmlFor="addressLine2"
               className="text-sm font-medium text-gray-700 mb-1 block"
             >
-              Address Line 2 (optional)
+              {t("addressLine2")}
             </label>
             <input
               id="addressLine2"
@@ -156,7 +158,7 @@ export default function AddressFormPage() {
               name="addressLine2"
               value={form.addressLine2}
               onChange={handleChange}
-              placeholder="Apt, suite, unit, etc."
+              placeholder={t("addressLine2Placeholder")}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
@@ -166,7 +168,7 @@ export default function AddressFormPage() {
               htmlFor="city"
               className="text-sm font-medium text-gray-700 mb-1 block"
             >
-              City
+              {t("city")}
             </label>
             <input
               id="city"
@@ -175,7 +177,7 @@ export default function AddressFormPage() {
               value={form.city}
               onChange={handleChange}
               required
-              placeholder="Enter your city"
+              placeholder={t("cityPlaceholder")}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
@@ -185,7 +187,7 @@ export default function AddressFormPage() {
               htmlFor="state"
               className="text-sm font-medium text-gray-700 mb-1 block"
             >
-              State / Province
+              {t("state")}
             </label>
             <input
               id="state"
@@ -194,7 +196,7 @@ export default function AddressFormPage() {
               value={form.state}
               onChange={handleChange}
               required
-              placeholder="Enter your state"
+              placeholder={t("statePlaceholder")}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
@@ -204,7 +206,7 @@ export default function AddressFormPage() {
               htmlFor="postalCode"
               className="text-sm font-medium text-gray-700 mb-1 block"
             >
-              Postal Code
+              {t("postalCode")}
             </label>
             <input
               id="postalCode"
@@ -213,7 +215,7 @@ export default function AddressFormPage() {
               value={form.postalCode}
               onChange={handleChange}
               required
-              placeholder="Enter postal code"
+              placeholder={t("postalCodePlaceholder")}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
@@ -223,7 +225,7 @@ export default function AddressFormPage() {
               htmlFor="country"
               className="text-sm font-medium text-gray-700 mb-1 block"
             >
-              Country
+              {t("country")}
             </label>
             <input
               id="country"
@@ -232,7 +234,7 @@ export default function AddressFormPage() {
               value={form.country}
               onChange={handleChange}
               required
-              placeholder="Enter your country"
+              placeholder={t("countryPlaceholder")}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
             />
           </div>
@@ -242,7 +244,7 @@ export default function AddressFormPage() {
             disabled={isPending}
             className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-6"
           >
-            {isPending ? "Saving..." : "Save"}
+            {isPending ? t("saving") : t("save")}
           </button>
         </form>
       </div>

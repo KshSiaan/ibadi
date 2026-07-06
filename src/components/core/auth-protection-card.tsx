@@ -1,8 +1,12 @@
+"use client";
+
 import { LogIn } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import { useTranslations } from "next-intl";
 
 export default function AuthProtectionCard() {
+  const t = useTranslations("AuthProtection");
+
   return (
     <div className="min-h-screen bg-[#f5f7fb] px-4 py-10">
       <div className="mx-auto flex min-h-[70vh] max-w-md items-center">
@@ -11,11 +15,10 @@ export default function AuthProtectionCard() {
             <LogIn className="size-7" />
           </div>
           <h1 className="text-2xl font-semibold text-gray-900">
-            Login required
+            {t("loginRequired")}
           </h1>
           <p className="mt-2 text-sm leading-6 text-gray-500">
-            Login or create an account to access your profile, saved details,
-            and account settings.
+            {t("loginDescription")}
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -23,13 +26,13 @@ export default function AuthProtectionCard() {
               href="/auth/login"
               className="inline-flex flex-1 items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
             >
-              Login
+              {t("login")}
             </Link>
             <Link
               href="/auth/register"
               className="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
             >
-              Create an account
+              {t("createAccount")}
             </Link>
           </div>
         </div>

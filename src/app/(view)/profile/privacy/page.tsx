@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function PrivacyPolicyPage() {
+  const t = useTranslations("Privacy");
   const router = useRouter();
 
   const privacyContent = `
@@ -27,7 +29,7 @@ export default function PrivacyPolicyPage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">Privacy Policy</h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       {/* Main Content */}

@@ -13,21 +13,9 @@ import {
 import { useCreateReview } from "@/hooks/api/reviews/use-reviews";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import type { Booking } from "@/lib/api/types";
+import { useTranslations } from "next-intl";
 
 type Tab = "upcoming" | "past" | "cancelled";
-
-const tabs: { id: Tab; label: string }[] = [
-  { id: "upcoming", label: "Upcoming" },
-  { id: "past", label: "Past" },
-  { id: "cancelled", label: "Cancelled" },
-];
-
-const ratingTags = [
-  "Overall Service",
-  "Customer Support",
-  "Speed and Efficiency",
-  "Repair Quality",
-];
 
 function RatingDialog({
   open,
@@ -38,10 +26,18 @@ function RatingDialog({
   onClose: () => void;
   booking: Booking | null;
 }) {
+  const t = useTranslations("Service");
   const [rating, setRating] = useState(4);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [feedback, setFeedback] = useState("");
   const createReview = useCreateReview();
+
+  const ratingTags = [
+    t("overallService"),
+    t("customerSupport"),
+    t("speedEfficiency"),
+    t("repairQuality"),
+  ];
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -57,14 +53,14 @@ function RatingDialog({
         review: feedback || selectedTags.join(", "),
         userId: booking.providerId,
       });
-      toast.success("Review submitted");
+      toast.success(t("reviewSubmitted"));
       setRating(4);
       setSelectedTags([]);
       setFeedback("");
       onClose();
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to submit review",
+        err instanceof Error ? err.message : t("failedToSubmitReview"),
       );
     }
   };
@@ -74,10 +70,10 @@ function RatingDialog({
       <DialogContent className="max-w-sm gap-0 p-6">
         <div className="mb-1">
           <h2 className="text-base font-bold text-gray-800">
-            Rate Your Experience
+            {t("rateExperience")}
           </h2>
           <p className="mt-0.5 text-xs text-gray-500">
-            Are you satisfied with the service?
+            {t("satisfiedWithService")}
           </p>
         </div>
 
@@ -102,7 +98,7 @@ function RatingDialog({
         </div>
 
         <p className="mb-3 text-sm font-semibold text-gray-800">
-          Tell us what can be improved?
+          {t("tellUsImprovement")}
         </p>
 
         <div className="mb-4 flex flex-wrap gap-2">
@@ -127,7 +123,7 @@ function RatingDialog({
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
           rows={3}
-          placeholder="Additional feedback..."
+          placeholder={t("additionalFeedback")}
           className="mb-5 w-full resize-none rounded-lg border border-gray-200 p-3 text-xs text-gray-600 focus:border-primary/50 focus:outline-none"
         />
 
@@ -137,7 +133,7 @@ function RatingDialog({
           disabled={createReview.isPending}
           className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {createReview.isPending ? "Submitting..." : "Submit"}
+          {createReview.isPending ? t("submitting") : t("submit")}
         </button>
       </DialogContent>
     </Dialog>
@@ -148,6 +144,10 @@ function BookingCard({
   booking,
   tab,
   onRate,
+  tPending,
+  tRating,
+  tSupport,
+  tCancelled,
 }: {
   booking: {
     id: string;
@@ -169,6 +169,10 @@ function BookingCard({
   };
   tab: Tab;
   onRate: () => void;
+  tPending: string;
+  tRating: string;
+  tSupport: string;
+  tCancelled: string;
 }) {
   const dateStr = booking.startDate
     ? new Date(booking.startDate).toLocaleDateString("en-US", {
@@ -206,9 +210,7 @@ function BookingCard({
           <div className="mt-1 flex flex-wrap gap-2">
             {tab === "upcoming" && (
               <span className="text-xs font-semibold text-primary">
-                {booking.status === "pending"
-                  ? "Pending acceptance"
-                  : booking.status}
+                {booking.status === "pending" ? tPending : booking.status}
               </span>
             )}
             {tab === "past" && (
@@ -218,19 +220,19 @@ function BookingCard({
                   onClick={onRate}
                   className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white"
                 >
-                  Rating
+                  {tRating}
                 </button>
                 <button
                   type="button"
                   className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white"
                 >
-                  Need Support Immediately
+                  {tSupport}
                 </button>
               </>
             )}
             {tab === "cancelled" && (
               <span className="rounded-full bg-red-200 px-3 py-1 text-xs font-semibold text-red-500">
-                Cancelled
+                {tCancelled}
               </span>
             )}
           </div>
@@ -241,9 +243,16 @@ function BookingCard({
 }
 
 function UserServicePage() {
+  const t = useTranslations("Service");
   const [activeTab, setActiveTab] = useState<Tab>("upcoming");
   const [ratingOpen, setRatingOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "upcoming", label: t("upcoming") },
+    { id: "past", label: t("past") },
+    { id: "cancelled", label: t("cancelled") },
+  ];
 
   const upcomingQuery = useUserBookings({ upcoming: true });
   const pastQuery = useUserBookings({ past: true });
@@ -286,10 +295,14 @@ function UserServicePage() {
 
       <div className="mx-auto max-w-lg flex flex-col gap-3">
         {activeQuery.isLoading && (
-          <p className="text-center text-sm text-gray-500 py-8">Loading...</p>
+          <p className="text-center text-sm text-gray-500 py-8">
+            {t("loading")}
+          </p>
         )}
         {!activeQuery.isLoading && bookings.length === 0 && (
-          <p className="text-center text-sm text-gray-500 py-8">No bookings</p>
+          <p className="text-center text-sm text-gray-500 py-8">
+            {t("noBookings")}
+          </p>
         )}
         {bookings.map((booking) => (
           <BookingCard
@@ -300,6 +313,10 @@ function UserServicePage() {
               setSelectedBooking(booking);
               setRatingOpen(true);
             }}
+            tPending={t("pendingAcceptance")}
+            tRating={t("rating")}
+            tSupport={t("needSupportImmediately")}
+            tCancelled={t("cancelled")}
           />
         ))}
       </div>
@@ -314,7 +331,14 @@ function UserServicePage() {
 }
 
 function ProviderServicePage() {
+  const t = useTranslations("Service");
   const [activeTab, setActiveTab] = useState<Tab>("upcoming");
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "upcoming", label: t("upcoming") },
+    { id: "past", label: t("past") },
+    { id: "cancelled", label: t("cancelled") },
+  ];
 
   const upcomingQuery = useProviderBookings({ upcoming: true });
   const pastQuery = useProviderBookings({ past: true });
@@ -357,10 +381,14 @@ function ProviderServicePage() {
 
       <div className="mx-auto max-w-lg flex flex-col gap-3">
         {activeQuery.isLoading && (
-          <p className="text-center text-sm text-gray-500 py-8">Loading...</p>
+          <p className="text-center text-sm text-gray-500 py-8">
+            {t("loading")}
+          </p>
         )}
         {!activeQuery.isLoading && bookings.length === 0 && (
-          <p className="text-center text-sm text-gray-500 py-8">No bookings</p>
+          <p className="text-center text-sm text-gray-500 py-8">
+            {t("noBookings")}
+          </p>
         )}
         {bookings.map((booking) => (
           <BookingCard
@@ -368,6 +396,10 @@ function ProviderServicePage() {
             booking={booking as any}
             tab={activeTab}
             onRate={() => {}}
+            tPending={t("pendingAcceptance")}
+            tRating={t("rating")}
+            tSupport={t("needSupportImmediately")}
+            tCancelled={t("cancelled")}
           />
         ))}
       </div>
@@ -376,12 +408,13 @@ function ProviderServicePage() {
 }
 
 export default function ServicePage() {
+  const t = useTranslations("Service");
   const { data: profile, isLoading: profileLoading } = useMyProfile();
 
   return (
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
       <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
-        Service
+        {t("title")}
       </h1>
 
       {profileLoading && (

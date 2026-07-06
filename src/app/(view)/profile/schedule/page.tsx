@@ -10,6 +10,7 @@ import {
 } from "@/hooks/api/work-schedule/use-work-schedule";
 import { WorkScheduleEntry } from "@/lib/api/types";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
+import { useTranslations } from "next-intl";
 
 const DAYS: WorkScheduleEntry["day"][] = [
   "Mon",
@@ -21,14 +22,14 @@ const DAYS: WorkScheduleEntry["day"][] = [
   "Sun",
 ];
 
-const DAY_LABELS: Record<WorkScheduleEntry["day"], string> = {
-  Mon: "Monday",
-  Tue: "Tuesday",
-  Wed: "Wednesday",
-  Thu: "Thursday",
-  Fri: "Friday",
-  Sat: "Saturday",
-  Sun: "Sunday",
+const DAY_KEYS: Record<WorkScheduleEntry["day"], string> = {
+  Mon: "monday",
+  Tue: "tuesday",
+  Wed: "wednesday",
+  Thu: "thursday",
+  Fri: "friday",
+  Sat: "saturday",
+  Sun: "sunday",
 };
 
 interface DayState {
@@ -38,7 +39,18 @@ interface DayState {
   endTime: string;
 }
 
+function timeToISO(time: string): string {
+  return `1970-01-01T${time}:00.000Z`;
+}
+
+function isoToTime(iso: string): string {
+  // Extract HH:mm from ISO-8601 like "1970-01-01T09:00:00.000Z"
+  const match = iso.match(/T(\d{2}:\d{2})/);
+  return match ? match[1] : iso;
+}
+
 export default function SchedulePage() {
+  const t = useTranslations("Schedule");
   const router = useRouter();
   const { data: profile } = useMyProfile();
   const { data: schedule, isLoading } = useGetWorkSchedule();
@@ -56,21 +68,30 @@ export default function SchedulePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (schedule) {
+    // Use dedicated endpoint first, fall back to profile's embedded workSchedule
+    const source =
+      Array.isArray(schedule) && schedule.length > 0
+        ? schedule
+        : Array.isArray(profile?.workSchedule) &&
+            profile.workSchedule.length > 0
+          ? profile.workSchedule
+          : null;
+
+    if (source) {
       setDays((prev) => {
         const next = { ...prev };
-        schedule.forEach((entry) => {
+        source.forEach((entry) => {
           next[entry.day] = {
             id: entry.id,
             status: entry.status,
-            startTime: entry.startTime,
-            endTime: entry.endTime,
+            startTime: isoToTime(entry.startTime),
+            endTime: isoToTime(entry.endTime),
           };
         });
         return next;
       });
     }
-  }, [schedule]);
+  }, [schedule, profile]);
 
   const updateDay = (day: string, patch: Partial<DayState>) => {
     setDays((prev) => ({ ...prev, [day]: { ...prev[day], ...patch } }));
@@ -88,16 +109,16 @@ export default function SchedulePage() {
           toUpdate.push({
             id: state.id,
             status: state.status,
-            startTime: state.startTime,
-            endTime: state.endTime,
+            startTime: timeToISO(state.startTime),
+            endTime: timeToISO(state.endTime),
           });
         } else {
           toCreate.push({
             day,
             userId: profile?.id ?? "",
             status: state.status,
-            startTime: state.startTime,
-            endTime: state.endTime,
+            startTime: timeToISO(state.startTime),
+            endTime: timeToISO(state.endTime),
           });
         }
       }
@@ -110,7 +131,7 @@ export default function SchedulePage() {
       }
       router.back();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save schedule");
+      setError(err instanceof Error ? err.message : t("failedToSave"));
     }
   };
 
@@ -119,7 +140,7 @@ export default function SchedulePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500 text-sm">Loading...</p>
+        <p className="text-gray-500 text-sm">{t("loading")}</p>
       </div>
     );
   }
@@ -134,13 +155,11 @@ export default function SchedulePage() {
         >
           <ArrowLeft className="w-6 h-6 text-gray-800" />
         </button>
-        <h1 className="text-lg font-semibold text-gray-900">Work schedule</h1>
+        <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-8">
-        <p className="text-sm text-gray-500 mb-6">
-          When are you available to offer your services?
-        </p>
+        <p className="text-sm text-gray-500 mb-6">{t("description")}</p>
 
         {error && (
           <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
@@ -155,7 +174,7 @@ export default function SchedulePage() {
               <div key={day} className="border-b border-gray-100 pb-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-gray-900">
-                    {DAY_LABELS[day]}
+                    {t(DAY_KEYS[day] as any)}
                   </span>
                   <div className="flex items-center gap-2">
                     <button
@@ -172,7 +191,7 @@ export default function SchedulePage() {
                       />
                     </button>
                     <span className="text-xs text-gray-500 w-20">
-                      {state.status ? "Available" : "Not available"}
+                      {state.status ? t("available") : t("notAvailable")}
                     </span>
                   </div>
                 </div>
@@ -208,7 +227,7 @@ export default function SchedulePage() {
           disabled={isSaving}
           className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8"
         >
-          {isSaving ? "Saving..." : "Confirm"}
+          {isSaving ? t("saving") : t("confirm")}
         </button>
       </div>
     </div>

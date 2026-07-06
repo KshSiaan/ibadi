@@ -1,14 +1,17 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
-const footerLinks = [
-  { label: "Home", href: "/" },
-  { label: "Service", href: "/service" },
-  { label: "Favourites", href: "/favourite" },
-  { label: "Inbox", href: "/inbox" },
-  { label: "Profile", href: "/profile" },
-];
+export default async function Footer() {
+  const t = await getTranslations("Footer");
 
-export default function Footer() {
+  const footerLinks = [
+    { label: t("home"), href: "/" },
+    { label: t("service"), href: "/service" },
+    { label: t("favourites"), href: "/favourite" },
+    { label: t("inbox"), href: "/inbox" },
+    { label: t("profile"), href: "/profile" },
+  ];
+
   return (
     <footer className="bg-[#1e2330] text-white">
       <div className="container mx-auto px-6 py-12 lg:px-16">
@@ -32,7 +35,7 @@ export default function Footer() {
             ))}
           </nav>
 
-          <p className="text-xs text-white/40">Copyright iBadi</p>
+          <p className="text-xs text-white/40">{t("copyright")}</p>
         </div>
       </div>
     </footer>

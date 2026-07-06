@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export const PRIVACY_KEY = "ibadi_privacy_accepted";
 
 export default function PrivacyModal({ onAccept }: { onAccept: () => void }) {
+  const t = useTranslations("PrivacyModal");
+
   function accept() {
     localStorage.setItem(PRIVACY_KEY, "1");
     onAccept();
@@ -39,12 +42,10 @@ export default function PrivacyModal({ onAccept }: { onAccept: () => void }) {
         </div>
 
         <h2 className="mb-3 text-center text-xl font-bold text-[#1e2d4f]">
-          We value your privacy
+          {t("title")}
         </h2>
         <p className="mb-5 text-center text-sm leading-relaxed text-gray-500">
-          Webel uses cookies to analyse advertising campaign performance,
-          improve app ads, and personalize the experience based on user
-          preference.
+          {t("description")}
         </p>
 
         <div className="mb-6 flex justify-center">
@@ -52,7 +53,7 @@ export default function PrivacyModal({ onAccept }: { onAccept: () => void }) {
             href="/privacy"
             className="text-sm font-semibold text-primary underline underline-offset-2"
           >
-            Privacy Policy
+            {t("privacyPolicy")}
           </Link>
         </div>
 
@@ -61,7 +62,7 @@ export default function PrivacyModal({ onAccept }: { onAccept: () => void }) {
           onClick={accept}
           className="w-full rounded-xl bg-primary py-4 text-sm font-semibold text-white transition-opacity hover:opacity-90"
         >
-          Accept
+          {t("accept")}
         </button>
       </div>
     </div>

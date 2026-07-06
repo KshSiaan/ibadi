@@ -1,21 +1,5 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
-import { useGetFaqsByUser } from "@/hooks/api/faq/use-faq";
-import {
-  useCreateFavorite,
-  useGetFavorites,
-  useDeleteFavorite,
-} from "@/hooks/api/favorites/use-favorites";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -26,16 +10,34 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { use, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { use, useMemo, useState } from "react";
 import { useCookies } from "react-cookie";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useGetFaqsByUser } from "@/hooks/api/faq/use-faq";
+import {
+  useCreateFavorite,
+  useDeleteFavorite,
+  useGetFavorites,
+} from "@/hooks/api/favorites/use-favorites";
+import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 
 export default function UserProfilePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = useTranslations("UserProfile");
   const { id } = use(params);
   const router = useRouter();
   const [cookies] = useCookies(["accessToken", "user"]);
@@ -61,17 +63,17 @@ export default function UserProfilePage({
 
   const handleToggleFavorite = () => {
     if (!cookies.accessToken) {
-      toast.error("Please log in to add favorites");
+      toast.error(t("pleaseLoginFavorites"));
       return;
     }
 
     if (isFavorited && favoriteId) {
       deleteFavorite(favoriteId, {
         onSuccess: () => {
-          toast.success("Removed from favorites");
+          toast.success(t("removedFromFavorites"));
         },
         onError: (error) => {
-          toast.error(error.message || "Failed to remove from favorites");
+          toast.error(error.message || t("failedToRemoveFavorites"));
         },
       });
     } else {
@@ -79,10 +81,10 @@ export default function UserProfilePage({
         { serviceProviderId: id },
         {
           onSuccess: () => {
-            toast.success("Added to favorites");
+            toast.success(t("addedToFavorites"));
           },
           onError: (error) => {
-            toast.error(error.message || "Failed to add to favorites");
+            toast.error(error.message || t("failedToAddFavorites"));
           },
         },
       );
@@ -100,13 +102,13 @@ export default function UserProfilePage({
   if (error || !user) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6">
-        <p className="text-sm text-red-500">Failed to load profile.</p>
+        <p className="text-sm text-red-500">{t("failedToLoadProfile")}</p>
         <button
           type="button"
           onClick={() => router.back()}
           className="text-sm font-semibold text-primary"
         >
-          Go back
+          {t("goBack")}
         </button>
       </div>
     );
@@ -131,7 +133,7 @@ export default function UserProfilePage({
           <ArrowLeft className="size-5" />
         </button>
         <h1 className="text-base font-bold text-[#1e2d4f]">
-          {user.name}&apos;s profile
+          {t("profile", { name: user.name })}
         </h1>
         <div className="flex items-center gap-3">
           <button type="button" className="text-gray-600">
@@ -195,7 +197,7 @@ export default function UserProfilePage({
                 <Star className="size-3.5 fill-yellow-400 text-yellow-400" />
               </div>
               <p className="text-[10px] text-gray-400">
-                {user.totalReview ?? 0} reviews
+                {t("reviews", { count: user.totalReview ?? 0 })}
               </p>
             </div>
 
@@ -204,7 +206,7 @@ export default function UserProfilePage({
               <span className="text-sm font-bold text-gray-800">
                 {tasks.length}
               </span>
-              <p className="text-[10px] text-gray-400">Services</p>
+              <p className="text-[10px] text-gray-400">{t("services")}</p>
             </div>
 
             <div className="flex flex-col items-center justify-center gap-1 px-2">
@@ -217,7 +219,9 @@ export default function UserProfilePage({
           {/* About me */}
           {bio && (
             <div className="rounded-xl bg-white p-4 shadow-sm">
-              <h2 className="mb-2 text-sm font-bold text-gray-800">About me</h2>
+              <h2 className="mb-2 text-sm font-bold text-gray-800">
+                {t("aboutMe")}
+              </h2>
               <p className="text-xs leading-relaxed text-gray-500">
                 {expanded ? bio : bio.slice(0, 120)}
                 {bio.length > 120 && !expanded && "..."}
@@ -228,7 +232,7 @@ export default function UserProfilePage({
                   onClick={() => setExpanded((e) => !e)}
                   className="mt-1 text-xs font-semibold text-primary"
                 >
-                  {expanded ? "- Show less" : "+View more"}
+                  {expanded ? t("showLess") : t("viewMore")}
                 </button>
               )}
             </div>
@@ -238,12 +242,14 @@ export default function UserProfilePage({
           {firstImage && (
             <div className="rounded-xl bg-white p-4 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-bold text-gray-800">Gallery</h2>
+                <h2 className="text-sm font-bold text-gray-800">
+                  {t("gallery")}
+                </h2>
                 <button
                   type="button"
                   className="text-xs font-semibold text-primary"
                 >
-                  View gallery
+                  {t("viewGallery")}
                 </button>
               </div>
               <div className="overflow-hidden rounded-lg">
@@ -264,14 +270,14 @@ export default function UserProfilePage({
             <span className="text-lg font-bold text-gray-800">
               {info?.perHourPrice
                 ? `$${info.perHourPrice.toFixed(0)}/h`
-                : "Price on request"}
+                : t("priceOnRequest")}
             </span>
             <button
               type="button"
               onClick={() => setFrequencyOpen(true)}
               className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
-              View availability
+              {t("viewAvailability")}
             </button>
           </div>
         </div>
@@ -281,7 +287,7 @@ export default function UserProfilePage({
           {/* Q&A */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <h2 className="mb-4 text-sm font-bold text-gray-500">
-              Some question about me
+              {t("questionsAboutMe")}
             </h2>
             <div className="flex flex-col gap-4">
               {faqsLoading ? (
@@ -291,7 +297,7 @@ export default function UserProfilePage({
                   <Skeleton className="h-4 w-2/3" />
                 </>
               ) : faqs.length === 0 ? (
-                <p className="text-xs text-gray-400">No questions yet.</p>
+                <p className="text-xs text-gray-400">{t("noQuestionsYet")}</p>
               ) : (
                 faqs.map((faq) => (
                   <div key={faq.id}>
@@ -305,7 +311,7 @@ export default function UserProfilePage({
               {experience && (
                 <div>
                   <p className="mb-1 text-sm font-semibold text-[#1e2d4f]">
-                    How much experience do you have?
+                    {t("experienceQuestion")}
                   </p>
                   <p className="text-xs text-gray-500">{experience}</p>
                 </div>
@@ -313,16 +319,16 @@ export default function UserProfilePage({
               {tasks.length > 0 && (
                 <div>
                   <p className="mb-2 text-sm font-semibold text-[#1e2d4f]">
-                    Other required tasks
+                    {t("otherRequiredTasks")}
                   </p>
                   <div className="flex flex-col gap-1">
-                    {tasks.map((t) => (
+                    {tasks.map((task) => (
                       <div
-                        key={t.othersTask.id}
+                        key={task.othersTask.id}
                         className="flex items-center gap-1 text-xs text-gray-500"
                       >
                         <CheckCircle2 className="size-3.5 shrink-0 text-primary" />
-                        {t.othersTask.value}
+                        {task.othersTask.value}
                       </div>
                     ))}
                   </div>
@@ -341,13 +347,13 @@ export default function UserProfilePage({
               <div>
                 <p className="text-sm font-bold text-gray-800">
                   {(user.avgRating ?? 0) >= 4.5
-                    ? "Outstanding"
+                    ? t("outstanding")
                     : (user.avgRating ?? 0) >= 3.5
-                      ? "Good"
-                      : "Average"}
+                      ? t("good")
+                      : t("average")}
                 </p>
                 <p className="text-xs text-gray-400">
-                  ({user.totalReview ?? 0} ratings)
+                  {t("ratings", { count: user.totalReview ?? 0 })}
                 </p>
               </div>
             </div>
@@ -360,11 +366,9 @@ export default function UserProfilePage({
         <DialogContent className="max-w-sm gap-4 p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-gray-800">
-              Service frequency
+              {t("serviceFrequency")}
             </DialogTitle>
-            <p className="mt-1 text-sm text-gray-500">
-              How often do you need the service?
-            </p>
+            <p className="mt-1 text-sm text-gray-500">{t("howOften")}</p>
           </DialogHeader>
 
           <div className="space-y-3">
@@ -392,20 +396,24 @@ export default function UserProfilePage({
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-gray-800">Weekly</p>
-                  <p className="text-xs text-gray-500">Recurring service</p>
+                  <p className="text-sm font-bold text-gray-800">
+                    {t("weekly")}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {t("recurringService")}
+                  </p>
                   <ul className="mt-2 space-y-1">
                     <li className="flex items-center gap-1.5 text-xs text-gray-600">
                       <CheckCircle2 className="size-3.5 text-primary shrink-0" />
-                      Same professional each visit
+                      {t("sameProfessional")}
                     </li>
                     <li className="flex items-center gap-1.5 text-xs text-gray-600">
                       <CheckCircle2 className="size-3.5 text-primary shrink-0" />
-                      Automatic booking and weekly payment
+                      {t("automaticBooking")}
                     </li>
                     <li className="flex items-center gap-1.5 text-xs text-gray-600">
                       <CheckCircle2 className="size-3.5 text-primary shrink-0" />
-                      Cancel one-time service in 1 click
+                      {t("cancelOneTime")}
                     </li>
                   </ul>
                 </div>
@@ -436,8 +444,10 @@ export default function UserProfilePage({
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-gray-800">Just once</p>
-                  <p className="text-xs text-gray-500">One-time service</p>
+                  <p className="text-sm font-bold text-gray-800">
+                    {t("justOnce")}
+                  </p>
+                  <p className="text-xs text-gray-500">{t("oneTimeService")}</p>
                 </div>
               </div>
             </button>
@@ -447,7 +457,7 @@ export default function UserProfilePage({
             <Link
               href={`/user/${id}/booking-time?frequency=${frequency}&pricePerHour=${info?.perHourPrice ?? 0}`}
             >
-              Continue
+              {t("continue")}
             </Link>
           </Button>
         </DialogContent>

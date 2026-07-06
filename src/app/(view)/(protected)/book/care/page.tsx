@@ -7,15 +7,17 @@ import { useRouter } from "next/navigation";
 import { useGetMyAddresses } from "@/hooks/api/address/use-address";
 import { useCategories } from "@/hooks/api/use-categories";
 import { useServiceBooking } from "@/lib/store/service-booking";
+import { useTranslations } from "next-intl";
 
 export default function CarePage() {
+  const t = useTranslations("BookCare");
   const router = useRouter();
   const { setSelectedService, setSelectedCategoryId } = useServiceBooking();
-  const { data: addresses = [], isLoading: addressesLoading } = useGetMyAddresses();
+  const { data: addresses = [], isLoading: addressesLoading } =
+    useGetMyAddresses();
   const { data: categories = [] } = useCategories();
 
-  const activeAddress =
-    addresses.find((a) => a.isDefault) ?? addresses[0];
+  const activeAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
 
   const addressLabel = activeAddress
     ? `${activeAddress.addressLine1}, ${activeAddress.city}, ${activeAddress.state}`
@@ -44,7 +46,7 @@ export default function CarePage() {
           className="absolute top-24 flex items-center gap-1 text-base font-semibold text-primary"
         >
           <ArrowLeft className="size-5" />
-          Care
+          {t("care")}
         </Link>
       </div>
 
@@ -70,7 +72,9 @@ export default function CarePage() {
               height={42}
             />
           </div>
-          <span className="text-sm font-medium text-gray-700">Children</span>
+          <span className="text-sm font-medium text-gray-700">
+            {t("children")}
+          </span>
         </button>
 
         <button
@@ -94,7 +98,9 @@ export default function CarePage() {
               height={42}
             />
           </div>
-          <span className="text-sm font-medium text-gray-700">Elders</span>
+          <span className="text-sm font-medium text-gray-700">
+            {t("elders")}
+          </span>
         </button>
       </div>
 
@@ -103,7 +109,7 @@ export default function CarePage() {
           <Loader2 className="size-4 animate-spin text-gray-400" />
         ) : (
           <p className="text-sm font-semibold text-gray-700">
-            {addressLabel ?? "No address saved"}
+            {addressLabel ?? t("noAddressSaved")}
           </p>
         )}
       </div>

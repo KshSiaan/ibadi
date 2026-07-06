@@ -3,9 +3,8 @@
 import { signInWithPopup } from "firebase/auth";
 import { AlertCircle, ArrowLeftIcon, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useCookies } from "react-cookie";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,9 +13,13 @@ import { useFcmContext } from "@/context/FcmContext";
 import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
 import { useLogin } from "@/hooks/api/use-login";
 import { firebaseAuth, googleProvider } from "@/lib/firebase-auth";
+import { useTranslations } from "next-intl";
 
 export default function LoginPage() {
+  const t = useTranslations("Login");
+  const tCommon = useTranslations("Common");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,18 +33,14 @@ export default function LoginPage() {
   } = useFcmContext();
   const { mutate: login, isPending: loading, error } = useLogin();
   const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
-  const [, , removeCookie] = useCookies([
-    "accessToken",
-    "refreshToken",
-    "user",
-  ]);
 
-  const rejectUnverified = () => {
-    removeCookie("accessToken", { path: "/" });
-    removeCookie("refreshToken", { path: "/" });
-    removeCookie("user", { path: "/" });
-    toast.error("Your account is not verified yet. You can't log in.");
-  };
+  // Handle toast messages from redirects
+  useEffect(() => {
+    const message = searchParams.get("message");
+    if (message === "verification_submitted") {
+      toast.success(t("verificationSubmitted"));
+    }
+  }, [searchParams, t]);
 
   const triggerGoogleLogin = async () => {
     setGoogleError(null);
@@ -58,8 +57,7 @@ export default function LoginPage() {
               data.user.role === "service_provider" &&
               !data.user.isVerified
             ) {
-              rejectUnverified();
-              return;
+              toast.info(t("pendingVerification"));
             }
             router.push(
               data.user.role === "service_provider" ? "/professional" : "/",
@@ -105,10 +103,9 @@ export default function LoginPage() {
       body,
       {
         onSuccess: (data) => {
-          // if (data.user.role === "service_provider" && !data.user.isVerified) {
-          //   // rejectUnverified();
-          //   return;
-          // }
+          if (data.user.role === "service_provider" && !data.user.isVerified) {
+            toast.info(t("pendingVerification"));
+          }
           if (data.user.role === "service_provider") {
             window.location.href = "/professional";
           } else {
@@ -127,9 +124,9 @@ export default function LoginPage() {
   const disabledReason = (() => {
     if (busy || fcmLoading) return null;
     if (!fcmToken) return null; // amber banner covers this
-    if (!email && !password) return "Enter your email and password to continue";
-    if (!email) return "Enter your email to continue";
-    if (!password) return "Enter your password to continue";
+    if (!email && !password) return t("enterEmailAndPassword");
+    if (!email) return t("enterEmail");
+    if (!password) return t("enterPassword");
     return null;
   })();
 
@@ -145,15 +142,15 @@ export default function LoginPage() {
             }}
           >
             <ArrowLeftIcon />
-            Back to Home
+            {tCommon("backToHome")}
           </Button>
         </div>
         <CardContent className="space-y-6 p-8">
           <div className="space-y-2 text-center">
-            <h1 className="text-3xl font-bold text-slate-900">Welcome back</h1>
-            <p className="text-sm text-slate-600">
-              Sign in to your account to continue
-            </p>
+            <h1 className="text-3xl font-bold text-slate-900">
+              {t("welcomeBack")}
+            </h1>
+            <p className="text-sm text-slate-600">{t("signInToContinue")}</p>
           </div>
 
           {errorMessage && (
@@ -169,12 +166,12 @@ export default function LoginPage() {
                 htmlFor="login-email"
                 className="text-sm font-medium text-slate-700"
               >
-                Email
+                {t("email")}
               </label>
               <Input
                 id="login-email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={busy}
@@ -188,13 +185,13 @@ export default function LoginPage() {
                 htmlFor="login-password"
                 className="text-sm font-medium text-slate-700"
               >
-                Password
+                {t("password")}
               </label>
               <div className="relative">
                 <Input
                   id="login-password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder={t("passwordPlaceholder")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={busy}
@@ -223,13 +220,15 @@ export default function LoginPage() {
                   className="rounded border-slate-300"
                   disabled={busy}
                 />
-                <span className="text-sm text-slate-600">Remember me</span>
+                <span className="text-sm text-slate-600">
+                  {t("rememberMe")}
+                </span>
               </label>
               <Link
                 href="/auth/forgot-password"
                 className="text-sm font-medium text-primary hover:text-primary/80"
               >
-                Forgot password?
+                {t("forgotPassword")}
               </Link>
             </div>
 
@@ -241,10 +240,10 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
-                  Signing in...
+                  {t("signingIn")}
                 </>
               ) : (
-                "Sign in"
+                t("signIn")
               )}
             </Button>
             {disabledReason && (
@@ -256,7 +255,7 @@ export default function LoginPage() {
 
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-slate-200" />
-            <span className="text-xs text-slate-500">OR</span>
+            <span className="text-xs text-slate-500">{tCommon("or")}</span>
             <div className="h-px flex-1 bg-slate-200" />
           </div>
 
@@ -271,7 +270,7 @@ export default function LoginPage() {
               {googleLoading ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
-                  Signing in...
+                  {t("signingIn")}
                 </>
               ) : (
                 <>
@@ -298,7 +297,7 @@ export default function LoginPage() {
                       fill="#EA4335"
                     />
                   </svg>
-                  Continue with Google
+                  {t("continueWithGoogle")}
                 </>
               )}
             </Button>
@@ -306,12 +305,12 @@ export default function LoginPage() {
 
           <div className="text-center">
             <p className="text-sm text-slate-600">
-              Don&apos;t have an account?{" "}
+              {t("dontHaveAccount")}{" "}
               <Link
                 href="/auth/register"
                 className="font-medium text-primary hover:text-primary/80"
               >
-                Create one
+                {t("createOne")}
               </Link>
             </p>
           </div>
