@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { Loader2 } from "lucide-react";
 import { useSaveCard } from "@/hooks/api/stripe/use-stripe";
@@ -38,10 +43,11 @@ function CardForm({
     setSubmitting(true);
     setError(null);
 
-    const { paymentMethod, error: stripeError } = await stripe.createPaymentMethod({
-      type: "card",
-      card: cardElement,
-    });
+    const { paymentMethod, error: stripeError } =
+      await stripe.createPaymentMethod({
+        type: "card",
+        card: cardElement,
+      });
 
     if (stripeError) {
       setError(stripeError.message ?? "Card error");
@@ -117,7 +123,11 @@ export function AddCardForm({
 }) {
   return (
     <Elements stripe={stripePromise}>
-      <CardForm onSuccess={onSuccess} onCancel={onCancel} customerId={customerId} />
+      <CardForm
+        onSuccess={onSuccess}
+        onCancel={onCancel}
+        customerId={customerId}
+      />
     </Elements>
   );
 }

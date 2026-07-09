@@ -136,13 +136,16 @@ export default function ResultsPage() {
       <div className="mx-auto w-full max-w-lg px-4 py-4">
         {/* Filter row */}
         <div className="mb-4 flex items-center gap-2">
-          <button
-            type="button"
-            className="flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary"
-          >
-            <CheckCircle2 className="size-3.5" />
-            {t("when")}
-          </button>
+          <Link href="/book/schedule">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary"
+            >
+              <CheckCircle2 className="size-3.5" />
+              {t("when")}
+            </button>
+          </Link>
+
           <button
             type="button"
             onClick={() => setFilterOpen(true)}
