@@ -122,9 +122,9 @@ export default function UserProfilePage({
   const experience = info?.experience?.value;
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh bg-muted">
       {/* Header */}
-      <div className="flex items-center justify-between bg-white px-4 py-3">
+      <div className="flex items-center justify-between bg-muted px-4 py-3">
         <button
           type="button"
           onClick={() => router.back()}
@@ -155,7 +155,7 @@ export default function UserProfilePage({
         </div>
       </div>
 
-      <div className="mx-auto max-w-4xl px-4 py-6 lg:grid lg:grid-cols-2 lg:gap-10">
+      <div className="mx-auto max-w-4xl px-4 py-6 lg:grid lg:grid-cols-2 lg:gap-10 bg-muted">
         {/* ── Left column ── */}
         <div className="flex flex-col gap-5">
           {/* Avatar + name */}

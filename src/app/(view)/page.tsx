@@ -267,22 +267,13 @@ function AddressForm({
           className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <input
-          value={form.postalCode}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, postalCode: e.target.value }))
-          }
-          placeholder="Postal code"
-          required
-          className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-        />
+      <div className="">
         <input
           value={form.country}
           onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
           placeholder="Country"
           required
-          className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          className="rounded-lg w-full border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
       </div>
       <div className="flex gap-2 pt-1">

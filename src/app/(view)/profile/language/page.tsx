@@ -20,6 +20,7 @@ const languages = [
   { code: "fr", name: "Français" },
   { code: "de", name: "Deutsch" },
   { code: "it", name: "Italiano" },
+  { code: "ro", name: "Român" },
   { code: "pt", name: "Português" },
   { code: "ru", name: "Русский" },
   { code: "ja", name: "日本語" },
