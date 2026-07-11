@@ -557,7 +557,10 @@
     "loginRequired": "Login required",
     "loginDescription": "Login or create an account to access your profile, saved details, and account settings.",
     "login": "Login",
-    "createAccount": "Create an account"
+    "createAccount": "Create an account",
+    "verificationRequired": "Verification Pending",
+    "verificationDescription": "Your account is pending verification. Some features may be limited until your account is verified.",
+    "goBack":"Go back"
   },
   "ProviderSetup": {
     "specialtiesTitle": "Your\nSpecialties",

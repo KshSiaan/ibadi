@@ -557,7 +557,10 @@
     "loginRequired": "ログインが必要です",
     "loginDescription": "プロフィール、保存された詳細、アカウント設定にアクセスするには、ログインまたはアカウントを作成してください。",
     "login": "ログイン",
-    "createAccount": "アカウントを作成"
+    "createAccount": "アカウントを作成",
+    "verificationRequired": "確認待ち",
+    "verificationDescription": "あなたのアカウントは確認待ちです。アカウントが確認されるまで、一部の機能が制限される場合があります。",
+    "goBack":"戻る"
   },
   "ProviderSetup": {
     "specialtiesTitle": "あなたの\n専門分野",

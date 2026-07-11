@@ -14,6 +14,7 @@ import { useUpdateServiceProviderInfo } from "@/hooks/api/user/use-update-servic
 import { useCategories } from "@/hooks/api/use-categories";
 import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
+import { useCreateVerificationRequest } from "@/hooks/api/verification-request/use-verification-request";
 
 type Step = 0 | 1 | 2 | 3 | 4 | 5;
 type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
@@ -111,6 +112,10 @@ export default function ProviderSetupPage() {
     useCreateWorkSchedule();
   const { mutate: updateServiceProvider, isPending: loadingServiceProvider } =
     useUpdateServiceProviderInfo();
+  const {
+    mutate: createVerificationRequest,
+    isPending: loadingVerificationRequest,
+  } = useCreateVerificationRequest();
 
   const [step, setStep] = useState<Step>(0);
   const [form, setForm] = useState<FormData>({
@@ -130,6 +135,7 @@ export default function ProviderSetupPage() {
       Sun: { ...defaultDaySchedule },
     },
   });
+  const [verifImages, setVerifImages] = useState<File[]>([]);
 
   // Initialize taskOptions when they're loaded
   const initializedForm = useMemo(() => {
@@ -217,6 +223,10 @@ export default function ProviderSetupPage() {
   }
 
   async function submit() {
+    if (!me || verifImages.length === 0) {
+      toast.error("Please upload verification images.");
+      return;
+    }
     try {
       // Build workSchedule payload
       const workSchedulePayload = DAYS.filter(
@@ -257,6 +267,11 @@ export default function ProviderSetupPage() {
           router.push("/auth/login?message=verification_submitted");
         },
       });
+      const verifDataset = new FormData();
+      verifImages.forEach((file) => {
+        verifDataset.append("images", file);
+      });
+      createVerificationRequest(verifDataset);
     } catch (error) {
       console.error("[Provider Setup] Submission error:", error);
       toast.error("Something went wrong. Please try again.");
@@ -539,6 +554,47 @@ export default function ProviderSetupPage() {
               }
               className="rounded-xl border-0 bg-white shadow-sm text-sm"
             />
+            <div className="">
+              <label className="flex cursor-pointer items-center justify-center w-full rounded-xl bg-white px-6 py-8 shadow-sm hover:shadow-md transition-shadow border-2 border-dashed border-gray-200">
+                <div className="flex flex-col items-center gap-2">
+                  {verifImages.length > 0 ? (
+                    verifImages.map((file, index) => (
+                      <span
+                        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                        key={index}
+                        className="text-sm font-medium text-primary"
+                      >
+                        {file.name}
+                      </span>
+                    ))
+                  ) : (
+                    <>
+                      <span className="text-lg">📸</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        Upload photo
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        JPG, PNG up to 5MB
+                      </span>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={(e) => {
+                    const file = e.target.files;
+                    if (file) {
+                      const filesArray = Array.from(file);
+                      setVerifImages(filesArray);
+                    }
+                  }}
+                  multiple
+                  max={2}
+                  className="hidden"
+                />
+              </label>
+            </div>
           </div>
         )}
 
@@ -637,7 +693,7 @@ export default function ProviderSetupPage() {
             ? isScheduleStep
               ? "Confirm"
               : "Next"
-            : isSubmitting
+            : isSubmitting || loadingVerificationRequest
               ? "Submitting..."
               : "Submit for Verification"}
         </button>

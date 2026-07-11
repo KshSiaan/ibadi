@@ -557,7 +557,10 @@
     "loginRequired": "Connexion requise",
     "loginDescription": "Connectez-vous ou créez un compte pour accéder à votre profil, vos détails enregistrés et les paramètres de votre compte.",
     "login": "Se connecter",
-    "createAccount": "Créer un compte"
+    "createAccount": "Créer un compte",
+    "verificationRequired": "Vérification en attente",
+    "verificationDescription": "Votre compte est en attente de vérification. Certaines fonctionnalités peuvent être limitées jusqu'à ce que votre compte soit vérifié.",
+    "goBack":"Retour"
   },
   "ProviderSetup": {
     "specialtiesTitle": "Vos\nSpécialités",

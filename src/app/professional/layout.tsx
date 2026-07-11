@@ -69,6 +69,10 @@ export default async function HomeLayout({
     },
   ];
 
+  if (!user.isVerified) {
+    redirect("/auth/provider-setup");
+  }
+
   return (
     <>
       <Navbar />

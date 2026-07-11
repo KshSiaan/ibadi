@@ -557,7 +557,10 @@
     "loginRequired": "需要登录",
     "loginDescription": "登录或创建账户以访问您的个人资料、保存的详细信息和账户设置。",
     "login": "登录",
-    "createAccount": "创建账户"
+    "createAccount": "创建账户",
+    "verificationRequired": "需要验证",
+    "verificationDescription": "您的账户等待验证。在账户验证之前，某些功能可能受到限制。",
+    "goBack":"返回"
   },
   "ProviderSetup": {
     "specialtiesTitle": "您的\n专长",
