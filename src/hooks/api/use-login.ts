@@ -29,18 +29,11 @@ export function useLogin() {
       return response.data;
     },
     onSuccess: (data) => {
-
       // Store tokens and user in cookies
       setCookie("accessToken", data.accessToken, { path: "/" });
       setCookie("refreshToken", data.refreshToken, { path: "/" });
       setCookie("user", JSON.stringify(data.user), { path: "/" });
-      if (!data.user.isVerified) {
-        router.push("/auth/provider-setup");
-        return;
-      }
-      router.push(
-              data.user.role === "service_provider" ? "/professional" : "/",
-            );
+
     },
   });
 }

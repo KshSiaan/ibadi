@@ -53,7 +53,12 @@ export default function LoginPage() {
               !data.user.isVerified
             ) {
               toast.info(t("pendingVerification"));
+              setUnverifiedUser(true);
             }
+
+            router.push(
+              data.user.role === "service_provider" ? "/professional" : "/",
+            );
           },
           onError: (err) => {
             console.error("[Google Login] API error:", err);
@@ -93,13 +98,15 @@ export default function LoginPage() {
           // if (data.user.role === "service_provider" && !data.user.isVerified) {
           //   toast.info(t("pendingVerification"));
           // }
-          // if (data.user.role === "service_provider") {
-          //   window.location.href = "/professional";
-          // } else {
-          //   window.location.href = "/";
-          // }
+
           if (data.user.role === "service_provider" && !data.user.isVerified) {
             setUnverifiedUser(true);
+            return;
+          }
+          if (data.user.role === "service_provider") {
+            window.location.href = "/professional";
+          } else {
+            window.location.href = "/";
           }
         },
       },

@@ -3,12 +3,21 @@
 import { BadgeAlert, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { useCookies } from "react-cookie";
+import { usePathname, useRouter } from "@/i18n/navigation";
 
 export default function VerificationProtectionCard({
   setUnverifiedUser,
 }: {
-  setUnverifiedUser: (value: boolean) => void;
+  setUnverifiedUser?: (value: boolean) => void;
 }) {
+  const [cookies, , removeCookie] = useCookies([
+    "accessToken",
+    "refreshToken",
+    "user",
+  ]);
+
+  const path = usePathname();
   const t = useTranslations("AuthProtection");
 
   return (
@@ -29,7 +38,18 @@ export default function VerificationProtectionCard({
             <button
               type="button"
               className="inline-flex flex-1 items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
-              onClick={() => setUnverifiedUser(false)}
+              onClick={() => {
+                if (path === "/auth/login") {
+                  window.location.reload();
+                } else {
+                  removeCookie("accessToken", { path: "/" });
+                  removeCookie("refreshToken", { path: "/" });
+                  removeCookie("user", { path: "/" });
+
+                  window.location.href ===
+                    "/auth/login?message=verification_required";
+                }
+              }}
             >
               {t("goBack")}
             </button>

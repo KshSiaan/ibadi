@@ -496,6 +496,7 @@ export default function ProviderSetupPage() {
         {/* Step 3: Cover Image */}
         {step === 3 && (
           <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
+            <p className="text-sm font-semibold">Verification documents</p>
             <label className="flex cursor-pointer items-center justify-center w-full rounded-xl bg-white px-6 py-8 shadow-sm hover:shadow-md transition-shadow border-2 border-dashed border-gray-200">
               <div className="flex flex-col items-center gap-2">
                 {form.coverImage ? (
