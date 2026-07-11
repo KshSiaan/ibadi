@@ -557,7 +557,10 @@
     "loginRequired": "로그인 필요",
     "loginDescription": "프로필, 저장된 세부 정보 및 계정 설정에 접근하려면 로그인하거나 계정을 만드세요.",
     "login": "로그인",
-    "createAccount": "계정 만들기"
+    "createAccount": "계정 만들기",
+    "verificationRequired": "계정 확인 필요",
+    "verificationDescription": "귀하의 계정은 확인 대기 중입니다. 계정이 확인될 때까지 일부 기능이 제한될 수 있습니다.",
+    "goBack":"뒤로"
   },
   "ProviderSetup": {
     "specialtiesTitle": "당신의\n전문 분야",

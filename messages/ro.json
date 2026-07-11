@@ -557,7 +557,10 @@
     "loginRequired": "Conectare necesară",
     "loginDescription": "Conectează-te sau creează un cont pentru a accesa profilul, detaliile salvate și setările contului.",
     "login": "Conectare",
-    "createAccount": "Crează un cont"
+    "createAccount": "Crează un cont",
+    "verificationRequired": "Verificare Pendente",
+    "verificationDescription": "Contul tău este în așteptarea verificării. Unele funcționalități pot fi limitate până când contul tău este verificat.",
+    "goBack":"Mergi înapoi"
   },
   "ProviderSetup": {
     "specialtiesTitle": "Specialitățile\nTale",

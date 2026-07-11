@@ -557,7 +557,10 @@
     "loginRequired": "Anmeldung erforderlich",
     "loginDescription": "Melden Sie sich an oder erstellen Sie ein Konto, um auf Ihr Profil, gespeicherte Daten und Kontoeinstellungen zuzugreifen.",
     "login": "Anmelden",
-    "createAccount": "Konto erstellen"
+    "createAccount": "Konto erstellen",
+    "verificationRequired": "Verifikation ausstehend",
+    "verificationDescription": "Ihr Konto steht noch zur Überprüfung aus. Einige Funktionen könnten eingeschränkt sein, bis Ihr Konto verifiziert ist.",
+    "goBack":"Zurück"
   },
   "ProviderSetup": {
     "specialtiesTitle": "Ihre\nSpezialgebiete",

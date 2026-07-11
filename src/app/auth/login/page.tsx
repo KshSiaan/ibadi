@@ -14,6 +14,7 @@ import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
 import { useLogin } from "@/hooks/api/use-login";
 import { firebaseAuth, googleProvider } from "@/lib/firebase-auth";
 import { useTranslations } from "next-intl";
+import VerificationProtectionCard from "@/components/core/verif-protection-card";
 
 export default function LoginPage() {
   const t = useTranslations("Login");
@@ -24,13 +25,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
+  const [unverifiedUser, setUnverifiedUser] = useState(false);
 
-  const {
-    fcmToken,
-    permissionStatus,
-    isLoading: fcmLoading,
-    requestPermission,
-  } = useFcmContext();
+  const { fcmToken, permissionStatus, isLoading: fcmLoading } = useFcmContext();
   const { mutate: login, isPending: loading, error } = useLogin();
   const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
 
@@ -58,7 +55,9 @@ export default function LoginPage() {
               !data.user.isVerified
             ) {
               toast.info(t("pendingVerification"));
+              setUnverifiedUser(true);
             }
+
             router.push(
               data.user.role === "service_provider" ? "/professional" : "/",
             );
@@ -103,8 +102,13 @@ export default function LoginPage() {
       body,
       {
         onSuccess: (data) => {
+          // if (data.user.role === "service_provider" && !data.user.isVerified) {
+          //   toast.info(t("pendingVerification"));
+          // }
+
           if (data.user.role === "service_provider" && !data.user.isVerified) {
-            toast.info(t("pendingVerification"));
+            setUnverifiedUser(true);
+            return;
           }
           if (data.user.role === "service_provider") {
             window.location.href = "/professional";
@@ -129,7 +133,9 @@ export default function LoginPage() {
     if (!password) return t("enterPassword");
     return null;
   })();
-
+  if (unverifiedUser) {
+    return <VerificationProtectionCard setUnverifiedUser={setUnverifiedUser} />;
+  }
   return (
     <main className="flex h-dvh w-full items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 px-4">
       <Card className="w-full relative max-w-md border-0 shadow-lg">

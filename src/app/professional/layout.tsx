@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import type { ApiResponse } from "@/lib/api/client";
 import type { User } from "@/lib/api/types";
 import { base_api, base_url, cn } from "@/lib/utils";
+import VerificationProtectionCard from "@/components/core/verif-protection-card";
 /* ─── Page ─── */
 export default async function HomeLayout({
   children,
@@ -68,6 +69,10 @@ export default async function HomeLayout({
       description: t("serviceCard4Description"),
     },
   ];
+
+  if (!user.isVerified) {
+    return <VerificationProtectionCard />;
+  }
 
   return (
     <>

@@ -557,7 +557,10 @@
     "loginRequired": "Inicio de sesión requerido",
     "loginDescription": "Inicie sesión o cree una cuenta para acceder a su perfil, detalles guardados y configuración de cuenta.",
     "login": "Iniciar sesión",
-    "createAccount": "Crear una cuenta"
+    "createAccount": "Crear una cuenta",
+    "verificationRequired": "Verificación Pendiente",
+    "verificationDescription": "Su cuenta está pendiente de verificación. Algunas funciones pueden estar limitadas hasta que su cuenta sea verificada.",
+    "goBack":"Volver"
   },
   "ProviderSetup": {
     "specialtiesTitle": "Sus\nEspecialidades",

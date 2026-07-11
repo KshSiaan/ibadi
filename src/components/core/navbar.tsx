@@ -325,7 +325,7 @@ export function AuthDialog({
             </p>
             <Button className="w-full" asChild>
               <Link href={`/auth/register?role=${role}`}>
-                {t("createAccount")}
+                {t("createYourAccount")}
               </Link>
             </Button>
             <p className="text-center text-sm">

@@ -557,7 +557,10 @@
     "loginRequired": "Accesso richiesto",
     "loginDescription": "Accedi o crea un account per accedere al tuo profilo, ai dettagli salvati e alle impostazioni dell'account.",
     "login": "Accedi",
-    "createAccount": "Crea un account"
+    "createAccount": "Crea un account",
+    "verificationRequired": "Verifica in attesa",
+    "verificationDescription": "Il tuo account è in attesa di verifica. Alcune funzioni potrebbero essere limitate fino a quando il tuo account non sarà verificato.",
+    "goBack":"Torna indietro"
   },
   "ProviderSetup": {
     "specialtiesTitle": "Le tue\nSpecialità",
