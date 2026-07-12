@@ -493,7 +493,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                 ))
               )}
             </div>
-            <Link href="/user/payment-methods">
+            <Link href="/profile/payments/methods">
               <button
                 type="button"
                 className="mt-3 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"

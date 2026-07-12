@@ -247,7 +247,7 @@ function AddressForm({
         onChange={(e) =>
           setForm((f) => ({ ...f, addressLine1: e.target.value }))
         }
-        placeholder="Address line"
+        placeholder="Street address"
         required
         className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
       />
@@ -267,7 +267,7 @@ function AddressForm({
           className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
       </div>
-      <div className="">
+      {/* <div className="">
         <input
           value={form.country}
           onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
@@ -275,7 +275,7 @@ function AddressForm({
           required
           className="rounded-lg w-full border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
         />
-      </div>
+      </div> */}
       <div className="flex gap-2 pt-1">
         <button
           type="button"

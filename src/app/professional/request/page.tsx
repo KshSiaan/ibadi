@@ -83,7 +83,13 @@ function BookingCard({
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-start justify-between">
             <p className="text-sm font-bold text-primary capitalize">
-              {t("booking", { type: booking.bookingType })}
+              {tab === "ongoing" ? (
+                <Link href={`/professional/request/${booking.id}`}>
+                  {t("booking", { type: booking.bookingType })}
+                </Link>
+              ) : (
+                t("booking", { type: booking.bookingType })
+              )}
             </p>
             <span className="text-xs font-semibold text-primary">
               ${booking.price.toFixed(2)}
