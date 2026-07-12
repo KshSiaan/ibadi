@@ -6,6 +6,7 @@ import {
   Clock,
   MapPin,
   MessageCircle,
+  PhoneIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,12 +26,14 @@ export default function BookingDetailPage() {
   const bookingId = params.id as string;
   const [open, setOpen] = useState(false);
 
-  const { data: booking, isLoading: bookingLoading } = useGetBookingById(bookingId);
-  const { data: provider, isLoading: providerLoading } = useGetUserById(booking?.providerId ?? "");
+  const { data: booking, isLoading: bookingLoading } =
+    useGetBookingById(bookingId);
+  const { data: provider } = useGetUserById(booking?.providerId ?? "");
   const { data: addresses = [] } = useGetMyAddresses();
-
-  const activeAddress =
-    addresses.find((a) => a.isDefault) ?? addresses[0];
+  const { data: user, isLoading: userLoading } = useGetUserById(
+    booking?.userId ?? "",
+  );
+  const activeAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
 
   const addressLabel = activeAddress
     ? `${activeAddress.addressLine1}, ${activeAddress.city}, ${activeAddress.state}`
@@ -52,7 +55,13 @@ export default function BookingDetailPage() {
 
   const providerName = provider?.name ?? "—";
   const providerPhone = provider?.phoneNumber ?? "—";
-  const providerAvatar = provider?.profile ?? undefined;
+  const userAvatar = user?.profile ?? undefined;
+  const userInitials = user?.name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   const providerInitials = providerName
     .split(" ")
     .map((w) => w[0])
@@ -77,26 +86,33 @@ export default function BookingDetailPage() {
       <div className="mx-auto flex max-w-md flex-col gap-4 px-4 pb-32">
         {/* Professional row */}
         <div className="rounded-xl bg-white p-4 shadow-sm">
+          <h4 className="text-sm font-bold text-[#1e2d4f] mb-2">Customer:</h4>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar className="size-12 shrink-0">
-                <AvatarImage src={providerAvatar} alt={providerName} />
-                <AvatarFallback>{providerInitials}</AvatarFallback>
+                <AvatarImage src={user?.profile ?? ""} alt={user?.name ?? ""} />
+                <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
               <div>
-                {providerLoading ? (
+                {userLoading ? (
                   <>
                     <Skeleton className="mb-1 h-4 w-24 rounded" />
                     <Skeleton className="h-3 w-32 rounded" />
                   </>
                 ) : (
                   <>
-                    <p className="text-sm font-bold text-[#1e2d4f]">{providerName}</p>
-                    <p className="text-xs text-gray-400">{providerPhone}</p>
+                    <p className="text-sm font-bold text-[#1e2d4f]">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-gray-400 flex items-center gap-1">
+                      <PhoneIcon size={14} />
+                      {user?.phoneNumber}
+                    </p>
                   </>
                 )}
               </div>
             </div>
+
             {booking?.providerId && (
               <Link href={`/inbox/${booking.providerId}`} className="shrink-0">
                 <button
@@ -108,6 +124,10 @@ export default function BookingDetailPage() {
               </Link>
             )}
           </div>
+          <p className="mt-4 text-end text-xs text-gray-400">
+            Joined:{" "}
+            {new Date(user?.createdAt as unknown as Date).toLocaleDateString()}
+          </p>
         </div>
 
         {/* Date and time */}
