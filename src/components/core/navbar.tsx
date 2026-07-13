@@ -18,13 +18,14 @@ type View = "role" | "register" | "login";
 
 export default function Navbar() {
   const t = useTranslations("Navbar");
+  const tb = useTranslations("Footer");
   const tAuth = useTranslations("AuthDialog");
 
   const navLinks = [
-    { label: t("bookings"), href: "/profile/payments/bookings" },
+    { label: tb("home"), href: "/" },
     { label: t("services"), href: "/service" },
-    { label: t("calendar"), href: "/inbox" },
-    { label: t("payments"), href: "/profile/payments" },
+    { label: t("favourite"), href: "/favourite" },
+    { label: t("inbox"), href: "/inbox" },
     { label: t("profile"), href: "/profile" },
     { label: t("settings"), href: "/profile/personal-details" },
     { label: t("support"), href: "/profile" },
