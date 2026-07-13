@@ -11,6 +11,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Message,
+  MessageAvatar,
+  MessageContent,
+  MessageGroup,
+} from "@/components/ui/message";
+import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
+import {
+  MessageScroller,
+  MessageScrollerContent,
+  MessageScrollerViewport,
+} from "@/components/ui/message-scroller";
 import { useSocket } from "@/context/SocketContext";
 import { cn } from "@/lib/utils";
 
@@ -127,20 +139,24 @@ function isSameDay(a?: string, b?: string): boolean {
 
 function TypingBubble() {
   return (
-    <div className="flex items-end gap-2">
-      <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-400">
-        …
-      </div>
-      <div className="flex items-center gap-1 rounded-2xl rounded-bl-sm bg-white px-4 py-3 shadow-sm">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="size-1.5 animate-bounce rounded-full bg-gray-400"
-            style={{ animationDelay: `${i * 0.15}s` }}
-          />
-        ))}
-      </div>
-    </div>
+    <Message align="start">
+      <MessageAvatar className="size-8" />
+      <MessageContent>
+        <BubbleGroup>
+          <Bubble variant="outline">
+            <BubbleContent className="flex gap-1">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="size-1.5 animate-bounce rounded-full bg-gray-400"
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                />
+              ))}
+            </BubbleContent>
+          </Bubble>
+        </BubbleGroup>
+      </MessageContent>
+    </Message>
   );
 }
 
@@ -177,7 +193,6 @@ export default function ChatPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
 
-  const chatBoxRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const chatIdRef = useRef(chatId);
   useEffect(() => {
@@ -188,11 +203,6 @@ export default function ChatPage() {
     message: string;
   }>();
   const messageValue = watch("message", "");
-
-  // ── Auto-scroll — runs after every render; ref never changes identity ──────
-  useEffect(() => {
-    chatBoxRef.current?.scrollTo({ top: chatBoxRef.current.scrollHeight });
-  });
 
   // ── Fetch message history ─────────────────────────────────────────────────
   useEffect(() => {
@@ -334,7 +344,7 @@ export default function ChatPage() {
   }, [socket, chatId]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSubmit(handleSend)();
     }
@@ -393,119 +403,114 @@ export default function ChatPage() {
       )}
 
       {/* Messages */}
-      <div
-        ref={chatBoxRef}
-        className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-2 lg:px-[34%]"
-      >
+      <div className="flex flex-1 flex-col overflow-hidden px-4 lg:px-[34%]">
         {isLoading ? (
-          (["s0", "s1", "s2", "s3", "s4"] as const).map((sk, i) => (
-            <div
-              key={sk}
-              className={cn(
-                "flex gap-2",
-                i % 2 === 0 ? "flex-row" : "flex-row-reverse",
-              )}
-            >
-              <Skeleton className="size-7 shrink-0 rounded-full" />
-              <Skeleton
+          <div className="flex flex-1 flex-col gap-1 overflow-y-auto py-2">
+            {(["s0", "s1", "s2", "s3", "s4"] as const).map((sk, i) => (
+              <div
+                key={sk}
                 className={cn(
-                  "h-10 rounded-2xl",
-                  i % 2 === 0 ? "w-56" : "w-44",
+                  "flex gap-2",
+                  i % 2 === 0 ? "flex-row" : "flex-row-reverse",
                 )}
-              />
-            </div>
-          ))
+              >
+                <Skeleton className="size-7 shrink-0 rounded-full" />
+                <Skeleton
+                  className={cn(
+                    "h-10 rounded-2xl",
+                    i % 2 === 0 ? "w-56" : "w-44",
+                  )}
+                />
+              </div>
+            ))}
+          </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-1 items-center justify-center">
             <p className="text-sm text-gray-400">{t("noMessagesYet")}</p>
           </div>
         ) : (
-          messages.map((msg, idx) => {
-            const prev = messages[idx - 1];
-            const showDivider =
-              !prev || !isSameDay(prev.timestamp, msg.timestamp);
-            const isOwn = msg.senderId === currentUserId;
+          <MessageScroller className="flex-1">
+            <MessageScrollerViewport>
+              <MessageScrollerContent className="gap-1">
+                {messages.map((msg, idx) => {
+                  const prev = messages[idx - 1];
+                  const showDivider =
+                    !prev || !isSameDay(prev.timestamp, msg.timestamp);
+                  const isOwn = msg.senderId === currentUserId;
 
-            return (
-              <div key={msg.id}>
-                {showDivider && (
-                  <div className="flex items-center gap-3 py-2">
-                    <div className="h-px flex-1 bg-gray-200" />
-                    <span className="text-[11px] text-gray-400">
-                      {formatDateDivider(msg.timestamp, t)}
-                    </span>
-                    <div className="h-px flex-1 bg-gray-200" />
-                  </div>
-                )}
-                <div
-                  className={cn(
-                    "flex mt-0.5",
-                    isOwn ? "justify-end" : "items-end gap-2",
-                  )}
-                >
-                  {!isOwn && (
-                    <Avatar className="size-8 shrink-0">
-                      <AvatarImage
-                        src={participantImage || undefined}
-                        alt={participantName}
-                      />
-                      <AvatarFallback>
-                        {participantName.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <div
-                    className={cn(
-                      "flex max-w-[65%] flex-col gap-0.5",
-                      isOwn ? "items-end" : "items-start",
-                    )}
-                  >
-                    {msg.imageUrls?.map((url) => (
-                      <Image
-                        key={url}
-                        src={url}
-                        alt="attachment"
-                        width={320}
-                        height={192}
-                        className="max-h-48 max-w-xs rounded-xl object-cover shadow-sm"
-                        unoptimized
-                      />
-                    ))}
-                    {msg.text && (
-                      <div
-                        className={cn(
-                          "max-w-[65%] rounded-2xl px-4 py-2.5",
-                          isOwn
-                            ? "rounded-br-sm bg-primary text-white"
-                            : "rounded-bl-sm bg-white text-gray-800",
-                          msg.isPending && "opacity-60",
+                  return (
+                    <div key={msg.id}>
+                      {showDivider && (
+                        <div className="flex items-center gap-3 py-2">
+                          <div className="h-px flex-1 bg-gray-200" />
+                          <span className="text-[11px] text-gray-400">
+                            {formatDateDivider(msg.timestamp, t)}
+                          </span>
+                          <div className="h-px flex-1 bg-gray-200" />
+                        </div>
+                      )}
+                      <Message align={isOwn ? "end" : "start"} className="mt-0.5">
+                        {!isOwn && (
+                          <MessageAvatar className="size-8">
+                            <Avatar className="size-8">
+                              <AvatarImage
+                                src={participantImage || undefined}
+                                alt={participantName}
+                              />
+                              <AvatarFallback>
+                                {participantName.slice(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          </MessageAvatar>
                         )}
-                      >
-                        <p className="text-sm leading-relaxed text-wrap wrap-break-word">
-                          {msg.text}
-                        </p>
-                        <p
-                          className={cn(
-                            "mt-1 text-right text-[10px]",
-                            isOwn ? "text-white/70" : "text-gray-400",
-                          )}
-                        >
-                          {formatTime(msg.timestamp)}
-                          {isOwn && msg.status === "sending" && " · ···"}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-
-        {isTyping && (
-          <div className="mt-2">
-            <TypingBubble />
-          </div>
+                        <MessageContent>
+                          <BubbleGroup className="max-w-[65%]">
+                            {msg.imageUrls?.map((url) => (
+                              <Image
+                                key={url}
+                                src={url}
+                                alt="attachment"
+                                width={320}
+                                height={192}
+                                className="max-h-48 max-w-xs rounded-xl object-cover shadow-sm"
+                                unoptimized
+                              />
+                            ))}
+                            {msg.text && (
+                              <Bubble
+                                variant={isOwn ? "default" : "outline"}
+                                className={msg.isPending ? "opacity-60" : ""}
+                              >
+                                <BubbleContent>
+                                  <p className="text-sm leading-relaxed text-wrap wrap-break-word">
+                                    {msg.text}
+                                  </p>
+                                  <p
+                                    className={cn(
+                                      "mt-1 text-right text-[10px]",
+                                      isOwn
+                                        ? "text-white/70"
+                                        : "text-gray-400",
+                                    )}
+                                  >
+                                    {formatTime(msg.timestamp)}
+                                    {isOwn &&
+                                      msg.status === "sending" &&
+                                      " · ···"}
+                                  </p>
+                                </BubbleContent>
+                              </Bubble>
+                            )}
+                          </BubbleGroup>
+                        </MessageContent>
+                      </Message>
+                    </div>
+                  );
+                })}
+                {isTyping && <TypingBubble />}
+              </MessageScrollerContent>
+            </MessageScrollerViewport>
+          </MessageScroller>
         )}
       </div>
 

@@ -43,6 +43,7 @@ function formatDate(iso: string) {
 function BookingCard({
   booking,
   tab,
+  setActiveTab
 }: {
   booking: {
     id: string;
@@ -63,6 +64,7 @@ function BookingCard({
     updatedAt: string;
   };
   tab: Tab;
+  setActiveTab: (tab: Tab) => void;
 }) {
   const t = useTranslations("ProfessionalRequest");
   const { mutate: accept, isPending: accepting } = useAcceptBooking();
@@ -116,7 +118,10 @@ function BookingCard({
                 <button
                   type="button"
                   disabled={accepting || cancelling}
-                  onClick={() => accept(booking.id)}
+                  onClick={() => accept(booking.id,{"onSuccess": () => {
+                  
+                    setActiveTab("ongoing");
+                  }})}
                   className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary disabled:opacity-50 flex items-center gap-1"
                 >
                   {accepting && <Loader2 className="size-3 animate-spin" />}
@@ -154,6 +159,7 @@ function BookingCard({
 
 function CompleteCard({
   booking,
+  setActiveTab,
 }: {
   booking: {
     id: string;
@@ -173,6 +179,7 @@ function CompleteCard({
     createdAt: string;
     updatedAt: string;
   };
+  setActiveTab: (tab: Tab) => void;
 }) {
   const t = useTranslations("ProfessionalRequest");
   // const firstDay = booking.bookingDays?.[0];
@@ -242,7 +249,7 @@ export default function RequestPage() {
     status: STATUS_MAP[activeTab],
   });
   const { data: completedBookings, isLoading: loadingComplete } =
-    useProviderBookings({ status: "completed" });
+    useProviderBookings();
 
   const filtered = bookings;
 
@@ -272,7 +279,7 @@ export default function RequestPage() {
             </p>
           )}
           {completedBookings?.map((b) => (
-            <CompleteCard key={b.id} booking={b} />
+            <CompleteCard key={b.id} booking={b} setActiveTab={setActiveTab} />
           ))}
         </div>
       </div>
@@ -333,7 +340,7 @@ export default function RequestPage() {
           </p>
         )}
         {filtered?.map((booking) => (
-          <BookingCard key={booking.id} booking={booking} tab={activeTab} />
+          <BookingCard key={booking.id} booking={booking} tab={activeTab} setActiveTab={setActiveTab} />
         ))}
       </div>
     </div>

@@ -17,7 +17,7 @@ import { AddCardForm } from "@/components/add-card-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useGetMyAddresses } from "@/hooks/api/address/use-address";
-import { useCreateBooking } from "@/hooks/api/bookings/use-bookings";
+import { useCheckout, useCreateBooking } from "@/hooks/api/bookings/use-bookings";
 import { useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import type { Address, PaymentMethod } from "@/lib/api/types";
@@ -148,7 +148,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addCardOpen, setAddCardOpen] = useState(false);
-
+const { mutate: checkout, isPending: checkoutPending, isError, error: checkoutError } = useCheckout();
   const totalHours =
     frequency === "one_time"
       ? duration
@@ -220,10 +220,26 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
         bookingDays,
       },
       {
-        onSuccess: () => setConfirmed(true),
+        onSuccess: (res) => {
+          checkout(
+            {
+              bookingId: res.id,
+              additionalComment: comment,
+            },
+            {
+              onSuccess: () => {
+                setConfirmed(true);
+              },
+              onError: (err) => {
+                setError(err.message);
+              },
+            }
+          );
+        },
         onError: (err) => setError(err.message),
-      },
+      }
     );
+   
   }
 
   const info = provider?.serviceProviderInfo;
@@ -548,11 +564,11 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={isPending}
+            disabled={isPending||checkoutPending}
             className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {isPending && <Loader2 className="size-4 animate-spin" />}
-            {isPending ? t("confirming") : t("confirmBooking")}
+            {isPending ? t("confirming") : checkoutPending ? t("confirming") : t("confirmBooking")}
           </button>
         </div>
       </div>

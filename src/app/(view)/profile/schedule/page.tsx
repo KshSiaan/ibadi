@@ -91,7 +91,7 @@ export default function SchedulePage() {
         return next;
       });
     }
-  }, [schedule, profile]);
+  }, [profile]);
 
   const updateDay = (day: string, patch: Partial<DayState>) => {
     setDays((prev) => ({ ...prev, [day]: { ...prev[day], ...patch } }));

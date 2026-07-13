@@ -19,14 +19,19 @@ export default function Page() {
     setSelectedCategoryId,
     searchTerm,
     setSearchTerm,
+    homepageFilters,
+    setHomepageFilters,
   } = useServiceBooking();
   const { data: categories = [], isLoading } = useCategories();
 
   const handleServiceSelect = (category: Category) => {
+
+    
     setSelectedService(category.name);
     setSelectedCategoryId(category.id);
     if (category.name === "Care") {
-      router.push("/book/care");
+      setHomepageFilters({ ...homepageFilters, categoryId: category.id });
+      router.push("book/results");
       return;
     }
     router.push("/book/schedule");

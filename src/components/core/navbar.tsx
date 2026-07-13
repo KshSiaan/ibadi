@@ -27,17 +27,17 @@ export default function Navbar() {
     { label: t("favourite"), href: "/favourite" },
     { label: t("inbox"), href: "/inbox" },
     { label: t("profile"), href: "/profile" },
-    { label: t("settings"), href: "/profile/personal-details" },
-    { label: t("support"), href: "/profile" },
+    // { label: t("settings"), href: "/profile/personal-details" },
+    // { label: t("support"), href: "/profile" },
   ];
   const professionalNavLinks = [
     { label: t("calendar"), href: "/professional/calendar" },
     { label: t("notification"), href: " /professional/notification" },
     { label: t("request"), href: "/professional/request" },
-    { label: t("payments"), href: "/profile/payments" },
-    { label: t("inbox"), href: "/inbox" },
+    // { label: t("payments"), href: "/profile/payments" },
     { label: t("profile"), href: "/profile" },
-    { label: t("settings"), href: "/profile/personal-details" },
+    { label: t("inbox"), href: "/inbox" },
+    // { label: t("settings"), href: "/profile/personal-details" },
   ];
 
   const [open, setOpen] = useState(false);

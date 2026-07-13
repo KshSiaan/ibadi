@@ -33,7 +33,7 @@ export function useCreateBooking() {
 export function useUserBookings(params?: { upcoming?: boolean; past?: boolean; include?: string }) {
   const [cookies] = useCookies(["accessToken"]);
   const query = new URLSearchParams();
-  if (params?.upcoming) query.set("upcoming", "true");
+  if (params?.upcoming) query.set("status", "ongoing");
   if (params?.past) query.set("past", "true");
   if (params?.include) query.set("include", params.include);
 
@@ -65,23 +65,23 @@ export function useProviderBookings(params?: {
   if (params?.status) query.set("status", params.status === "cancelled" ? "canceled" : params.status);
 
   return useQuery<{
-            id: string
-            userId: string
-            addressId: any
-            providerId: string
-            isPaid: boolean
-            bookingType: string
-            status: string
-            price: number
-            startDate: string
-            endDate: any
-            totalHours: number
-            isActive: boolean
-            nextBooking: any
-            isDeleted: boolean
-            createdAt: string
-            updatedAt: string
-          }[]>({
+    id: string
+    userId: string
+    addressId: any
+    providerId: string
+    isPaid: boolean
+    bookingType: string
+    status: string
+    price: number
+    startDate: string
+    endDate: any
+    totalHours: number
+    isActive: boolean
+    nextBooking: any
+    isDeleted: boolean
+    createdAt: string
+    updatedAt: string
+  }[]>({
     queryKey: ["bookings", "provider", params],
     queryFn: async () => {
       const qs = query.toString();
@@ -214,8 +214,8 @@ export function useCheckout() {
         cookies.accessToken,
       );
       console.log("response.message", response.message)
-      if (!response.success){
-         throw new Error(response.message)
+      if (!response.success) {
+        throw new Error(response.message)
       };
       return response.data;
     },

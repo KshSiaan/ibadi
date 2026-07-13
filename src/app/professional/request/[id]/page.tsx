@@ -114,7 +114,7 @@ export default function BookingDetailPage() {
             </div>
 
             {booking?.providerId && (
-              <Link href={`/inbox/${booking.providerId}`} className="shrink-0">
+              <Link href={`/inbox/${booking.userId}`} className="shrink-0">
                 <button
                   type="button"
                   className="flex size-10 items-center justify-center rounded-full bg-primary text-white shadow"
