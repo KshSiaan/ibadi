@@ -9,6 +9,7 @@ import { useCategories } from "@/hooks/api/use-categories";
 import type { Category } from "@/lib/api/types";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 
 export default function Page() {
   const t = useTranslations("Book");
@@ -18,18 +19,33 @@ export default function Page() {
     setSelectedCategoryId,
     searchTerm,
     setSearchTerm,
+    homepageFilters,
+    setHomepageFilters,
   } = useServiceBooking();
   const { data: categories = [], isLoading } = useCategories();
 
   const handleServiceSelect = (category: Category) => {
+
+    
     setSelectedService(category.name);
     setSelectedCategoryId(category.id);
     if (category.name === "Care") {
-      router.push("/book/care");
+      setHomepageFilters({ ...homepageFilters, categoryId: category.id });
+      router.push("book/results");
       return;
     }
     router.push("/book/schedule");
   };
+
+  const filteredCategories = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+
+    if (!query) return categories;
+
+    return categories.filter((category) =>
+      category.name.toLowerCase().includes(query),
+    );
+  }, [categories, searchTerm]);
 
   return (
     <div className="flex min-h-dvh flex-col bg-[#f5f5f5]">
@@ -63,7 +79,7 @@ export default function Page() {
                   <Skeleton className="h-4 w-32 rounded" />
                 </li>
               ))
-            : categories.map((category) => (
+            : filteredCategories.map((category) => (
                 <li key={category.id}>
                   <button
                     type="button"

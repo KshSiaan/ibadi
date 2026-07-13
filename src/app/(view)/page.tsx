@@ -39,6 +39,7 @@ import {
   useDeleteAddress,
 } from "@/hooks/api/address/use-address";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 /* ─── Fallback Data ─── */
 const fallbackServices: Category[] = [
@@ -100,12 +101,25 @@ function ServiceNode({
   radius: number;
   onClick?: () => void;
 }) {
+    const {
+    setSelectedService,
+    setSelectedCategoryId,
+    homepageFilters,
+    setHomepageFilters,
+  } = useServiceBooking();
+  const { data: categories = [], isLoading } = useCategories();
+  const router = useRouter();
   const rad = (angleDeg * Math.PI) / 180;
   const x = Math.round(radius * Math.cos(rad));
   const y = Math.round(radius * Math.sin(rad));
   return (
-    <Link
-      href={`/book?service=${id}`}
+    <button
+      // href={`/book?service=${id}`}
+      onClick={() => {
+            setSelectedService(label);
+            setSelectedCategoryId(id);
+            router.push("/book/finding");
+      }}
       className="absolute flex flex-col items-center gap-2 focus:outline-none"
       style={{
         top: "50%",
@@ -120,7 +134,7 @@ function ServiceNode({
         {icon && <Image src={icon} alt={label} width={42} height={42} />}
       </div>
       <span className="text-sm font-medium text-gray-700">{label}</span>
-    </Link>
+    </button>
   );
 }
 

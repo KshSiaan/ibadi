@@ -18,25 +18,26 @@ type View = "role" | "register" | "login";
 
 export default function Navbar() {
   const t = useTranslations("Navbar");
+  const tb = useTranslations("Footer");
   const tAuth = useTranslations("AuthDialog");
 
   const navLinks = [
-    { label: t("bookings"), href: "/profile/payments/bookings" },
+    { label: tb("home"), href: "/" },
     { label: t("services"), href: "/service" },
-    { label: t("calendar"), href: "/inbox" },
-    { label: t("payments"), href: "/profile/payments" },
+    { label: t("favourite"), href: "/favourite" },
+    { label: t("inbox"), href: "/inbox" },
     { label: t("profile"), href: "/profile" },
-    { label: t("settings"), href: "/profile/personal-details" },
-    { label: t("support"), href: "/profile" },
+    // { label: t("settings"), href: "/profile/personal-details" },
+    // { label: t("support"), href: "/profile" },
   ];
   const professionalNavLinks = [
     { label: t("calendar"), href: "/professional/calendar" },
     { label: t("notification"), href: " /professional/notification" },
     { label: t("request"), href: "/professional/request" },
-    { label: t("payments"), href: "/profile/payments" },
-    { label: t("inbox"), href: "/inbox" },
+    // { label: t("payments"), href: "/profile/payments" },
     { label: t("profile"), href: "/profile" },
-    { label: t("settings"), href: "/profile/personal-details" },
+    { label: t("inbox"), href: "/inbox" },
+    // { label: t("settings"), href: "/profile/personal-details" },
   ];
 
   const [open, setOpen] = useState(false);
