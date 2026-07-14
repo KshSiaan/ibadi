@@ -17,7 +17,10 @@ import { AddCardForm } from "@/components/add-card-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useGetMyAddresses } from "@/hooks/api/address/use-address";
-import { useCheckout, useCreateBooking } from "@/hooks/api/bookings/use-bookings";
+import {
+  useCheckout,
+  useCreateBooking,
+} from "@/hooks/api/bookings/use-bookings";
 import { useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import type { Address, PaymentMethod } from "@/lib/api/types";
@@ -147,8 +150,12 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
   const [comment, setComment] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [addCardOpen, setAddCardOpen] = useState(false);
-const { mutate: checkout, isPending: checkoutPending, isError, error: checkoutError } = useCheckout();
+  const {
+    mutate: checkout,
+    isPending: checkoutPending,
+    isError,
+    error: checkoutError,
+  } = useCheckout();
   const totalHours =
     frequency === "one_time"
       ? duration
@@ -233,13 +240,12 @@ const { mutate: checkout, isPending: checkoutPending, isError, error: checkoutEr
               onError: (err) => {
                 setError(err.message);
               },
-            }
+            },
           );
         },
         onError: (err) => setError(err.message),
-      }
+      },
     );
-   
   }
 
   const info = provider?.serviceProviderInfo;
@@ -564,11 +570,15 @@ const { mutate: checkout, isPending: checkoutPending, isError, error: checkoutEr
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={isPending||checkoutPending}
+            disabled={isPending || checkoutPending}
             className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {isPending && <Loader2 className="size-4 animate-spin" />}
-            {isPending ? t("confirming") : checkoutPending ? t("confirming") : t("confirmBooking")}
+            {isPending
+              ? t("confirming")
+              : checkoutPending
+                ? t("confirming")
+                : t("confirmBooking")}
           </button>
         </div>
       </div>
@@ -668,7 +678,7 @@ const { mutate: checkout, isPending: checkoutPending, isError, error: checkoutEr
             </div>
             <button
               type="button"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/service")}
               className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white"
             >
               {t("ok")}

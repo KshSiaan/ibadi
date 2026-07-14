@@ -30,11 +30,12 @@ export function useCreateBooking() {
   });
 }
 
-export function useUserBookings(params?: { upcoming?: boolean; past?: boolean; include?: string }) {
+export function useUserBookings(params?: { upcoming?: boolean; past?: boolean; include?: string ,status?: string }) {
   const [cookies] = useCookies(["accessToken"]);
   const query = new URLSearchParams();
-  if (params?.upcoming) query.set("status", "ongoing");
-  if (params?.past) query.set("past", "true");
+  // if (params?.upcoming) query.set("upcoming", "true");
+  // if (params?.past) query.set("past", "true");
+  if (params?.status) query.set("status", params.status === "cancelled" ? "canceled" : params.status);
   if (params?.include) query.set("include", params.include);
 
   return useQuery<Booking[]>({
@@ -171,6 +172,25 @@ export function useAcceptBooking() {
     mutationFn: async (bookingId: string) => {
       const response = await apiClient.patch<ApiResponse<Booking>>(
         `/bookings/accept/${bookingId}`,
+        {},
+        cookies.accessToken,
+      );
+      if (!response.success) throw new Error(response.message);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookings", "provider"] });
+    },
+  });
+}
+export function useCompleteBooking() {
+  const [cookies] = useCookies(["accessToken"]);
+  const queryClient = useQueryClient();
+
+  return useMutation<Booking, Error, string>({
+    mutationFn: async (bookingId: string) => {
+      const response = await apiClient.patch<ApiResponse<Booking>>(
+        `/bookings/complete/${bookingId}`,
         {},
         cookies.accessToken,
       );

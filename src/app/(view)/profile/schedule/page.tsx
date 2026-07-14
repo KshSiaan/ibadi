@@ -3,14 +3,17 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 import {
-  useGetWorkSchedule,
   useCreateWorkSchedule,
+  useGetWorkSchedule,
   useUpdateWorkSchedule,
 } from "@/hooks/api/work-schedule/use-work-schedule";
-import { WorkScheduleEntry } from "@/lib/api/types";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
-import { useTranslations } from "next-intl";
+import { WorkScheduleEntry } from "@/lib/api/types";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 
 const DAYS: WorkScheduleEntry["day"][] = [
   "Mon",
@@ -39,96 +42,126 @@ interface DayState {
   endTime: string;
 }
 
-function timeToISO(time: string): string {
-  return `1970-01-01T${time}:00.000Z`;
+function createInitialDays(): Record<WorkScheduleEntry["day"], DayState> {
+  return {
+    Mon: { status: false, startTime: "09:00", endTime: "18:00" },
+    Tue: { status: false, startTime: "09:00", endTime: "18:00" },
+    Wed: { status: false, startTime: "09:00", endTime: "18:00" },
+    Thu: { status: false, startTime: "09:00", endTime: "18:00" },
+    Fri: { status: false, startTime: "09:00", endTime: "18:00" },
+    Sat: { status: false, startTime: "09:00", endTime: "18:00" },
+    Sun: { status: false, startTime: "09:00", endTime: "18:00" },
+  };
 }
 
-function isoToTime(iso: string): string {
-  // Extract HH:mm from ISO-8601 like "1970-01-01T09:00:00.000Z"
-  const match = iso.match(/T(\d{2}:\d{2})/);
-  return match ? match[1] : iso;
+function timeToISO(time: string) {
+  const [hour, minute] = time.split(":").map(Number);
+
+  const date = new Date(Date.UTC(1970, 0, 1, hour, minute));
+
+  return date.toISOString();
+}
+
+function isoToTime(value?: string) {
+  if (!value) return "09:00";
+
+  const match = value.match(/T(\d{2}:\d{2})/);
+
+  return match ? match[1] : value.slice(0, 5);
 }
 
 export default function SchedulePage() {
   const t = useTranslations("Schedule");
   const router = useRouter();
+
   const { data: profile } = useMyProfile();
   const { data: schedule, isLoading } = useGetWorkSchedule();
+
   const createSchedule = useCreateWorkSchedule();
   const updateSchedule = useUpdateWorkSchedule();
 
-  const [days, setDays] = useState<Record<string, DayState>>(() =>
-    Object.fromEntries(
-      DAYS.map((d) => [
-        d,
-        { status: false, startTime: "09:00", endTime: "18:00" },
-      ]),
-    ),
-  );
+  const [days, setDays] = useState(createInitialDays);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Use dedicated endpoint first, fall back to profile's embedded workSchedule
     const source =
-      Array.isArray(schedule) && schedule.length > 0
+      schedule && schedule.length
         ? schedule
-        : Array.isArray(profile?.workSchedule) &&
-            profile.workSchedule.length > 0
+        : profile?.workSchedule?.length
           ? profile.workSchedule
-          : null;
+          : [];
 
-    if (source) {
-      setDays((prev) => {
-        const next = { ...prev };
-        source.forEach((entry) => {
-          next[entry.day] = {
-            id: entry.id,
-            status: entry.status,
-            startTime: isoToTime(entry.startTime),
-            endTime: isoToTime(entry.endTime),
-          };
-        });
-        return next;
-      });
-    }
-  }, [profile]);
+    if (!source.length) return;
 
-  const updateDay = (day: string, patch: Partial<DayState>) => {
-    setDays((prev) => ({ ...prev, [day]: { ...prev[day], ...patch } }));
+    const next = createInitialDays();
+
+    source.forEach((entry) => {
+      next[entry.day] = {
+        id: entry.id,
+        status: entry.status,
+        startTime: isoToTime(entry.startTime),
+        endTime: isoToTime(entry.endTime),
+      };
+    });
+
+    setDays(next);
+  }, [schedule, profile]);
+
+  const updateDay = (
+    day: WorkScheduleEntry["day"],
+    patch: Partial<DayState>,
+  ) => {
+    setDays((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        ...patch,
+      },
+    }));
   };
 
   const handleConfirm = async () => {
-    setError("");
-    try {
-      const toCreate: WorkScheduleEntry[] = [];
-      const toUpdate: ({ id: string } & Partial<WorkScheduleEntry>)[] = [];
+    if (!profile) return;
 
-      for (const day of DAYS) {
+    setError("");
+
+    try {
+      const createPayload: WorkScheduleEntry[] = [];
+      const updatePayload: ({ id: string } & Partial<WorkScheduleEntry>)[] = [];
+
+      DAYS.forEach((day) => {
         const state = days[day];
+
         if (state.id) {
-          toUpdate.push({
+          updatePayload.push({
             id: state.id,
             status: state.status,
             startTime: timeToISO(state.startTime),
             endTime: timeToISO(state.endTime),
           });
         } else {
-          toCreate.push({
+          createPayload.push({
+            userId: profile.id,
             day,
-            userId: profile?.id ?? "",
             status: state.status,
             startTime: timeToISO(state.startTime),
             endTime: timeToISO(state.endTime),
           });
         }
+      });
+
+      const requests: Promise<unknown>[] = [];
+
+      if (createPayload.length) {
+        requests.push(createSchedule.mutateAsync(createPayload));
       }
 
-      if (toCreate.length > 0) {
-        await createSchedule.mutateAsync(toCreate);
-      }
-      for (const entry of toUpdate) {
-        await updateSchedule.mutateAsync(entry);
-      }
+      requests.push(
+        ...updatePayload.map((entry) => updateSchedule.mutateAsync(entry)),
+      );
+
+      await Promise.all(requests);
+      toast.success(t("saved"));
       router.back();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("failedToSave"));
@@ -139,30 +172,31 @@ export default function SchedulePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500 text-sm">{t("loading")}</p>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-sm text-gray-500">{t("loading")}</p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="sticky top-0 bg-white border-b lg:px-[38%] border-gray-200 px-4 py-4 flex items-center gap-4">
+      <div className="sticky top-0 flex items-center gap-4 border-b border-gray-200 bg-white px-4 py-4 lg:px-[38%]">
         <button
           type="button"
           onClick={() => router.back()}
-          className="flex items-center justify-center w-10 h-10 hover:bg-gray-100 rounded-lg transition-colors"
+          className="flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-gray-100"
         >
-          <ArrowLeft className="w-6 h-6 text-gray-800" />
+          <ArrowLeft className="h-6 w-6 text-gray-800" />
         </button>
+
         <h1 className="text-lg font-semibold text-gray-900">{t("title")}</h1>
       </div>
 
-      <div className="max-w-md mx-auto px-4 py-8">
-        <p className="text-sm text-gray-500 mb-6">{t("description")}</p>
+      <div className="mx-auto max-w-md px-4 py-8">
+        <p className="mb-6 text-sm text-gray-500">{t("description")}</p>
 
         {error && (
-          <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
@@ -170,49 +204,63 @@ export default function SchedulePage() {
         <div className="space-y-5">
           {DAYS.map((day) => {
             const state = days[day];
+
             return (
               <div key={day} className="border-b border-gray-100 pb-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <span className="font-medium text-gray-900">
-                    {t(DAY_KEYS[day] as any)}
+                    {t(DAY_KEYS[day])}
                   </span>
+
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => updateDay(day, { status: !state.status })}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${
+                      onClick={() =>
+                        updateDay(day, {
+                          status: !state.status,
+                        })
+                      }
+                      className={`relative h-6 w-11 rounded-full transition-colors ${
                         state.status ? "bg-primary" : "bg-gray-300"
                       }`}
                     >
                       <span
-                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
+                        className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
                           state.status ? "translate-x-5" : ""
                         }`}
                       />
                     </button>
-                    <span className="text-xs text-gray-500 w-20">
+
+                    <span className="w-20 text-xs text-gray-500">
                       {state.status ? t("available") : t("notAvailable")}
                     </span>
                   </div>
                 </div>
+
                 {state.status && (
                   <div className="flex items-center gap-3">
                     <input
                       type="time"
                       value={state.startTime}
                       onChange={(e) =>
-                        updateDay(day, { startTime: e.target.value })
+                        updateDay(day, {
+                          startTime: e.target.value,
+                        })
                       }
-                      className="flex-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
+
                     <span className="text-gray-400">—</span>
+
                     <input
                       type="time"
                       value={state.endTime}
                       onChange={(e) =>
-                        updateDay(day, { endTime: e.target.value })
+                        updateDay(day, {
+                          endTime: e.target.value,
+                        })
                       }
-                      className="flex-1 px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      className="flex-1 rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
                 )}
@@ -223,11 +271,19 @@ export default function SchedulePage() {
 
         <button
           type="button"
+          disabled={isSaving || !profile}
           onClick={handleConfirm}
-          disabled={isSaving}
-          className="w-full px-4 py-3 bg-primary hover:bg-primary/60 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8"
+          className="mt-8 w-full flex justify-center items-center gap-2 rounded-lg bg-primary px-4 py-3 font-medium text-white transition-colors hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSaving ? t("saving") : t("confirm")}
+          {isSaving ? (
+            t("saving")
+          ) : !profile ? (
+            <>
+              <Spinner /> Loading.
+            </>
+          ) : (
+            t("confirm")
+          )}
         </button>
       </div>
     </div>

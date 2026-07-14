@@ -197,7 +197,7 @@ function BookingCard({
         </div>
         <div className="flex flex-1 flex-col gap-1">
           <p className="text-sm font-bold text-primary">
-            Booking #{booking.id.slice(0, 8)}
+            Booking #{booking.id.slice(12)}
           </p>
           {/* <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <Clock className="size-3.5 shrink-0" />
@@ -254,9 +254,9 @@ function UserServicePage() {
     { id: "cancelled", label: t("cancelled") },
   ];
 
-  const upcomingQuery = useUserBookings({ upcoming: true });
+  const upcomingQuery = useUserBookings({ upcoming: true, status: "ongoing" });
   const pastQuery = useUserBookings({ past: true });
-  const cancelledQuery = useUserBookings();
+  const cancelledQuery = useUserBookings({ status: "cancelled" });
 
   const activeQuery =
     activeTab === "upcoming"

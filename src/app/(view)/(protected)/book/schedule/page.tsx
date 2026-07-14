@@ -145,7 +145,7 @@ export default function SchedulePage() {
     }
 
     const taskIds =
-      checkedTasks.size > 0 ? Array.from(checkedTasks).join(",") : undefined;
+      checkedTasks.length > 0 ? checkedTasks.join(",") : undefined;
 
     const filters: HomepageFilters = {
       categoryId: selectedCategoryId || undefined,
@@ -324,7 +324,8 @@ export default function SchedulePage() {
               {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => {
                 // Map label to JS day index: Mon=1 … Sun=0
                 const dayIndex = i === 6 ? 0 : i + 1;
-                const isSelected = selectedWeekDays.has(dayIndex);
+                const isSelected = selectedWeekDays.includes(dayIndex);
+
                 return (
                   <button
                     type="button"

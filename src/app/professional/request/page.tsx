@@ -15,35 +15,19 @@ import { Button } from "@/components/ui/button";
 import {
   useAcceptBooking,
   useCancelBooking,
+  useCompleteBooking,
   useProviderBookings,
 } from "@/hooks/api/bookings/use-bookings";
-import type { Booking } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
 type Tab = "request" | "ongoing" | "cancelled";
 
 const TAB_IDS: Tab[] = ["request", "ongoing", "cancelled"];
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
-    weekday: "long",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 function BookingCard({
   booking,
   tab,
-  setActiveTab
+  setActiveTab,
 }: {
   booking: {
     id: string;
@@ -118,10 +102,13 @@ function BookingCard({
                 <button
                   type="button"
                   disabled={accepting || cancelling}
-                  onClick={() => accept(booking.id,{"onSuccess": () => {
-                  
-                    setActiveTab("ongoing");
-                  }})}
+                  onClick={() =>
+                    accept(booking.id, {
+                      onSuccess: () => {
+                        setActiveTab("ongoing");
+                      },
+                    })
+                  }
                   className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary disabled:opacity-50 flex items-center gap-1"
                 >
                   {accepting && <Loader2 className="size-3 animate-spin" />}
@@ -249,7 +236,8 @@ export default function RequestPage() {
     status: STATUS_MAP[activeTab],
   });
   const { data: completedBookings, isLoading: loadingComplete } =
-    useProviderBookings();
+    useProviderBookings({ status: "complete" });
+  const { mutate: complete, isPending: completing } = useCompleteBooking();
 
   const filtered = bookings;
 
@@ -323,7 +311,7 @@ export default function RequestPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-lg flex flex-col gap-3">
+      <div className="mx-auto max-w-lg flex flex-col gap-3 max-h-[80dvh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
         {isLoading && (
           <div className="flex justify-center py-10">
             <Loader2 className="size-6 animate-spin text-primary" />
@@ -340,7 +328,12 @@ export default function RequestPage() {
           </p>
         )}
         {filtered?.map((booking) => (
-          <BookingCard key={booking.id} booking={booking} tab={activeTab} setActiveTab={setActiveTab} />
+          <BookingCard
+            key={booking.id}
+            booking={booking}
+            tab={activeTab}
+            setActiveTab={setActiveTab}
+          />
         ))}
       </div>
     </div>

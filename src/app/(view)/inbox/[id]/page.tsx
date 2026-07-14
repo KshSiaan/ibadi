@@ -21,6 +21,7 @@ import { Bubble, BubbleContent, BubbleGroup } from "@/components/ui/bubble";
 import {
   MessageScroller,
   MessageScrollerContent,
+  MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller";
 import { useSocket } from "@/context/SocketContext";
@@ -360,7 +361,7 @@ export default function ChatPage() {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex min-h-dvh flex-col container mx-auto">
+    <div className="flex min-h-dvh  flex-col container mx-auto">
       {/* Header */}
       <div className="flex items-center lg:px-[34%] justify-between px-4 py-3">
         <button
@@ -403,7 +404,7 @@ export default function ChatPage() {
       )}
 
       {/* Messages */}
-      <div className="flex flex-1 flex-col overflow-hidden px-4 lg:px-[34%]">
+      <div className="flex flex-1 flex-col overflow-hidden px-4 lg:px-[34%] max-h-[70dvh]">
         {isLoading ? (
           <div className="flex flex-1 flex-col gap-1 overflow-y-auto py-2">
             {(["s0", "s1", "s2", "s3", "s4"] as const).map((sk, i) => (
@@ -429,88 +430,93 @@ export default function ChatPage() {
             <p className="text-sm text-gray-400">{t("noMessagesYet")}</p>
           </div>
         ) : (
-          <MessageScroller className="flex-1">
-            <MessageScrollerViewport>
-              <MessageScrollerContent className="gap-1">
-                {messages.map((msg, idx) => {
-                  const prev = messages[idx - 1];
-                  const showDivider =
-                    !prev || !isSameDay(prev.timestamp, msg.timestamp);
-                  const isOwn = msg.senderId === currentUserId;
+          <MessageScrollerProvider>
+            <MessageScroller>
+              <MessageScrollerViewport>
+                <MessageScrollerContent className="gap-1">
+                  {messages.map((msg, idx) => {
+                    const prev = messages[idx - 1];
+                    const showDivider =
+                      !prev || !isSameDay(prev.timestamp, msg.timestamp);
+                    const isOwn = msg.senderId === currentUserId;
 
-                  return (
-                    <div key={msg.id}>
-                      {showDivider && (
-                        <div className="flex items-center gap-3 py-2">
-                          <div className="h-px flex-1 bg-gray-200" />
-                          <span className="text-[11px] text-gray-400">
-                            {formatDateDivider(msg.timestamp, t)}
-                          </span>
-                          <div className="h-px flex-1 bg-gray-200" />
-                        </div>
-                      )}
-                      <Message align={isOwn ? "end" : "start"} className="mt-0.5">
-                        {!isOwn && (
-                          <MessageAvatar className="size-8">
-                            <Avatar className="size-8">
-                              <AvatarImage
-                                src={participantImage || undefined}
-                                alt={participantName}
-                              />
-                              <AvatarFallback>
-                                {participantName.slice(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                          </MessageAvatar>
+                    return (
+                      <div key={msg.id}>
+                        {showDivider && (
+                          <div className="flex items-center gap-3 py-2">
+                            <div className="h-px flex-1 bg-gray-200" />
+                            <span className="text-[11px] text-gray-400">
+                              {formatDateDivider(msg.timestamp, t)}
+                            </span>
+                            <div className="h-px flex-1 bg-gray-200" />
+                          </div>
                         )}
-                        <MessageContent>
-                          <BubbleGroup className="max-w-[65%]">
-                            {msg.imageUrls?.map((url) => (
-                              <Image
-                                key={url}
-                                src={url}
-                                alt="attachment"
-                                width={320}
-                                height={192}
-                                className="max-h-48 max-w-xs rounded-xl object-cover shadow-sm"
-                                unoptimized
-                              />
-                            ))}
-                            {msg.text && (
-                              <Bubble
-                                variant={isOwn ? "default" : "outline"}
-                                className={msg.isPending ? "opacity-60" : ""}
-                              >
-                                <BubbleContent>
-                                  <p className="text-sm leading-relaxed text-wrap wrap-break-word">
-                                    {msg.text}
-                                  </p>
-                                  <p
-                                    className={cn(
-                                      "mt-1 text-right text-[10px]",
-                                      isOwn
-                                        ? "text-white/70"
-                                        : "text-gray-400",
-                                    )}
-                                  >
-                                    {formatTime(msg.timestamp)}
-                                    {isOwn &&
-                                      msg.status === "sending" &&
-                                      " · ···"}
-                                  </p>
-                                </BubbleContent>
-                              </Bubble>
-                            )}
-                          </BubbleGroup>
-                        </MessageContent>
-                      </Message>
-                    </div>
-                  );
-                })}
-                {isTyping && <TypingBubble />}
-              </MessageScrollerContent>
-            </MessageScrollerViewport>
-          </MessageScroller>
+                        <Message
+                          align={isOwn ? "end" : "start"}
+                          className="mt-0.5"
+                        >
+                          {!isOwn && (
+                            <MessageAvatar className="size-8">
+                              <Avatar className="size-8">
+                                <AvatarImage
+                                  src={participantImage || undefined}
+                                  alt={participantName}
+                                />
+                                <AvatarFallback>
+                                  {participantName.slice(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                            </MessageAvatar>
+                          )}
+                          <MessageContent>
+                            <BubbleGroup className="max-w-[65%]">
+                              {msg.imageUrls?.map((url) => (
+                                <Image
+                                  key={url}
+                                  src={url}
+                                  alt="attachment"
+                                  width={320}
+                                  height={192}
+                                  className="max-h-48 max-w-xs rounded-xl object-cover shadow-sm"
+                                  unoptimized
+                                />
+                              ))}
+                              {msg.text && (
+                                <Bubble
+                                  variant={isOwn ? "default" : "outline"}
+                                  className={msg.isPending ? "opacity-60" : ""}
+                                >
+                                  <BubbleContent>
+                                    <p className="text-sm leading-relaxed text-wrap wrap-break-word">
+                                      {msg.text}
+                                    </p>
+                                    <p
+                                      className={cn(
+                                        "mt-1 text-right text-[10px]",
+                                        isOwn
+                                          ? "text-white/70"
+                                          : "text-gray-400",
+                                      )}
+                                    >
+                                      {formatTime(msg.timestamp)}
+                                      {isOwn &&
+                                        msg.status === "sending" &&
+                                        " · ···"}
+                                    </p>
+                                  </BubbleContent>
+                                </Bubble>
+                              )}
+                            </BubbleGroup>
+                          </MessageContent>
+                        </Message>
+                      </div>
+                    );
+                  })}
+                  {isTyping && <TypingBubble />}
+                </MessageScrollerContent>
+              </MessageScrollerViewport>
+            </MessageScroller>
+          </MessageScrollerProvider>
         )}
       </div>
 
