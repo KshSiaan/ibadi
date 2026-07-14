@@ -145,15 +145,16 @@ export default function ResultsPage() {
               {t("when")}
             </button>
           </Link>
+          <Link href="/book/filter">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-xs font-semibold text-gray-600"
+            >
+              <SlidersHorizontal className="size-3.5" />
+              {t("filters")}
+            </button>
+          </Link>
 
-          <button
-            type="button"
-            onClick={() => setFilterOpen(true)}
-            className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-xs font-semibold text-gray-600"
-          >
-            <SlidersHorizontal className="size-3.5" />
-            {t("filters")}
-          </button>
           <button
             type="button"
             onClick={() => setFaqOpen(true)}

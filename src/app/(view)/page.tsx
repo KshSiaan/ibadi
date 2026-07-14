@@ -101,7 +101,7 @@ function ServiceNode({
   radius: number;
   onClick?: () => void;
 }) {
-    const {
+  const {
     setSelectedService,
     setSelectedCategoryId,
     homepageFilters,
@@ -116,9 +116,9 @@ function ServiceNode({
     <button
       // href={`/book?service=${id}`}
       onClick={() => {
-            setSelectedService(label);
-            setSelectedCategoryId(id);
-            router.push("/book/finding");
+        setSelectedService(label);
+        setSelectedCategoryId(id);
+        router.push("/book/schedule");
       }}
       className="absolute flex flex-col items-center gap-2 focus:outline-none"
       style={{

@@ -18,6 +18,7 @@ const weekDays = [
   { short: "Thu", date: 16 },
   { short: "Fri", date: 17 },
   { short: "Sat", date: 18 },
+  { short: "Sun", date: 19 },
 ];
 
 function isoToTime(iso: string): string {
@@ -289,6 +290,7 @@ function WeeklyView({
     t("thursday"),
     t("friday"),
     t("saturday"),
+    t("sunday"),
   ].filter((day) => availableDays.has(day));
 
   function openDay(day: string) {
