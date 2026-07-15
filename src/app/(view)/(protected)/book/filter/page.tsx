@@ -7,6 +7,7 @@ import { useServiceBooking } from "@/lib/store/service-booking";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
 
 export default function FilterPage() {
   const t = useTranslations("BookFilter");
@@ -118,7 +119,6 @@ export default function FilterPage() {
             </div>
           </div>
         </div>
-
         {/* Right — Switches */}
         <div className="space-y-4">
           {/* Palliative care */}
@@ -163,6 +163,11 @@ export default function FilterPage() {
             </div>
 
             <Switch checked={business} onCheckedChange={setBusiness} />
+          </div>
+          <div className="flex justify-end">
+            <Button className="w-full" asChild>
+              <Link href="/book/results">Save Filters</Link>
+            </Button>
           </div>
         </div>
       </div>

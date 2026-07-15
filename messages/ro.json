@@ -236,7 +236,8 @@
     "minimumBookingAmount": "Suma minimă de rezervare",
     "myReviews": "Recenziile Mele",
     "faqManagement": "Gestionare FAQ",
-    "accountSettings": "Setări Cont"
+    "accountSettings": "Setări Cont",
+    "myDocuments": "Documentele Mele"
   },
   "PersonalDetails": {
     "title": "Detalii personale",

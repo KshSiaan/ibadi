@@ -8,7 +8,6 @@ import {
   CreateBookingRequest,
 } from "@/lib/api/types";
 import { useCookies } from "react-cookie";
-import { toast } from "sonner";
 
 export function useCreateBooking() {
   const [cookies] = useCookies(["accessToken"]);
@@ -43,7 +42,7 @@ export function useUserBookings(params?: { upcoming?: boolean; past?: boolean; i
     queryFn: async () => {
       const qs = query.toString();
       const response = await apiClient.get<ApiResponse<PaginatedResponse<Booking>>>(
-        `/bookings/user-booking${qs ? `?${qs}` : ""}`,
+        `/bookings/user-booking${qs ? `?${qs}` : ""}&include=provider`,
         cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);

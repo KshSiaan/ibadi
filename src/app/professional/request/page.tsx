@@ -10,7 +10,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   useAcceptBooking,
@@ -19,6 +19,7 @@ import {
   useProviderBookings,
 } from "@/hooks/api/bookings/use-bookings";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 type Tab = "request" | "ongoing" | "cancelled";
 
@@ -81,21 +82,20 @@ function BookingCard({
               ${booking.price.toFixed(2)}
             </span>
           </div>
-          {/* {firstDay && (
-            <>
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                <Clock className="size-3.5 shrink-0" />
-                <span>
-                  From {formatTime(firstDay.startTime)} to{" "}
-                  {formatTime(firstDay.endTime)}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                <Calendar className="size-3.5 shrink-0" />
-                <span>{formatDate(booking.startDate)}</span>
-              </div>
-            </>
-          )} */}
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <Clock className="size-3.5 shrink-0" />
+            <span>
+              From {new Date(booking.startDate).toLocaleTimeString()} to{" "}
+              {new Date(
+                new Date(booking.endDate).getTime() +
+                  booking.totalHours * 60 * 60 * 1000,
+              ).toLocaleTimeString()}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <Calendar className="size-3.5 shrink-0" />
+            <span>{new Date(booking.startDate).toDateString()}</span>
+          </div>
           <div className="mt-1 flex flex-wrap gap-2">
             {tab === "request" && (
               <>
@@ -227,7 +227,12 @@ export default function RequestPage() {
   const t = useTranslations("ProfessionalRequest");
   const [activeTab, setActiveTab] = useState<Tab>("request");
   const [showComplete, setShowComplete] = useState(false);
-
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("completed") === "true") {
+      setShowComplete(true);
+    }
+  }, [searchParams]);
   const {
     data: bookings,
     isLoading,
@@ -237,7 +242,6 @@ export default function RequestPage() {
   });
   const { data: completedBookings, isLoading: loadingComplete } =
     useProviderBookings({ status: "complete" });
-  const { mutate: complete, isPending: completing } = useCompleteBooking();
 
   const filtered = bookings;
 

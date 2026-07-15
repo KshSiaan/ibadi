@@ -236,7 +236,8 @@
     "minimumBookingAmount": "Минимальная сумма бронирования",
     "myReviews": "Мои отзывы",
     "faqManagement": "Управление FAQ",
-    "accountSettings": "Настройки аккаунта"
+    "accountSettings": "Настройки аккаунта",
+    "myDocuments": "Мои документы"
   },
   "PersonalDetails": {
     "title": "Личные данные",

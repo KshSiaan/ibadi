@@ -236,7 +236,8 @@
     "minimumBookingAmount": "최소 예약 금액",
     "myReviews": "내 리뷰",
     "faqManagement": "FAQ 관리",
-    "accountSettings": "계정 설정"
+    "accountSettings": "계정 설정",
+    "myDocuments": "내 문서"
   },
   "PersonalDetails": {
     "title": "개인 정보",

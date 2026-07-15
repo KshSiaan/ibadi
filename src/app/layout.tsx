@@ -8,6 +8,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import GodProvider from "@/provider/god-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -57,7 +58,9 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <GodProvider>{children}</GodProvider>
+          <GodProvider>
+            <Suspense>{children}</Suspense>
+          </GodProvider>
           <Toaster richColors />
         </NextIntlClientProvider>
       </body>

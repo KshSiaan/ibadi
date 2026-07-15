@@ -236,7 +236,8 @@
     "minimumBookingAmount": "最小予約金額",
     "myReviews": "私のレビュー",
     "faqManagement": "FAQ管理",
-    "accountSettings": "アカウント設定"
+    "accountSettings": "アカウント設定",
+    "myDocuments": "私のドキュメント"
   },
   "PersonalDetails": {
     "title": "個人情報",

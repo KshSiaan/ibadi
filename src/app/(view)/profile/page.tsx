@@ -18,11 +18,13 @@ import {
   DollarSign,
   Star,
   HelpCircle,
+  FilesIcon,
 } from "lucide-react";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useCookies } from "react-cookie";
 import AuthProtectionCard from "@/components/core/auth-protection-card";
 import { useTranslations } from "next-intl";
+import { Spinner } from "@/components/ui/spinner";
 
 interface MenuItem {
   label: string;
@@ -125,6 +127,11 @@ export default function ProfilePage() {
       icon: <Star className="w-5 h-5" />,
     },
     {
+      label: t("myDocuments"),
+      href: "/profile/docs",
+      icon: <FilesIcon className="w-5 h-5" />,
+    },
+    {
       label: t("faqManagement"),
       href: "/profile/faq",
       icon: <HelpCircle className="w-5 h-5" />,
@@ -167,16 +174,20 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-white container mx-auto">
       {/* Profile Header */}
-      <div className="flex flex-col items-center justify-center pt-8 pb-6">
-        <Avatar className="w-16 h-16 mb-3">
-          <AvatarImage src={avatarSrc} alt={displayName} />
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
-        <h1 className="text-2xl font-semibold text-gray-900">{displayName}</h1>
-        {profile?.email && (
-          <p className="text-sm text-gray-500 mt-1">{profile.email}</p>
-        )}
-      </div>
+      {profile && (
+        <div className="flex flex-col items-center justify-center pt-8 pb-6">
+          <Avatar className="w-16 h-16 mb-3">
+            <AvatarImage src={avatarSrc} alt={displayName} />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            {displayName}
+          </h1>
+          {profile?.email && (
+            <p className="text-sm text-gray-500 mt-1">{profile.email}</p>
+          )}
+        </div>
+      )}
 
       {/* Switch to Professional Button */}
       {/* <div className="px-4 pb-6">
@@ -201,11 +212,17 @@ export default function ProfilePage() {
         </h2>
 
         <div className="border border-gray-200 rounded-lg overflow-hidden">
-          {profile?.role === "service_provider"
-            ? ProfessionalMenu.map((item) => (
-                <MenuItem key={item.href} item={item} />
-              ))
-            : menuItems.map((item) => <MenuItem key={item.href} item={item} />)}
+          {profile?.role === "service_provider" ? (
+            ProfessionalMenu.map((item) => (
+              <MenuItem key={item.href} item={item} />
+            ))
+          ) : profile?.role === "user" ? (
+            menuItems.map((item) => <MenuItem key={item.href} item={item} />)
+          ) : (
+            <div className="h-24 w-full flex justify-center items-center">
+              <Spinner />
+            </div>
+          )}
         </div>
       </div>
     </div>
