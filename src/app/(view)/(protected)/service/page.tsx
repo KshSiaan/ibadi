@@ -166,6 +166,7 @@ function BookingCard({
     isDeleted: boolean;
     createdAt: string;
     updatedAt: string;
+    provider: any;
   };
   tab: Tab;
   onRate: () => void;
@@ -188,7 +189,10 @@ function BookingCard({
       <div className="flex gap-3">
         <div className="size-20 shrink-0 overflow-hidden rounded-xl bg-gray-100">
           <Image
-            src={`https://i.pravatar.cc/80?u=${booking.providerId}`}
+            src={
+              booking.provider?.profile ||
+              `https://i.pravatar.cc/80?u=${booking.providerId}`
+            }
             alt="Provider"
             width={80}
             height={80}

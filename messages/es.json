@@ -236,7 +236,8 @@
     "minimumBookingAmount": "Cantidad mínima de reserva",
     "myReviews": "Mis reseñas",
     "faqManagement": "Gestión de FAQ",
-    "accountSettings": "Configuración de cuenta"
+    "accountSettings": "Configuración de cuenta",
+    "myDocuments": "Mis documentos"
   },
   "PersonalDetails": {
     "title": "Detalles personales",

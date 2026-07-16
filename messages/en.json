@@ -237,7 +237,8 @@
     "minimumBookingAmount": "Minimum booking amount",
     "myReviews": "My Reviews",
     "faqManagement": "FAQ management",
-    "accountSettings": "Account Settings"
+    "accountSettings": "Account Settings",
+    "myDocuments": "My Documents"
   },
   "PersonalDetails": {
     "title": "Personal details",

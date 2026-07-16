@@ -16,7 +16,7 @@ import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedu
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useCreateVerificationRequest } from "@/hooks/api/verification-request/use-verification-request";
 
-type Step = 0 | 1 | 2 | 3 | 4 | 5;
+type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
 const DAYS: DayKey[] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -68,6 +68,13 @@ const slides = [
   },
   {
     id: 6,
+    illustration: "/icons/home/1.svg",
+    title: "Upload\nDocuments",
+    description:
+      "Upload your verification documents. This is required to verify your account and start accepting bookings.",
+  },
+  {
+    id: 7,
     illustration: "/icons/home/3.svg",
     title: "Review your\ndetails",
     description: "Review everything before submitting for verification.",
@@ -204,7 +211,7 @@ export default function ProviderSetupPage() {
   }
 
   function next() {
-    if (step < 5) {
+    if (step < 6) {
       setStep((s) => (s + 1) as Step);
     } else {
       submit();
@@ -225,6 +232,14 @@ export default function ProviderSetupPage() {
   async function submit() {
     if (!me || verifImages.length === 0) {
       toast.error("Please upload verification images.");
+      return;
+    }
+    if (!form.bio.trim() || !form.perHourPrice.trim()) {
+      toast.error("Please fill in your bio and hourly rate.");
+      return;
+    }
+    if (verifImages.length > 5) {
+      toast.error("You can upload a maximum of 5 verification images.");
       return;
     }
     try {
@@ -288,9 +303,11 @@ export default function ProviderSetupPage() {
           : step === 3
             ? true
             : step === 4
-              ? form.bio.trim().length > 0 &&
-                form.perHourPrice.trim().length > 0
-              : !isSubmitting;
+              ? true
+              : step === 6
+                ? form.bio.trim().length > 0 &&
+                  form.perHourPrice.trim().length > 0
+                : !isSubmitting;
 
   const isScheduleStep = step === 1;
 
@@ -312,7 +329,7 @@ export default function ProviderSetupPage() {
           <span />
         )}
         <div className="flex items-center gap-4">
-          {step < 5 && (
+          {step < 6 && (
             <button
               type="button"
               onClick={() => setStep(5)}
@@ -496,7 +513,6 @@ export default function ProviderSetupPage() {
         {/* Step 3: Cover Image */}
         {step === 3 && (
           <div className="mt-2 flex w-full max-w-sm flex-col gap-3">
-            <p className="text-sm font-semibold">Verification documents</p>
             <label className="flex cursor-pointer items-center justify-center w-full rounded-xl bg-white px-6 py-8 shadow-sm hover:shadow-md transition-shadow border-2 border-dashed border-gray-200">
               <div className="flex flex-col items-center gap-2">
                 {form.coverImage ? (
@@ -555,52 +571,50 @@ export default function ProviderSetupPage() {
               }
               className="rounded-xl border-0 bg-white shadow-sm text-sm"
             />
-            <div className="">
-              <label className="flex cursor-pointer items-center justify-center w-full rounded-xl bg-white px-6 py-8 shadow-sm hover:shadow-md transition-shadow border-2 border-dashed border-gray-200">
-                <div className="flex flex-col items-center gap-2">
-                  {verifImages.length > 0 ? (
-                    verifImages.map((file, index) => (
-                      <span
-                        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                        key={index}
-                        className="text-sm font-medium text-primary"
-                      >
-                        {file.name}
-                      </span>
-                    ))
-                  ) : (
-                    <>
-                      <span className="text-lg">📸</span>
-                      <span className="text-sm font-medium text-gray-700">
-                        Upload photo
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        JPG, PNG up to 5MB
-                      </span>
-                    </>
-                  )}
-                </div>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png"
-                  onChange={(e) => {
-                    const file = e.target.files;
-                    if (file) {
-                      const filesArray = Array.from(file);
-                      setVerifImages(filesArray);
-                    }
-                  }}
-                  multiple
-                  max={2}
-                  className="hidden"
-                />
-              </label>
-            </div>
           </div>
         )}
 
-        {/* Step 5: Review all details + Submit */}
         {step === 5 && (
+          <div className="mt-2 w-full max-w-sm space-y-3">
+            <p className="text-sm font-semibold">Verification documents</p>
+            <label className="flex cursor-pointer items-center justify-center w-full rounded-xl bg-white px-6 py-8 shadow-sm hover:shadow-md transition-shadow border-2 border-dashed border-gray-200">
+              <div className="flex flex-col items-center gap-2">
+                {verifImages ? (
+                  <>
+                    <span className="text-sm font-medium text-primary">
+                      {verifImages?.length === 0
+                        ? "Upload documents"
+                        : `${verifImages.length} file(s) selected`}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      Click to change
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg">📸</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Upload photo
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      JPG, PNG up to 5MB
+                    </span>
+                  </>
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/jpeg,image/png"
+                multiple
+                onChange={(e) =>
+                  setVerifImages(Array.from(e.target.files ?? []))
+                }
+                className="hidden"
+              />
+            </label>
+          </div>
+        )}
+        {step === 6 && (
           <div className="mt-2 w-full max-w-sm space-y-3">
             {/* Bio & Rate */}
             <div className="rounded-xl bg-white px-4 py-3 shadow-sm text-sm text-gray-600 flex flex-col gap-1.5">
@@ -690,7 +704,7 @@ export default function ProviderSetupPage() {
           className="mt-4 w-full max-w-sm rounded-xl bg-primary py-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-          {step < 5
+          {step < 6
             ? isScheduleStep
               ? "Confirm"
               : "Next"

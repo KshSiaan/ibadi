@@ -236,7 +236,8 @@
     "minimumBookingAmount": "Mindestbuchungsbetrag",
     "myReviews": "Meine Bewertungen",
     "faqManagement": "FAQ-Verwaltung",
-    "accountSettings": "Kontoeinstellungen"
+    "accountSettings": "Kontoeinstellungen",
+    "myDocuments": "My Documents"
   },
   "PersonalDetails": {
     "title": "Persönliche Daten",

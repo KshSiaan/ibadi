@@ -236,7 +236,8 @@
     "minimumBookingAmount": "Importo minimo di prenotazione",
     "myReviews": "Le mie recensioni",
     "faqManagement": "Gestione FAQ",
-    "accountSettings": "Impostazioni account"
+    "accountSettings": "Impostazioni account",
+    "myDocuments": "I miei documenti"
   },
   "PersonalDetails": {
     "title": "Dati personali",

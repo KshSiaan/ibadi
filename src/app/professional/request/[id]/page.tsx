@@ -16,7 +16,10 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetBookingById } from "@/hooks/api/bookings/use-bookings";
+import {
+  useCompleteBooking,
+  useGetBookingById,
+} from "@/hooks/api/bookings/use-bookings";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import { useGetMyAddresses } from "@/hooks/api/address/use-address";
 
@@ -33,6 +36,8 @@ export default function BookingDetailPage() {
   const { data: user, isLoading: userLoading } = useGetUserById(
     booking?.userId ?? "",
   );
+  const { mutate: completeBooking, isPending: isCompletingBooking } =
+    useCompleteBooking();
   const activeAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
 
   const addressLabel = activeAddress
@@ -114,7 +119,16 @@ export default function BookingDetailPage() {
             </div>
 
             {booking?.providerId && (
-              <Link href={`/inbox/${booking.userId}`} className="shrink-0">
+              <Link
+                href={{
+                  pathname: `/inbox/${booking.conversationId}`,
+                  query: {
+                    name: user?.name,
+                    image: user?.profile ?? "",
+                    participantId: user?.id,
+                  },
+                }}
+              >
                 <button
                   type="button"
                   className="flex size-10 items-center justify-center rounded-full bg-primary text-white shadow"
@@ -238,10 +252,17 @@ export default function BookingDetailPage() {
         <div className="mx-auto max-w-md">
           <button
             type="button"
-            onClick={() => setOpen(true)}
+            disabled={isCompletingBooking}
+            onClick={() => {
+              completeBooking(bookingId, {
+                onSuccess: () => {
+                  setOpen(true);
+                },
+              });
+            }}
             className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           >
-            Complete
+            {isCompletingBooking ? "Completing..." : "Complete Booking"}
           </button>
         </div>
       </div>
@@ -267,13 +288,18 @@ export default function BookingDetailPage() {
                 determination to grow and succeed.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            <Link
+              href="/professional/request?completed=true"
+              className="w-full"
             >
-              Done
-            </button>
+              <button
+                type="button"
+                // onClick={() => setOpen(false)}
+                className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              >
+                Done
+              </button>
+            </Link>
           </div>
         </DialogContent>
       </Dialog>

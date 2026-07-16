@@ -236,7 +236,8 @@
     "minimumBookingAmount": "最低预约金额",
     "myReviews": "我的评价",
     "faqManagement": "常见问题管理",
-    "accountSettings": "账户设置"
+    "accountSettings": "账户设置",
+    "myDocuments": "我的文档"
   },
   "PersonalDetails": {
     "title": "个人信息",
