@@ -46,6 +46,9 @@ function ServiceCard({
     isDeleted: boolean;
     createdAt: string;
     updatedAt: string;
+    user?: {
+      name: string;
+    };
   };
 }) {
   return (
@@ -62,24 +65,28 @@ function ServiceCard({
             />
           </div>
           <div className="flex flex-1 flex-col gap-1">
-            <p className="text-sm font-bold text-primary capitalize">
-              {booking.bookingType} booking
-            </p>
-            {/* {firstDay && (
-              <>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <Clock className="size-3.5 shrink-0" />
-                  <span>
-                    From {formatTime(firstDay.startTime)} to{" "}
-                    {formatTime(firstDay.endTime)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <Calendar className="size-3.5 shrink-0" />
-                  <span>{formatDate(booking.startDate)}</span>
-                </div>
-              </>
-            )} */}
+            <div className="flex items-start justify-between">
+              <p className="text-sm font-bold text-primary capitalize">
+                {booking?.user?.name || "Unknown User"}
+              </p>
+              <span className="text-xs font-semibold text-primary">
+                ${booking.price.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <Clock className="size-3.5 shrink-0" />
+              <span>
+                From {new Date(booking.startDate).toLocaleTimeString()} to{" "}
+                {new Date(
+                  new Date(booking.endDate).getTime() +
+                    booking.totalHours * 60 * 60 * 1000,
+                ).toLocaleTimeString()}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <Calendar className="size-3.5 shrink-0" />
+              <span>{new Date(booking.startDate).toDateString()}</span>
+            </div>
             <div className="mt-1 flex flex-wrap gap-2">
               <span
                 className={cn(
@@ -104,12 +111,14 @@ function ServiceCard({
 
 export default function CalendarPage() {
   const t = useTranslations("ProfessionalCalendar");
-  const [date] = useState<Date | undefined>(undefined);
+  const [date, setDate] = useState<Date | undefined>();
   const {
     data: bookings,
     isLoading,
     error,
-  } = useProviderBookings({ upcoming: true });
+  } = useProviderBookings({
+    status: "ongoing",
+  });
 
   const filtered = date
     ? bookings?.filter((b) => {
@@ -129,7 +138,7 @@ export default function CalendarPage() {
           <TimerIcon className="text-primary" />
           {t("upcomingBooking")}
         </h1>
-        <DatePickerDemo />
+        <DatePickerDemo date={date} onDateChange={setDate} />
       </div>
 
       <div className="mx-auto max-w-lg flex flex-col gap-3">

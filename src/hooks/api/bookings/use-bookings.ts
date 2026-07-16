@@ -57,13 +57,14 @@ export function useProviderBookings(params?: {
   upcoming?: boolean;
   past?: boolean;
   status?: string;
+  startDate?: string;
 }) {
   const [cookies] = useCookies(["accessToken"]);
   const query = new URLSearchParams();
   if (params?.upcoming) query.set("upcoming", "true");
   if (params?.past) query.set("past", "true");
   if (params?.status) query.set("status", params.status === "cancelled" ? "canceled" : params.status);
-
+if (params?.startDate) query.set("startDate", params.startDate);
   return useQuery<{
     id: string
     userId: string
@@ -114,7 +115,7 @@ export function useProviderBookings(params?: {
           }
         }
       }>>(
-        `/bookings/provider-booking${qs ? `?${qs}` : ""}`,
+        `/bookings/provider-booking${qs ? `?${qs}` : ""}&include=user,provider`,
         cookies.accessToken,
       );
       if (!response.success) throw new Error(response.message);

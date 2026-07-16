@@ -120,14 +120,7 @@ export default function BookingDetailPage() {
 
             {booking?.providerId && (
               <Link
-                href={{
-                  pathname: `/inbox/${booking.conversationId}`,
-                  query: {
-                    name: user?.name,
-                    image: user?.profile ?? "",
-                    participantId: user?.id,
-                  },
-                }}
+                href={`/inbox/${booking.id}?name=${encodeURIComponent(user?.name ?? "")}&image=${encodeURIComponent(user?.profile ?? "")}&participantId=${user?.id ?? ""}`}
               >
                 <button
                   type="button"

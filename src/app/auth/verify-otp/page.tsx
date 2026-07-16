@@ -12,6 +12,7 @@ import { useVerifyOtpRegister } from "@/hooks/api/use-verify-otp-register";
 import { useResendOtp } from "@/hooks/api/otp/use-resend-otp";
 import { useLogin } from "@/hooks/api/use-login";
 import { useTranslations } from "next-intl";
+import { useCreateAddress } from "@/hooks/api/address/use-address";
 
 export default function VerifyOtpPage() {
   const t = useTranslations("VerifyOtp");
@@ -20,10 +21,13 @@ export default function VerifyOtpPage() {
   const mode = searchParams.get("mode") || "reset"; // "reset" or "register"
   const email = searchParams.get("email") || "";
   const role = searchParams.get("role") || "user";
-
+  const { mutate: createAddress } = useCreateAddress();
   const [otp, setOtp] = useState("");
   const [autoLoginError, setAutoLoginError] = useState("");
-
+  const locationResult = JSON.parse(
+    sessionStorage.getItem("locationResult") || "null",
+  );
+  const location = JSON.parse(sessionStorage.getItem("location") || "null");
   const resetMutation = useVerifyOtp();
   const registerMutation = useVerifyOtpRegister();
   const resendOtp = useResendOtp();
@@ -66,12 +70,36 @@ export default function VerifyOtpPage() {
               {
                 onSuccess: (data) => {
                   // Tokens are set by useLogin onSuccess
-                  if (storedRole === "service_provider") {
-                    // Redirect to provider setup page
-                    router.push("/auth/provider-setup");
-                  } else {
-                    // Regular user — redirect to homepage
-                    window.location.href = "/";
+
+                  if (role === "user") {
+                    createAddress(
+                      {
+                        addressLine1: locationResult?.label ?? "",
+                        location: location!,
+                        city: locationResult?.label.split(", ")["2"] ?? "",
+                        state: locationResult?.label.split(", ").at(-1) ?? "",
+                        postalCode: "",
+                        country: locationResult?.label.split(", ").at(-1) ?? "",
+                      },
+                      {
+                        onSuccess: () => {
+                          if (storedRole === "service_provider") {
+                            // Redirect to provider setup page
+                            router.push("/auth/provider-setup");
+                          } else {
+                            // Regular user — redirect to homepage
+                            window.location.href = "/";
+                          }
+                        },
+                        onError: (err) => {
+                          setAutoLoginError(
+                            err.message ||
+                              "Address creation failed. Please log in manually.",
+                          );
+                          router.push("/auth/login");
+                        },
+                      },
+                    );
                   }
                 },
                 onError: (err) => {
@@ -138,6 +166,7 @@ export default function VerifyOtpPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* OTP Input */}
             <div className="space-y-2">
+              {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
               <label className="text-sm font-medium text-slate-700">
                 {t("oneTimePassword")}
               </label>

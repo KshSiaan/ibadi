@@ -40,6 +40,7 @@ import {
 } from "@/hooks/api/address/use-address";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 
 /* ─── Fallback Data ─── */
 const fallbackServices: Category[] = [
@@ -113,6 +114,7 @@ function ServiceNode({
   const x = Math.round(radius * Math.cos(rad));
   const y = Math.round(radius * Math.sin(rad));
   return (
+    // biome-ignore lint/a11y/useButtonType: <explanation>
     <button
       // href={`/book?service=${id}`}
       onClick={() => {
@@ -316,7 +318,7 @@ function AddressManager({ onClose }: { onClose: () => void }) {
   const createAddress = useCreateAddress();
   const updateAddress = useUpdateAddress();
   const deleteAddress = useDeleteAddress();
-
+  const { data: user } = useMyProfile();
   const [mode, setMode] = useState<"list" | "create" | Address>("list");
   const [deleteTarget, setDeleteTarget] = useState<Address | null>(null);
 
@@ -494,7 +496,7 @@ export default function Page() {
   const { setSelectedService, serviceAddress } = useServiceBooking();
   const [addressOpen, setAddressOpen] = useState(false);
   const { data: categories = [], isLoading } = useCategories();
-
+  const { data: user } = useMyProfile();
   const handleServiceSelect = (service: string) => {
     setSelectedService(service);
   };
@@ -632,14 +634,16 @@ export default function Page() {
       </div>
 
       {/* Address button */}
-      <button
-        type="button"
-        onClick={() => setAddressOpen(true)}
-        className="mt-8 flex items-center gap-1 text-lg font-bold text-primary"
-      >
-        {serviceAddress || "+ Add address"}
-        <ChevronDown className="size-5" />
-      </button>
+      {user?.email && (
+        <button
+          type="button"
+          onClick={() => setAddressOpen(true)}
+          className="mt-8 flex items-center gap-1 text-lg font-bold text-primary"
+        >
+          {serviceAddress || "+ Add address"}
+          <ChevronDown className="size-5" />
+        </button>
+      )}
 
       {/* Service address dialog */}
       <Dialog open={addressOpen} onOpenChange={setAddressOpen}>

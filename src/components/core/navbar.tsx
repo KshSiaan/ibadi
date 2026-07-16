@@ -60,7 +60,7 @@ export default function Navbar() {
     removeCookie("accessToken", { path: "/" });
     removeCookie("refreshToken", { path: "/" });
     removeCookie("user", { path: "/" });
-    router.push("/");
+    window.location.href = "/";
   };
 
   const isProvider = isLoggedIn && user?.role === "service_provider";
@@ -287,7 +287,13 @@ export function AuthDialog({
                 }}
                 className="group flex items-center gap-4 rounded-xl border p-4 transition hover:border-primary"
               >
-                <div className="h-16 w-24 rounded-lg bg-gray-200" />{" "}
+                <Image
+                  className="h-16 w-24 rounded-lg object-contain"
+                  height={64}
+                  width={96}
+                  src="/icon.png"
+                  alt="Book Service"
+                />{" "}
                 {/* Placeholder for image */}
                 <div className="text-left">
                   <div className="font-semibold">{t("bookService")}</div>
@@ -302,7 +308,13 @@ export function AuthDialog({
                 }}
                 className="group flex items-center gap-4 rounded-xl border p-4 transition hover:border-primary"
               >
-                <div className="h-16 w-24 rounded-lg bg-gray-200" />{" "}
+                <Image
+                  className="h-16 w-24 rounded-lg bg-gray-200"
+                  height={64}
+                  width={96}
+                  src="/icon.png"
+                  alt="Offer Services"
+                />{" "}
                 {/* Placeholder for image */}
                 <div className="text-left">
                   <div className="font-semibold">{t("offerServices")}</div>

@@ -2,21 +2,21 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient, ApiResponse } from "@/lib/api/client";
-import { Notification, NotificationsResponse } from "@/lib/api/types";
+import { NotificationsResponse } from "@/lib/api/types";
 import { useCookies } from "react-cookie";
 
 export function useNotifications() {
   const [cookies] = useCookies(["accessToken"]);
 
-  return useQuery<Notification[]>({
+  return useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
       const response = await apiClient.get<ApiResponse<NotificationsResponse>>(
         "/notifications",
         cookies.accessToken,
       );
-      if (!response.success) throw new Error(response.message);
-      return response.data.data??[];
+
+      return response?.data??[];
     },
     enabled: !!cookies.accessToken,
     staleTime: 1000 * 30,
