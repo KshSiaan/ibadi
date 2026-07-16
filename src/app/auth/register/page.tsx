@@ -122,24 +122,24 @@ export default function RegisterPage() {
           state: locationResult?.label.split(", ").at(-1) ?? "",
           postalCode: "",
           country: locationResult?.label.split(", ").at(-1) ?? "",
+          location: {
+            type: "Point",
+            coordinates: [locationResult?.lat ?? 0, locationResult?.lng ?? 0],
+          },
+          isDefault: true,
         },
       },
       {
         onSuccess: () => {
+          // Redirect to verify OTP page with registration flag
           // Store role and password for post-OTP auto-login flow
           sessionStorage.setItem("registerRole", role);
           sessionStorage.setItem("registerPassword", password);
           // Redirect to verify OTP page with registration flag and role
-
-          // {
-          //     addressLine1: string;
-          //     addressLine2?: string | undefined;
-          //     city: string;
-          //     state: string;
-          //     postalCode: string;
-          //     country: string;
-          //     location?: Location | undefined;
-          // }
+          router.push(
+            `/auth/verify-otp?mode=register&email=${encodeURIComponent(email)}&role=${role}`,
+          );
+          // router.push("/auth/login");
         },
       },
     );

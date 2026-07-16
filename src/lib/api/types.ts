@@ -114,6 +114,8 @@ export interface RegisterRequest {
     state: string;
     postalCode: string;
     country: string;
+    location: Location;
+    isDefault: boolean;
   }
 }
 
@@ -235,13 +237,14 @@ export interface Booking {
   userId: string;
   providerId: string;
   price: number;
-  startDate: string;
+  startDate: Date;
   totalHours: number;
   bookingType: BookingType;
   bookingDays: (BookingDay & { id: string; status: string })[];
   status: string;
   createdAt: string;
   updatedAt: string;
+
 }
 
 export interface CheckoutRequest {

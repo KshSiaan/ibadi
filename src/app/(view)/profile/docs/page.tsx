@@ -139,11 +139,12 @@ export default function Page() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-gray-700">
-              {t("businessProfiles")}
+              Other Documents
             </p>
 
             <p className="text-xs text-gray-400">
-              {t("businessProfilesDescription")}
+              Any other documents that the specialist may have uploaded to their
+              profile.
             </p>
           </div>
 

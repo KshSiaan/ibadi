@@ -291,7 +291,7 @@ export function AuthDialog({
                   className="h-16 w-24 rounded-lg object-contain"
                   height={64}
                   width={96}
-                  src="/icon.png"
+                  src="/image/user-create.jpg"
                   alt="Book Service"
                 />{" "}
                 {/* Placeholder for image */}
@@ -309,10 +309,10 @@ export function AuthDialog({
                 className="group flex items-center gap-4 rounded-xl border p-4 transition hover:border-primary"
               >
                 <Image
-                  className="h-16 w-24 rounded-lg bg-gray-200"
+                  className="h-16 w-24 rounded-lg bg-gray-200 object-contain"
                   height={64}
                   width={96}
-                  src="/icon.png"
+                  src="/image/provider-create.jpg"
                   alt="Offer Services"
                 />{" "}
                 {/* Placeholder for image */}

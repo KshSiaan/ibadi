@@ -71,35 +71,12 @@ export default function VerifyOtpPage() {
                 onSuccess: (data) => {
                   // Tokens are set by useLogin onSuccess
 
-                  if (role === "user") {
-                    createAddress(
-                      {
-                        addressLine1: locationResult?.label ?? "",
-                        location: location!,
-                        city: locationResult?.label.split(", ")["2"] ?? "",
-                        state: locationResult?.label.split(", ").at(-1) ?? "",
-                        postalCode: "",
-                        country: locationResult?.label.split(", ").at(-1) ?? "",
-                      },
-                      {
-                        onSuccess: () => {
-                          if (storedRole === "service_provider") {
-                            // Redirect to provider setup page
-                            router.push("/auth/provider-setup");
-                          } else {
-                            // Regular user — redirect to homepage
-                            window.location.href = "/";
-                          }
-                        },
-                        onError: (err) => {
-                          setAutoLoginError(
-                            err.message ||
-                              "Address creation failed. Please log in manually.",
-                          );
-                          router.push("/auth/login");
-                        },
-                      },
-                    );
+                  if (storedRole === "service_provider") {
+                    // Redirect to provider setup page
+                    router.push("/auth/provider-setup");
+                  } else {
+                    // Regular user — redirect to homepage
+                    window.location.href = "/";
                   }
                 },
                 onError: (err) => {

@@ -154,11 +154,12 @@ export default function FilterPage() {
           <div className="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4">
             <div>
               <p className="text-sm font-semibold text-gray-700">
-                {t("businessProfiles")}
+                Other Documents
               </p>
 
               <p className="text-xs text-gray-400">
-                {t("businessProfilesDescription")}
+                Any other documents that the specialist may have uploaded to
+                their profile.
               </p>
             </div>
 

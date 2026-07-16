@@ -84,7 +84,7 @@ function BookingCard({
             <span>
               From {new Date(booking.startDate).toLocaleTimeString()} to{" "}
               {new Date(
-                new Date(booking.endDate).getTime() +
+                new Date(booking.startDate).getTime() +
                   booking.totalHours * 60 * 60 * 1000,
               ).toLocaleTimeString()}
             </span>
