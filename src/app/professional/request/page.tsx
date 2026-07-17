@@ -47,6 +47,9 @@ function BookingCard({
     isDeleted: boolean;
     createdAt: string;
     updatedAt: string;
+    user?: {
+      name: string;
+    };
   };
   tab: Tab;
   setActiveTab: (tab: Tab) => void;
@@ -70,13 +73,7 @@ function BookingCard({
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-start justify-between">
             <p className="text-sm font-bold text-primary capitalize">
-              {tab === "ongoing" ? (
-                <Link href={`/professional/request/${booking.id}`}>
-                  {t("booking", { type: booking.bookingType })}
-                </Link>
-              ) : (
-                t("booking", { type: booking.bookingType })
-              )}
+              {booking?.user?.name || "Unknown User"}
             </p>
             <span className="text-xs font-semibold text-primary">
               ${booking.price.toFixed(2)}
@@ -87,7 +84,7 @@ function BookingCard({
             <span>
               From {new Date(booking.startDate).toLocaleTimeString()} to{" "}
               {new Date(
-                new Date(booking.endDate).getTime() +
+                new Date(booking.startDate).getTime() +
                   booking.totalHours * 60 * 60 * 1000,
               ).toLocaleTimeString()}
             </span>
@@ -137,6 +134,14 @@ function BookingCard({
                 {t("cancelled")}
               </span>
             )}
+            <Button
+              className="text-xs ml-auto"
+              size="sm"
+              variant="outline"
+              asChild
+            >
+              <Link href={`/professional/request/${booking.id}`}>See more</Link>
+            </Button>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 {
   "Metadata": {
-    "title": "iBadi - Find and book",
+    "title": "iumi - Find and book",
     "description": "Find and book the best local services with iBadi. From home cleaning to personal training, we connect you with trusted professionals in your area. Experience convenience and quality with just a few clicks."
   },
   "Common": {
@@ -77,8 +77,8 @@
     "createAccount": "Create Account"
   },
   "AuthDialog": {
-    "whatWillYouDo": "What will you do on iBadi?",
-    "whatWillYouDoDescription": "This decision is not final. You can later be both a client and a professional from the account if you wish.",
+    "whatWillYouDo": "What will you do on iumi?",
+    "whatWillYouDoDescription": "Once you select either Client or Professional, you won't be able to switch to the other account type later.",
     "bookService": "Book a service",
     "imClient": "(I'm a Client)",
     "offerServices": "Offer Services",

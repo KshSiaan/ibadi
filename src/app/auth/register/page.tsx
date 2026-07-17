@@ -25,6 +25,7 @@ import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
 import { useRegister } from "@/hooks/api/use-register";
 import { firebaseAuth, googleProvider } from "@/lib/firebase-auth";
 import { requestFcmToken } from "@/lib/firebase-messaging";
+import { useCreateAddress } from "@/hooks/api/address/use-address";
 
 export default function RegisterPage() {
   const t = useTranslations("Register");
@@ -49,7 +50,6 @@ export default function RegisterPage() {
   const { mutate: register, isPending: loading, error } = useRegister();
   const { mutate: googleLogin, isPending: googleLoading } = useGoogleLogin();
   const [googleError, setGoogleError] = useState<string | null>(null);
-
   const triggerGoogleSignup = async () => {
     setGoogleError(null);
     try {
@@ -115,10 +115,23 @@ export default function RegisterPage() {
         password,
         role,
         phoneNumber,
-        ...(location ? { location } : {}),
+        location,
+        address: {
+          addressLine1: locationResult?.label ?? "",
+          city: locationResult?.label.split(", ")["2"] ?? "",
+          state: locationResult?.label.split(", ").at(-1) ?? "",
+          postalCode: "",
+          country: locationResult?.label.split(", ").at(-1) ?? "",
+          location: {
+            type: "Point",
+            coordinates: [locationResult?.lat ?? 0, locationResult?.lng ?? 0],
+          },
+          isDefault: true,
+        },
       },
       {
         onSuccess: () => {
+          // Redirect to verify OTP page with registration flag
           // Store role and password for post-OTP auto-login flow
           sessionStorage.setItem("registerRole", role);
           sessionStorage.setItem("registerPassword", password);
@@ -126,6 +139,7 @@ export default function RegisterPage() {
           router.push(
             `/auth/verify-otp?mode=register&email=${encodeURIComponent(email)}&role=${role}`,
           );
+          // router.push("/auth/login");
         },
       },
     );
@@ -136,6 +150,11 @@ export default function RegisterPage() {
   return (
     <main className="flex min-h-dvh py-12 w-full items-center justify-center bg-linear-to-br from-slate-50 to-slate-100 px-4">
       <Card className="w-full max-w-md border-0 shadow-lg">
+        {/* <pre className="bg-gradient-to-br max-h-[80dvh] overflow-scroll fixed top-1/2 left-1/2 -translate-1/2 w-[90dvw] z-50 from-zinc-900/60 via-zinc-800/40 to-zinc-900/20 text-amber-400 rounded-xl p-6 shadow-lg overflow-x-auto text-sm leading-relaxed border border-zinc-700/20">
+          <code className="whitespace-pre-wrap">
+            {JSON.stringify(locationResult?.label.split(", ").at(-1), null, 2)}
+          </code>
+        </pre> */}
         <CardContent className="space-y-6 p-8">
           {/* Back Button */}
           <Link
@@ -308,23 +327,25 @@ export default function RegisterPage() {
               />
             </div>
 
-            {role === "service_provider" && (
-              <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <div className="text-sm font-semibold text-slate-700">
-                  {t("serviceLocation")}
-                </div>
-                <p className="text-xs text-slate-500">
-                  {t("serviceLocationDescription")}
-                </p>
-                <LocationSearch
-                  value={locationResult}
-                  onChange={setLocationResult}
-                  disabled={loading}
-                  required
-                  placeholder={t("locationPlaceholder")}
-                />
+            <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-700">
+                {role === "service_provider"
+                  ? t("serviceLocation")
+                  : "Your Location"}
               </div>
-            )}
+              <p className="text-xs text-slate-500">
+                {role === "service_provider"
+                  ? t("serviceLocationDescription")
+                  : "We use your location to show you relevant services nearby."}
+              </p>
+              <LocationSearch
+                value={locationResult}
+                onChange={setLocationResult}
+                disabled={loading}
+                required
+                placeholder={t("locationPlaceholder")}
+              />
+            </div>
 
             {/* Password Requirements */}
             <div className="rounded-lg bg-blue-50 p-3 text-xs text-blue-700">

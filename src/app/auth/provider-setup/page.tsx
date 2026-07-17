@@ -15,6 +15,7 @@ import { useCategories } from "@/hooks/api/use-categories";
 import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedule";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useCreateVerificationRequest } from "@/hooks/api/verification-request/use-verification-request";
+import { useServiceBooking } from "@/lib/store/service-booking";
 
 type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
@@ -143,7 +144,7 @@ export default function ProviderSetupPage() {
     },
   });
   const [verifImages, setVerifImages] = useState<File[]>([]);
-
+  const { setSelectedService } = useServiceBooking();
   // Initialize taskOptions when they're loaded
   const initializedForm = useMemo(() => {
     if (taskOptions.length > 0 && Object.keys(form.taskOptions).length === 0) {
@@ -226,7 +227,7 @@ export default function ProviderSetupPage() {
     removeCookie("accessToken", { path: "/" });
     removeCookie("refreshToken", { path: "/" });
     removeCookie("user", { path: "/" });
-    router.push("/auth/login");
+    window.location.href = "/auth/login";
   }
 
   async function submit() {
@@ -276,6 +277,7 @@ export default function ProviderSetupPage() {
       updateServiceProvider(serviceProviderPayload, {
         onSuccess: () => {
           // Logout and redirect to login with toast
+          setSelectedService("");
           removeCookie("accessToken", { path: "/" });
           removeCookie("refreshToken", { path: "/" });
           removeCookie("user", { path: "/" });

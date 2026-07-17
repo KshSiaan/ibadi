@@ -108,6 +108,15 @@ export interface RegisterRequest {
   role?: "user" | "service_provider";
   phoneNumber?: string;
   location?: Location;
+  address?:{
+    addressLine1: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    location: Location;
+    isDefault: boolean;
+  }
 }
 
 export interface RegisterResponse {
@@ -158,24 +167,27 @@ export interface ResendOtpResponse {
   message: string;
 }
 
-/* ─── Notification Types ─── */
-export interface Notification {
-  id: string;
-  userId: string;
-  title: string;
-  body: string;
-  isRead: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface NotificationsResponse {
-  data: Notification[];
-  meta: {
-    page: number;
-    limit: number;
-    total: number;
-  };
+  success: boolean
+  message: string
+  data: Array<{
+    id: string
+    receiverId: string
+    bookingId: string
+    verificationRequestId: any
+    message: string
+    description: string
+    isRead: boolean
+    createdAt: string
+    updatedAt: string
+    user: {
+      id: string
+      name: string
+      profile: any
+      phoneNumber: any
+    }
+  }>
 }
 
 /* ─── Review Types ─── */
@@ -225,13 +237,14 @@ export interface Booking {
   userId: string;
   providerId: string;
   price: number;
-  startDate: string;
+  startDate: Date;
   totalHours: number;
   bookingType: BookingType;
   bookingDays: (BookingDay & { id: string; status: string })[];
   status: string;
   createdAt: string;
   updatedAt: string;
+
 }
 
 export interface CheckoutRequest {

@@ -31,7 +31,6 @@ export default function BookingDetailPage() {
 
   const { data: booking, isLoading: bookingLoading } =
     useGetBookingById(bookingId);
-  const { data: provider } = useGetUserById(booking?.providerId ?? "");
   const { data: addresses = [] } = useGetMyAddresses();
   const { data: user, isLoading: userLoading } = useGetUserById(
     booking?.userId ?? "",
@@ -43,8 +42,6 @@ export default function BookingDetailPage() {
   const addressLabel = activeAddress
     ? `${activeAddress.addressLine1}, ${activeAddress.city}, ${activeAddress.state}`
     : "No address saved";
-
-  const firstDay = booking?.bookingDays?.[0];
   const startDateFormatted = booking?.startDate
     ? new Date(booking.startDate).toLocaleDateString("en-US", {
         weekday: "long",
@@ -58,16 +55,7 @@ export default function BookingDetailPage() {
     : 0;
   const subtotal = booking?.price ?? 0;
 
-  const providerName = provider?.name ?? "—";
-  const providerPhone = provider?.phoneNumber ?? "—";
-  const userAvatar = user?.profile ?? undefined;
   const userInitials = user?.name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-  const providerInitials = providerName
     .split(" ")
     .map((w) => w[0])
     .join("")
@@ -109,25 +97,20 @@ export default function BookingDetailPage() {
                     <p className="text-sm font-bold text-[#1e2d4f]">
                       {user?.name}
                     </p>
-                    <p className="text-xs text-gray-400 flex items-center gap-1">
-                      <PhoneIcon size={14} />
-                      {user?.phoneNumber}
-                    </p>
+                    {booking?.status === "requested" && (
+                      <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <PhoneIcon size={14} />
+                        {user?.phoneNumber}
+                      </p>
+                    )}
                   </>
                 )}
               </div>
             </div>
 
-            {booking?.providerId && (
+            {booking?.providerId && booking.status !== "requested" && (
               <Link
-                href={{
-                  pathname: `/inbox/${booking.conversationId}`,
-                  query: {
-                    name: user?.name,
-                    image: user?.profile ?? "",
-                    participantId: user?.id,
-                  },
-                }}
+                href={`/inbox/${booking.id}?name=${encodeURIComponent(user?.name ?? "")}&image=${encodeURIComponent(user?.profile ?? "")}&participantId=${user?.id ?? ""}`}
               >
                 <button
                   type="button"
@@ -168,7 +151,10 @@ export default function BookingDetailPage() {
                     <div className="h-8 w-0.5 bg-gray-300" />
                   </div>
                   <span className="text-xs text-gray-600">
-                    Start: {firstDay?.startTime ?? "—"}
+                    Start:{" "}
+                    {new Date(
+                      booking?.startDate ?? new Date(),
+                    ).toLocaleTimeString()}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -176,7 +162,11 @@ export default function BookingDetailPage() {
                     <div className="size-4 rounded-full bg-gray-700" />
                   </div>
                   <span className="text-xs text-gray-600">
-                    End: {firstDay?.endTime ?? "—"}
+                    End:{" "}
+                    {new Date(
+                      new Date(booking?.startDate ?? new Date()).getTime() +
+                        (booking?.totalHours || 0) * 60 * 60 * 1000,
+                    ).toLocaleTimeString()}
                   </span>
                 </div>
               </div>
@@ -248,24 +238,26 @@ export default function BookingDetailPage() {
       </div>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#f5f5f5] px-4 pb-6 pt-2">
-        <div className="mx-auto max-w-md">
-          <button
-            type="button"
-            disabled={isCompletingBooking}
-            onClick={() => {
-              completeBooking(bookingId, {
-                onSuccess: () => {
-                  setOpen(true);
-                },
-              });
-            }}
-            className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            {isCompletingBooking ? "Completing..." : "Complete Booking"}
-          </button>
+      {booking?.status === "ongoing" && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#f5f5f5] px-4 pb-6 pt-2">
+          <div className="mx-auto max-w-md">
+            <button
+              type="button"
+              disabled={isCompletingBooking}
+              onClick={() => {
+                completeBooking(bookingId, {
+                  onSuccess: () => {
+                    setOpen(true);
+                  },
+                });
+              }}
+              className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              {isCompletingBooking ? "Completing..." : "Complete Booking"}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xs gap-0 rounded-2xl p-6 text-center">

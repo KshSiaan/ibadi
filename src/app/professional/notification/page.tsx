@@ -23,8 +23,8 @@ import { cn } from "@/lib/utils";
 
 type NotificationTone = "success" | "warning" | "danger" | "neutral";
 
-function getTone(title: string, body: string): NotificationTone {
-  const value = `${title} ${body}`.toLowerCase();
+function getTone(message: string, body: string): NotificationTone {
+  const value = `${message} ${body}`.toLowerCase();
 
   if (
     value.includes("accept") ||
@@ -99,7 +99,7 @@ export default function Page() {
   const markAll = useMarkNotifications();
   const clearAll = useDeleteNotifications();
 
-  const sortedNotifications = [...notifications].sort(
+  const sortedNotifications = [...(notifications as any)].sort(
     (left, right) =>
       new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
   );
@@ -147,7 +147,6 @@ export default function Page() {
               </p>
             </div>
           </div>
-
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
@@ -262,10 +261,14 @@ export default function Page() {
           </div>
         )}
 
-        {!isLoading && !error && sortedNotifications.length > 0 && (
+        {!isLoading && sortedNotifications.length > 0 && (
           <div className="flex flex-col gap-3">
             {sortedNotifications.map((notification) => {
-              const tone = getTone(notification.title, notification.body);
+              const tone = getTone(
+                notification.message,
+                notification.description,
+              );
+
               return (
                 <article
                   key={notification.id}
@@ -288,16 +291,19 @@ export default function Page() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h2 className="text-sm font-bold text-gray-900">
-                            {notification.title}
+                            {notification.user?.name || "Unknown User"} -{" "}
+                            {notification.message}
                           </h2>
+
                           {!notification.isRead && (
                             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
                               {t("new")}
                             </span>
                           )}
                         </div>
+
                         <p className="mt-1 text-sm leading-relaxed text-gray-500">
-                          {notification.body}
+                          {notification.description}
                         </p>
                       </div>
 
