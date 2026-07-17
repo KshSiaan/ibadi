@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiClient, ApiResponse } from "@/lib/api/client";
-import { NotificationsResponse } from "@/lib/api/types";
+import { apiClient, type ApiResponse } from "@/lib/api/client";
+import type { NotificationsResponse } from "@/lib/api/types";
 import { useCookies } from "react-cookie";
 
 export function useNotifications() {
@@ -11,7 +11,7 @@ export function useNotifications() {
   return useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<NotificationsResponse>>(
+      const response = await apiClient.get<ApiResponse<any>>(
         "/notifications",
         cookies.accessToken,
       );
