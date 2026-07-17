@@ -80,7 +80,7 @@ export default function BookingsPage() {
         )}
 
         <div className="space-y-4">
-          {bookings?.map((booking) => (
+          {bookings?.map((booking: any) => (
             <div
               key={booking.id}
               className="bg-white border border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors"
