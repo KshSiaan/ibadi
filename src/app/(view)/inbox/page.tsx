@@ -259,7 +259,7 @@ export default function InboxPage() {
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
-    if (tab === "alerts" && notifications?.some((n) => !n.isRead)) {
+    if (tab === "alerts" && notifications?.some((n: any) => !n.isRead)) {
       markAll.mutate();
     }
   };
@@ -268,7 +268,7 @@ export default function InboxPage() {
     c.name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const unreadAlerts = notifications?.filter((n) => !n.isRead).length ?? 0;
+  const unreadAlerts = notifications?.filter((n: any) => !n.isRead).length ?? 0;
 
   return (
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
@@ -424,7 +424,7 @@ export default function InboxPage() {
               </p>
             )}
             <div className="flex flex-col divide-y divide-gray-100 rounded-xl bg-white shadow-sm">
-              {notifications?.map((notif) => {
+              {notifications?.map((notif: any) => {
                 const { icon, color } = alertIcon(notif.title);
                 return (
                   <button

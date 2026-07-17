@@ -129,7 +129,7 @@ function BookingCard({
                 </span>
               </Link>
             )}
-            
+
             {tab === "cancelled" && (
               <span className="rounded-full bg-red-200 px-3 py-1 text-xs font-semibold text-red-500">
                 {t("cancelled")}
@@ -149,7 +149,7 @@ function BookingCard({
     </div>
   );
 }
-// ll
+
 function CompleteCard({
   booking,
   setActiveTab,
