@@ -32,9 +32,11 @@ import { useHomepage } from "@/hooks/api/homepage/use-homepage";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 export default function ResultsPage() {
   const t = useTranslations("BookResults");
+  const router = useRouter();
   const { selectedService, selectedCategoryId } = useServiceBooking();
   const { data: professionals = [], isLoading, error } = useHomepage();
   const { data: faqs = [], isLoading: faqsLoading } =
@@ -118,7 +120,7 @@ export default function ResultsPage() {
       {/* Header */}
       <div className="bg-white px-4 py-3 shadow-sm">
         <div className="mx-auto flex max-w-lg items-center gap-3">
-          <Link href="/book" className="shrink-0 text-primary">
+          <Link href="/" className="shrink-0 text-primary">
             <ArrowLeft className="size-5" />
           </Link>
           <div className="flex flex-1 items-center rounded-xl bg-gray-100 px-3 py-2">

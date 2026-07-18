@@ -594,7 +594,9 @@ export default function Page() {
                   <PhoneOutgoing /> Call
                 </Button>
                 <Button className="mt-4 w-full" size="lg" asChild>
-                  <Link href="/inbox">
+                  <Link
+                    href={`/inbox/admin?name=${encodeURIComponent("Admin")}&image=${encodeURIComponent("")}&participantId=69c4f90e6db7d36f60fec4aa`}
+                  >
                     <MessageSquareIcon /> Message
                   </Link>
                 </Button>
