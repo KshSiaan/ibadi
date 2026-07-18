@@ -119,60 +119,65 @@ export default function SchedulePage() {
 
   const handleSearch = () => {
     const slot = selectedMorning ?? selectedEvening;
-    const [startHour, endHour] = slot
-      ? slot.split("-").map((n) => n.padStart(2, "0"))
-      : [undefined, undefined];
-
-    let dateStr: string | undefined;
-    if (frequency === "one_time") {
-      const month = String(selectedMonth + 1).padStart(2, "0");
-      dateStr = `${selectedYear}-${month}-${String(selectedDay).padStart(2, "0")}`;
-    }
-
-    // For exact start type, override startTime with the picker values
-    let finalStartHour = startHour;
-    let finalEndHour = endHour;
-    if (startType === "exact") {
-      let h24 = exactHour;
-      if (exactAmPm === "pm" && h24 !== 12) h24 += 12;
-      if (exactAmPm === "am" && h24 === 12) h24 = 0;
-      finalStartHour = String(h24).padStart(2, "0");
-      const endH24 = h24 + duration[0];
-      finalEndHour = String(endH24 > 23 ? endH24 - 24 : endH24).padStart(
-        2,
-        "0",
-      );
-    }
 
     const taskIds =
       checkedTasks.length > 0 ? checkedTasks.join(",") : undefined;
 
-    //
     const DAY_MAP = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
+    let dateStr: string | undefined;
     let days: string | undefined;
 
-    if (frequency === "weekly") {
+    if (frequency === "one_time") {
+      const month = String(selectedMonth + 1).padStart(2, "0");
+      dateStr = `${selectedYear}-${month}-${String(selectedDay).padStart(2, "0")}`;
+
+      const selectedDate = new Date(selectedYear, selectedMonth, selectedDay);
+      days = DAY_MAP[selectedDate.getDay()];
+    } else {
       days =
         selectedWeekDays.length > 0
-          ? selectedWeekDays.map((day) => DAY_MAP[day]).join(",")
+          ? selectedWeekDays.map((d) => DAY_MAP[d]).join(",")
           : undefined;
-    } else {
-      const selectedDate = new Date(selectedYear, selectedMonth, selectedDay);
-
-      days = DAY_MAP[selectedDate.getDay()];
     }
-    //
+
+    let exactStartTime: string | undefined;
+    let exactEndTime: string | undefined;
+
+    if (startType === "exact") {
+      let hour24 = exactHour;
+
+      if (exactAmPm === "pm" && hour24 !== 12) hour24 += 12;
+      if (exactAmPm === "am" && hour24 === 12) hour24 = 0;
+
+      const endHour24 = (hour24 + duration[0]) % 24;
+
+      exactStartTime = `${String(hour24).padStart(2, "0")}:${String(exactMinute).padStart(2, "0")}`;
+      exactEndTime = `${String(endHour24).padStart(2, "0")}:${String(exactMinute).padStart(2, "0")}`;
+    }
 
     const filters: HomepageFilters = {
-      categoryId: selectedCategoryId || undefined,
       searchTerm: searchTerm || undefined,
-      otherTaskIds: taskIds,
-      date: dateStr,
-      startTime: finalStartHour ? `${finalStartHour}:00` : undefined,
-      endTime: finalEndHour ? `${finalEndHour}:00` : undefined,
-      limit: 20,
+
+      bookingType: frequency,
+
+      date: frequency === "one_time" ? dateStr : undefined,
       days,
+
+      startTimeType: startType,
+
+      flexibleSlot: startType === "flexible" && slot ? slot : undefined,
+
+      startTime: startType === "exact" ? exactStartTime : undefined,
+      endTime: startType === "exact" ? exactEndTime : undefined,
+
+      duration: duration[0],
+
+      categoryId: selectedCategoryId || undefined,
+
+      otherTaskIds: taskIds,
+
+      limit: 20,
     };
 
     setHomepageFilters(filters);

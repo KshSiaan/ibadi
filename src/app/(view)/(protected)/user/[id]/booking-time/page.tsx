@@ -557,6 +557,7 @@ function OnceView({
           <div className="mb-3 flex items-center justify-between">
             <div className="mb-3 flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
+                {/** biome-ignore lint/a11y/useButtonType: <explanation> */}
                 <button onClick={() => setWeekOffset((o) => o - 1)}>
                   <ChevronLeft className="size-4" />
                 </button>
@@ -565,9 +566,9 @@ function OnceView({
                   {MONTH_NAMES[weekDays[0].month]} {weekDays[0].year}
                 </p>
 
-                <button onClick={() => setWeekOffset((o) => o + 1)}>
+                <Button onClick={() => setWeekOffset((o) => o + 1)}>
                   <ChevronRight className="size-4" />
-                </button>
+                </Button>
               </div>
 
               <Button

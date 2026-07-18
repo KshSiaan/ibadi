@@ -386,21 +386,44 @@ export interface HomepageProvider {
 }
 
 export interface HomepageFilters {
+  // Search
   searchTerm?: string;
-  categoryId?: string;
-  experienceOptionId?: string;
-  otherTaskIds?: string;
-  minPrice?: number;
-  maxPrice?: number;
+
+  // Booking
+  bookingType?: "one_time" | "weekly";
+
   date?: string;
+  days?: string;
+
+  // Time
+  startTimeType?: "flexible" | "exact";
+  flexibleSlot?: string;
   startTime?: string;
   endTime?: string;
+  duration?: number;
+
+  // Categories
+  categoryId?: string;
+  categoryIds?: string;
+
+  // Experience / Tasks
+  experienceOptionId?: string;
+  otherTaskIds?: string;
+
+  // Price
+  minPrice?: number;
+  maxPrice?: number;
+
+  // Provider filters
+  qualifiedCarer?: boolean;
+  palliativeCare?: boolean;
+  drivingLicense?: boolean;
+  businessProfiles?: boolean;
+
+  // Pagination
   page?: number;
   limit?: number;
   sort?: string;
-
-  // NEW
-  days?: string;
 }
 
 export interface AvailabilityRequest {
