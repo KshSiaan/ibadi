@@ -146,25 +146,13 @@ export default function SchedulePage() {
 
     if (startType === "exact") {
       let hour24 = exactHour;
-
       if (exactAmPm === "pm" && hour24 !== 12) hour24 += 12;
       if (exactAmPm === "am" && hour24 === 12) hour24 = 0;
 
-      const startDate = new Date();
+      const endHour24 = (hour24 + duration[0]) % 24;
 
-      if (frequency === "one_time") {
-        startDate.setFullYear(selectedYear);
-        startDate.setMonth(selectedMonth);
-        startDate.setDate(selectedDay);
-      }
-
-      startDate.setHours(hour24, exactMinute, 0, 0);
-
-      const endDate = new Date(startDate);
-      endDate.setHours(endDate.getHours() + duration[0]);
-
-      exactStartTime = startDate.toISOString();
-      exactEndTime = endDate.toISOString();
+      exactStartTime = `${String(hour24).padStart(2, "0")}:${String(exactMinute).padStart(2, "0")}`;
+      exactEndTime = `${String(endHour24).padStart(2, "0")}:${String(exactMinute).padStart(2, "0")}`;
     }
 
     const filters: HomepageFilters = {
