@@ -33,6 +33,20 @@ interface MenuItem {
 }
 
 function MenuItem({ item }: { item: MenuItem }) {
+  if (item.href === "/profile/schedule") {
+    return (
+      <a
+        href={item.href}
+        className="w-full px-4 py-4 flex items-center justify-between border-b border-gray-100 hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="text-gray-600">{item.icon}</div>
+          <span className="text-gray-800 font-medium">{item.label}</span>
+        </div>
+        <ChevronRight className="w-5 h-5 text-gray-400" />
+      </a>
+    );
+  }
   return (
     <Link
       href={item.href}

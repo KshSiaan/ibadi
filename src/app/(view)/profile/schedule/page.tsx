@@ -135,6 +135,7 @@ export default function SchedulePage() {
       await createSchedule.mutateAsync(payload);
 
       toast.success(t("saved"));
+      await createSchedule.mutateAsync(payload);
       router.back();
     } catch (err) {
       setError(err instanceof Error ? err.message : t("failedToSave"));
