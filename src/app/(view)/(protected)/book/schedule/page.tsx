@@ -146,7 +146,6 @@ export default function SchedulePage() {
 
     if (startType === "exact") {
       let hour24 = exactHour;
-
       if (exactAmPm === "pm" && hour24 !== 12) hour24 += 12;
       if (exactAmPm === "am" && hour24 === 12) hour24 = 0;
 
