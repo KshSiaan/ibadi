@@ -147,6 +147,23 @@ export default function SchedulePage() {
     const taskIds =
       checkedTasks.length > 0 ? checkedTasks.join(",") : undefined;
 
+    //
+    const DAY_MAP = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+    let days: string | undefined;
+
+    if (frequency === "weekly") {
+      days =
+        selectedWeekDays.length > 0
+          ? selectedWeekDays.map((day) => DAY_MAP[day]).join(",")
+          : undefined;
+    } else {
+      const selectedDate = new Date(selectedYear, selectedMonth, selectedDay);
+
+      days = DAY_MAP[selectedDate.getDay()];
+    }
+    //
+
     const filters: HomepageFilters = {
       categoryId: selectedCategoryId || undefined,
       searchTerm: searchTerm || undefined,
@@ -155,6 +172,7 @@ export default function SchedulePage() {
       startTime: finalStartHour ? `${finalStartHour}:00` : undefined,
       endTime: finalEndHour ? `${finalEndHour}:00` : undefined,
       limit: 20,
+      days,
     };
 
     setHomepageFilters(filters);

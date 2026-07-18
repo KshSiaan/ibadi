@@ -8,7 +8,6 @@ import { useTranslations } from "next-intl";
 import {
   useCreateWorkSchedule,
   useGetWorkSchedule,
-  useUpdateWorkSchedule,
 } from "@/hooks/api/work-schedule/use-work-schedule";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { WorkScheduleEntry } from "@/lib/api/types";
@@ -78,7 +77,6 @@ export default function SchedulePage() {
   const { data: schedule, isLoading } = useGetWorkSchedule();
 
   const createSchedule = useCreateWorkSchedule();
-  const updateSchedule = useUpdateWorkSchedule();
 
   const [days, setDays] = useState(createInitialDays);
   const [error, setError] = useState("");
@@ -126,41 +124,16 @@ export default function SchedulePage() {
     setError("");
 
     try {
-      const createPayload: WorkScheduleEntry[] = [];
-      const updatePayload: ({ id: string } & Partial<WorkScheduleEntry>)[] = [];
+      const payload: WorkScheduleEntry[] = DAYS.map((day) => ({
+        userId: profile.id,
+        day,
+        status: days[day].status,
+        startTime: timeToISO(days[day].startTime),
+        endTime: timeToISO(days[day].endTime),
+      }));
 
-      DAYS.forEach((day) => {
-        const state = days[day];
+      await createSchedule.mutateAsync(payload);
 
-        if (state.id) {
-          updatePayload.push({
-            id: state.id,
-            status: state.status,
-            startTime: timeToISO(state.startTime),
-            endTime: timeToISO(state.endTime),
-          });
-        } else {
-          createPayload.push({
-            userId: profile.id,
-            day,
-            status: state.status,
-            startTime: timeToISO(state.startTime),
-            endTime: timeToISO(state.endTime),
-          });
-        }
-      });
-
-      const requests: Promise<unknown>[] = [];
-
-      if (createPayload.length) {
-        requests.push(createSchedule.mutateAsync(createPayload));
-      }
-
-      requests.push(
-        ...updatePayload.map((entry) => updateSchedule.mutateAsync(entry)),
-      );
-
-      await Promise.all(requests);
       toast.success(t("saved"));
       router.back();
     } catch (err) {
@@ -168,7 +141,7 @@ export default function SchedulePage() {
     }
   };
 
-  const isSaving = createSchedule.isPending || updateSchedule.isPending;
+  const isSaving = createSchedule.isPending;
 
   if (isLoading) {
     return (

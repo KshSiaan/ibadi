@@ -1,24 +1,38 @@
 "use client";
 
-import { ChevronDown, Plus, RefreshCw, Trash2, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  RefreshCw,
+  Trash2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Suspense, use, useEffect, useState } from "react";
+import { Suspense, use, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import { WorkSchedule } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const weekDays = [
-  { short: "Mon", date: 13 },
-  { short: "Tue", date: 14 },
-  { short: "Wed", date: 15 },
-  { short: "Thu", date: 16 },
-  { short: "Fri", date: 17 },
-  { short: "Sat", date: 18 },
-  { short: "Sun", date: 19 },
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function isoToTime(iso: string): string {
@@ -29,6 +43,21 @@ function isoToTime(iso: string): string {
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
+}
+
+function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addDays(date: Date, days: number) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
 }
 
 function getAvailableDays(
@@ -270,9 +299,7 @@ function WeeklyView({
 }) {
   const t = useTranslations("BookingTime");
   const availableDays = getAvailableDays(workSchedule, t);
-  const [slots, setSlots] = useState<Record<string, DaySlot>>(() =>
-    buildInitialSlots(workSchedule, t),
-  );
+  const [slots, setSlots] = useState<Record<string, DaySlot>>({});
   const [activeDay, setActiveDay] = useState<string | null>(null);
   const [panelDuration, setPanelDuration] = useState(2);
   const [panelTime, setPanelTime] = useState<string | null>(null);
@@ -295,8 +322,17 @@ function WeeklyView({
 
   function openDay(day: string) {
     const existing = slots[day];
+
+    const translatedToAbbr = Object.fromEntries(
+      Object.entries(dayMap).map(([abbr, key]) => [t(key), abbr]),
+    );
+
+    const range = getDayTimeRange(workSchedule, translatedToAbbr[day]);
+
+    const available = filterTimesInRange(range);
+
     setPanelDuration(existing?.duration ?? 2);
-    setPanelTime(existing?.time ?? null);
+    setPanelTime(existing?.time ?? available[0] ?? null);
     setActiveDay(day);
   }
 
@@ -432,12 +468,29 @@ function OnceView({
 }) {
   const t = useTranslations("BookingTime");
   const [duration, setDuration] = useState(2);
-  const [selectedDay, setSelectedDay] = useState(13);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const weekDays = useMemo(() => {
+    const monday = getWeekStart(new Date());
+    const weekMonday = addDays(monday, weekOffset * 7);
 
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = addDays(weekMonday, i);
+
+      return {
+        short: DAY_LABELS[d.getDay()],
+        date: d.getDate(),
+        month: d.getMonth(),
+        year: d.getFullYear(),
+        full: d,
+      };
+    });
+  }, [weekOffset]);
   // Get available times for the currently selected day
-  const selectedDayAbbr =
-    weekDays.find((d) => d.date === selectedDay)?.short ?? "";
+  const selectedDayAbbr = DAY_LABELS[selectedDate.getDay()];
   const dayRange = getDayTimeRange(workSchedule, selectedDayAbbr);
   const availableTimes = filterTimesInRange(dayRange);
 
@@ -455,9 +508,9 @@ function OnceView({
 
   const endTime = selectedTime ? addHours(selectedTime, duration) : null;
   const totalPrice = duration * pricePerHour;
-
+  const day = DAY_LABELS[selectedDate.getDay()].toLowerCase();
   const confirmHref = selectedTime
-    ? `/user/${providerId}/booking-time/confirm?frequency=one_time&day=${selectedDay}&time=${selectedTime}&duration=${duration}&providerId=${providerId}&pricePerHour=${pricePerHour}`
+    ? `/user/${providerId}/booking-time/confirm?frequency=one_time&date=${selectedDate.toISOString().split("T")[0]}&day=${day}&time=${selectedTime}&duration=${duration}&providerId=${providerId}&pricePerHour=${pricePerHour}`
     : "#";
 
   // Filter week days to only show provider-available days
@@ -502,23 +555,72 @@ function OnceView({
 
         <div className="mb-6">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-700">January</p>
-            <button
-              type="button"
-              className="rounded-full border border-gray-200 bg-white px-3 py-0.5 text-xs text-gray-500"
-            >
-              {t("showMonth")}
-            </button>
+            <div className="mb-3 flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <button onClick={() => setWeekOffset((o) => o - 1)}>
+                  <ChevronLeft className="size-4" />
+                </button>
+
+                <p className="text-sm font-semibold">
+                  {MONTH_NAMES[weekDays[0].month]} {weekDays[0].year}
+                </p>
+
+                <button onClick={() => setWeekOffset((o) => o + 1)}>
+                  <ChevronRight className="size-4" />
+                </button>
+              </div>
+
+              <Button
+                size="sm"
+                className="rounded-full"
+                onClick={() => setShowMonthPicker((v) => !v)}
+              >
+                {t("showMonth")}
+              </Button>
+            </div>
           </div>
+          {showMonthPicker && (
+            <div className="mb-4 grid grid-cols-4 gap-2">
+              {MONTH_NAMES.map((name, idx) => (
+                <button
+                  type="button"
+                  className={cn(
+                    "rounded-lg py-1.5 text-xs font-medium transition-colors",
+                    weekDays[0].month === idx
+                      ? "bg-primary text-white"
+                      : "bg-gray-50 text-gray-600 hover:bg-gray-100",
+                  )}
+                  key={name}
+                  onClick={() => {
+                    setSelectedMonth(idx);
+
+                    const firstDay = new Date(new Date().getFullYear(), idx, 1);
+                    const monday = getWeekStart(firstDay);
+                    const thisMonday = getWeekStart(new Date());
+
+                    const diff = Math.round(
+                      (monday.getTime() - thisMonday.getTime()) /
+                        (1000 * 60 * 60 * 24 * 7),
+                    );
+
+                    setWeekOffset(diff);
+                    setShowMonthPicker(false);
+                  }}
+                >
+                  {name.slice(0, 3)}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="flex gap-1.5">
             {visibleWeekDays.map((d) => (
               <button
                 type="button"
                 key={d.date}
-                onClick={() => setSelectedDay(d.date)}
+                onClick={() => setSelectedDate(d.full)}
                 className={cn(
                   "flex flex-1 flex-col items-center rounded-xl py-2 text-xs font-medium transition-colors",
-                  selectedDay === d.date
+                  selectedDate.toDateString() === d.full.toDateString()
                     ? "bg-primary text-white"
                     : "bg-white text-gray-600",
                 )}

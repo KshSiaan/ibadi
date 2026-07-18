@@ -8,11 +8,13 @@ import {
   Loader2,
   MapPin,
   Star,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Suspense, use, useState } from "react";
+import { Suspense, use, useState, useMemo } from "react";
 import { AddCardForm } from "@/components/add-card-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -25,6 +27,38 @@ import { useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import type { Address, PaymentMethod } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** Get the Monday-based week containing `date`. */
+function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay(); // 0=Sun … 6=Sat
+  const diff = day === 0 ? -6 : 1 - day; // shift so Monday is first
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
 
 function RadioCircle({ selected }: { selected: boolean }) {
   return (
@@ -122,9 +156,69 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
 
   // weekly params
   const slotsRaw = params.get("slots");
-  const weeklySlots: Record<string, DaySlot> = slotsRaw
+  const initialWeeklySlots: Record<string, DaySlot> = slotsRaw
     ? JSON.parse(decodeURIComponent(slotsRaw))
     : {};
+
+  // State for month picker
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(0); // 0-11
+  const [selectedYear, setSelectedYear] = useState(2026);
+  const [selectedDay, setSelectedDay] = useState(dayDate);
+
+  // Week offset relative to the current week (0 = this week, -1 = last week, etc.)
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  // Compute the 7 days of the current week view
+  const weekDays = useMemo(() => {
+    const today = new Date();
+    const monday = getWeekStart(today);
+    const weekMonday = addDays(monday, weekOffset * 7);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = addDays(weekMonday, i);
+      return {
+        short: DAY_LABELS[d.getDay()],
+        date: d.getDate(),
+        month: d.getMonth(),
+        year: d.getFullYear(),
+        full: d,
+      };
+    });
+  }, [weekOffset]);
+
+  // The displayed month label comes from the first day of the week
+  const displayMonth = MONTH_NAMES[weekDays[0].month];
+  const displayYear = weekDays[0].year;
+
+  // State for weekly days selection
+  const [weeklySlots, setWeeklySlots] =
+    useState<Record<string, DaySlot>>(initialWeeklySlots);
+
+  const handleDayClick = (d: (typeof weekDays)[number]) => {
+    setSelectedDay(d.date);
+    setSelectedMonth(d.month);
+    setSelectedYear(d.year);
+  };
+
+  const handleMonthSelect = (monthIdx: number) => {
+    setSelectedMonth(monthIdx);
+    setShowMonthPicker(false);
+    setWeekOffset(0);
+  };
+
+  const toggleWeeklyDay = (dayLabel: string) => {
+    setWeeklySlots((prev) => {
+      const newSlots = { ...prev };
+      if (newSlots[dayLabel]) {
+        delete newSlots[dayLabel];
+      } else {
+        // If not in slots, add it with default time and duration
+        const firstSlot = Object.values(prev)[0];
+        newSlots[dayLabel] = firstSlot || { time: "10:00", duration: 2 };
+      }
+      return newSlots;
+    });
+  };
 
   const { data: provider } = useGetUserById(providerId);
   const { mutate: createBooking, isPending } = useCreateBooking();
@@ -177,6 +271,16 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
       ? addHours(time, duration)
       : addHours(startTimeLabel, Object.values(weeklySlots)[0]?.duration ?? 0);
 
+  function buildOneTimeISO(
+    dayNum: number,
+    monthIdx: number,
+    yearNum: number,
+    time: string,
+  ): string {
+    const [h, m] = time.split(":").map(Number);
+    return new Date(yearNum, monthIdx, dayNum, h, m, 0).toISOString();
+  }
+
   function handleConfirm() {
     setError(null);
 
@@ -189,12 +293,22 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
     let startDate: string;
 
     if (frequency === "one_time") {
-      startDate = buildISODate(dayDate, time);
+      startDate = buildOneTimeISO(
+        selectedDay,
+        selectedMonth,
+        selectedYear,
+        time,
+      );
       bookingDays = [
         {
-          day: weekDays.find((d) => d.date === dayDate)?.short ?? "Mon",
+          day: weekDays.find((d) => d.date === selectedDay)?.short ?? "Mon",
           startTime: startDate,
-          endTime: buildISODate(dayDate, addHours(time, duration)),
+          endTime: buildOneTimeISO(
+            selectedDay,
+            selectedMonth,
+            selectedYear,
+            addHours(time, duration),
+          ),
           durationHours: duration,
         },
       ];
@@ -337,10 +451,92 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
 
             {frequency === "one_time" ? (
               <>
+                {/* Month header with navigation */}
+                <div className="mb-1 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setWeekOffset((o) => o - 1)}
+                      className="rounded-full p-1 hover:bg-gray-200 transition-colors"
+                    >
+                      <ChevronLeft className="size-4 text-gray-600" />
+                    </button>
+                    <p className="text-sm font-semibold text-gray-700">
+                      {displayMonth} {displayYear}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setWeekOffset((o) => o + 1)}
+                      className="rounded-full p-1 hover:bg-gray-200 transition-colors"
+                    >
+                      <ChevronRight className="size-4 text-gray-600" />
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowMonthPicker((v) => !v)}
+                    className={cn(
+                      "rounded-full border px-3 py-0.5 text-xs transition-colors",
+                      showMonthPicker
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-gray-200 bg-white text-gray-500",
+                    )}
+                  >
+                    {t("showMonth")}
+                  </button>
+                </div>
+
+                {/* Month picker grid */}
+                {showMonthPicker && (
+                  <div className="mb-4 grid grid-cols-4 gap-2 rounded-xl bg-white p-3">
+                    {MONTH_NAMES.map((name, idx) => (
+                      <button
+                        type="button"
+                        key={name}
+                        onClick={() => handleMonthSelect(idx)}
+                        className={cn(
+                          "rounded-lg py-1.5 text-xs font-medium transition-colors",
+                          selectedMonth === idx
+                            ? "bg-primary text-white"
+                            : "bg-gray-50 text-gray-600 hover:bg-gray-100",
+                        )}
+                      >
+                        {name.slice(0, 3)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Day strip */}
+                <div className="mb-6 flex gap-1.5">
+                  {weekDays.map((d) => (
+                    <button
+                      type="button"
+                      key={d.date}
+                      onClick={() => handleDayClick(d)}
+                      className={cn(
+                        "flex flex-1 flex-col items-center rounded-xl py-2 text-xs font-medium transition-colors",
+                        selectedDay === d.date &&
+                          selectedMonth === d.month &&
+                          selectedYear === d.year
+                          ? "bg-primary text-white"
+                          : "bg-white text-gray-600",
+                      )}
+                    >
+                      <span className="text-[10px] font-normal">{d.short}</span>
+                      <span className="text-sm font-bold">{d.date}</span>
+                    </button>
+                  ))}
+                </div>
+
                 <div className="flex items-center gap-2 mb-3">
                   <Calendar className="size-4 text-gray-500" />
                   <span className="text-xs text-gray-700">
-                    {dayLabel}, January {dayDate}
+                    {weekDays.find(
+                      (d) =>
+                        d.date === selectedDay && d.month === selectedMonth,
+                    )?.short || "Mon"}
+                    , {MONTH_NAMES[selectedMonth]} {selectedDay}
                   </span>
                 </div>
                 <div className="flex flex-col gap-0 pl-1">
@@ -370,20 +566,50 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                 </div>
               </>
             ) : (
-              <div className="flex flex-col gap-2">
-                {Object.entries(weeklySlots).map(([day, slot]) => (
-                  <div key={day} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="size-4 text-gray-500" />
-                      <span className="text-xs text-gray-700">{day}</span>
+              <>
+                <p className="mb-3 text-sm font-semibold text-gray-700">
+                  {t("daysOfWeek")}
+                </p>
+                <div className="mb-6 flex flex-wrap gap-2">
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                    (d, i) => {
+                      const isSelected = d in weeklySlots;
+                      return (
+                        <button
+                          type="button"
+                          key={d}
+                          onClick={() => toggleWeeklyDay(d)}
+                          className={cn(
+                            "rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                            isSelected
+                              ? "border-primary bg-primary text-white"
+                              : "border-primary bg-primary/10 text-primary",
+                          )}
+                        >
+                          {d}
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  {Object.entries(weeklySlots).map(([day, slot]) => (
+                    <div
+                      key={day}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Calendar className="size-4 text-gray-500" />
+                        <span className="text-xs text-gray-700">{day}</span>
+                      </div>
+                      <span className="text-xs text-gray-600">
+                        {slot.time} - {addHours(slot.time, slot.duration)} (
+                        {slot.duration}h)
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-600">
-                      {slot.time} - {addHours(slot.time, slot.duration)} (
-                      {slot.duration}h)
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 

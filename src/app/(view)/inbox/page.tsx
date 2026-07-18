@@ -399,8 +399,10 @@ export default function InboxPage() {
                       <PhoneOutgoing /> {t("call")}
                     </Button>
                     <Button className="mt-4 w-full" size="lg" asChild>
-                      <Link href="/inbox">
-                        <MessageSquareIcon /> {t("message")}
+                      <Link
+                        href={`/inbox/admin?name=${encodeURIComponent("Admin")}&image=${encodeURIComponent("")}&participantId=69c4f90e6db7d36f60fec4aa`}
+                      >
+                        <MessageSquareIcon /> Message
                       </Link>
                     </Button>
                   </div>

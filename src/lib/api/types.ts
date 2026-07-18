@@ -398,6 +398,9 @@ export interface HomepageFilters {
   page?: number;
   limit?: number;
   sort?: string;
+
+  // NEW
+  days?: string;
 }
 
 export interface AvailabilityRequest {
