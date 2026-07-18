@@ -17,6 +17,7 @@ export interface ServiceBookingState {
   /* ─── Homepage Filters ─── */
   homepageFilters: HomepageFilters;
   setHomepageFilters: (filters: HomepageFilters) => void;
+  //
 
   /* ─── Address ─── */
   serviceAddress: string;
