@@ -278,6 +278,12 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
     time: string,
   ): string {
     const [h, m] = time.split(":").map(Number);
+    console.log({
+      dayNum,
+      monthIdx,
+      yearNum,
+      time,
+    });
     return new Date(yearNum, monthIdx, dayNum, h, m, 0).toISOString();
   }
 
@@ -370,6 +376,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
   return (
     <div className="min-h-dvh bg-[#f5f5f5]">
       {/* Header */}
+
       <div className="flex items-center justify-center bg-[#f5f5f5] px-4 py-4 relative">
         <button
           type="button"

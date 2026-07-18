@@ -510,7 +510,16 @@ function OnceView({
   const totalPrice = duration * pricePerHour;
   const day = DAY_LABELS[selectedDate.getDay()].toLowerCase();
   const confirmHref = selectedTime
-    ? `/user/${providerId}/booking-time/confirm?frequency=one_time&date=${selectedDate.toISOString().split("T")[0]}&day=${day}&time=${selectedTime}&duration=${duration}&providerId=${providerId}&pricePerHour=${pricePerHour}`
+    ? `/user/${providerId}/booking-time/confirm?${new URLSearchParams({
+        frequency: "one_time",
+        day: String(selectedDate.getDate()),
+        month: String(selectedDate.getMonth()),
+        year: String(selectedDate.getFullYear()),
+        time: selectedTime,
+        duration: String(duration),
+        providerId,
+        pricePerHour: String(pricePerHour),
+      }).toString()}`
     : "#";
 
   // Filter week days to only show provider-available days
