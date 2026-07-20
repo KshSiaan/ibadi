@@ -44,6 +44,8 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       const idToken = await result.user.getIdToken();
+      
+     
       googleLogin(
         { token: idToken, email: result.user.email ?? "", fcmToken },
         {
@@ -91,8 +93,13 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+  const body:{fcmToken?:string,email:string,password:string } ={
+        email, password
+      }
+
+      if(fcmToken) body["fcmToken"]=fcmToken
     login(
-      { email, password, fcmToken },
+      body,
       {
         onSuccess: (data) => {
           // if (data.user.role === "service_provider" && !data.user.isVerified) {
