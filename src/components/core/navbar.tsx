@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useCookies } from "react-cookie";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { useServiceBooking } from "@/lib/store/service-booking";
 
 type View = "role" | "register" | "login";
 
@@ -49,6 +50,7 @@ export default function Navbar() {
   ]);
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const { setSelectedService, setServiceAddress } = useServiceBooking();
   useEffect(() => setMounted(true), []);
 
   const isLoggedIn = mounted && !!cookies.accessToken;
@@ -60,6 +62,8 @@ export default function Navbar() {
     removeCookie("accessToken", { path: "/" });
     removeCookie("refreshToken", { path: "/" });
     removeCookie("user", { path: "/" });
+    setSelectedService(undefined);
+    setServiceAddress(undefined);
     window.location.href = "/";
   };
 

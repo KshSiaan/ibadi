@@ -28,7 +28,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCategories } from "@/hooks/api/use-categories";
 import type { Address, Category } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
@@ -41,50 +41,6 @@ import {
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
-
-/* ─── Fallback Data ─── */
-const fallbackServices: Category[] = [
-  {
-    id: "fallback-1",
-    name: "Cleaning",
-    image: "/icons/cleaning-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "fallback-2",
-    name: "Handyman",
-    image: "/icons/hammer-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "fallback-3",
-    name: "Dog Grooming",
-    image: "/icons/dog-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "fallback-4",
-    name: "Care",
-    image: "/icons/wellfare-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "fallback-5",
-    name: "Others",
-    image: "/icons/gift-icon.svg",
-    isDeleted: false,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 /* ─── ServiceNode ─── */
 function ServiceNode({
@@ -493,13 +449,29 @@ function AddressManager({ onClose }: { onClose: () => void }) {
 
 /* ─── Page ─── */
 export default function Page() {
-  const { setSelectedService, serviceAddress } = useServiceBooking();
+  const { setSelectedService, setServiceAddress, serviceAddress } =
+    useServiceBooking();
+  const { data: addresses = [] } = useGetMyAddresses();
   const [addressOpen, setAddressOpen] = useState(false);
   const { data: categories = [], isLoading } = useCategories();
   const { data: user } = useMyProfile();
   const handleServiceSelect = (service: string) => {
     setSelectedService(service);
   };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    if (addresses.length > 0 && !serviceAddress) {
+      const defaultAddress =
+        addresses.find((addr) => addr.isDefault) || addresses[0];
+
+      setServiceAddress(
+        [defaultAddress.addressLine1, defaultAddress.city, defaultAddress.state]
+          .filter(Boolean)
+          .join(", "),
+      );
+    }
+  }, [addresses]);
 
   return (
     <section
