@@ -5,7 +5,7 @@ import type { HomepageFilters } from "@/lib/api/types";
 export interface ServiceBookingState {
   /* ─── Service Selection ─── */
   selectedService: string;
-  setSelectedService: (service: string) => void;
+  setSelectedService: (service: string|undefined) => void;
 
   selectedCategoryId: string;
   setSelectedCategoryId: (id: string) => void;
@@ -20,8 +20,8 @@ export interface ServiceBookingState {
   //
 
   /* ─── Address ─── */
-  serviceAddress: string;
-  setServiceAddress: (address: string) => void;
+  serviceAddress: string|undefined;
+  setServiceAddress: (address: string|undefined) => void;
 
   /* ─── Schedule ─── */
   frequency: "one_time" | "weekly";

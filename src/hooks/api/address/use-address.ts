@@ -8,6 +8,7 @@ import {
   UpdateAddressRequest,
 } from "@/lib/api/types";
 import { useCookies } from "react-cookie";
+import { useServiceBooking } from "@/lib/store/service-booking";
 
 export function useCreateAddress() {
   const [cookies] = useCookies(["accessToken"]);
@@ -51,7 +52,7 @@ export function useUpdateAddress() {
 
 export function useGetMyAddresses() {
   const [cookies] = useCookies(["accessToken"]);
-
+  
   return useQuery<Address[]>({
     queryKey: ["address"],
     queryFn: async () => {
