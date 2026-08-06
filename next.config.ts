@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['*.ngrok-free.app', 'localhost:3000', "nonpharmaceutical-aloud-millard.ngrok-free.dev"],
   output: "standalone",
   images: {
     remotePatterns: [
