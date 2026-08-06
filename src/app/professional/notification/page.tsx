@@ -19,7 +19,9 @@ import {
   useMarkNotifications,
   useNotifications,
 } from "@/hooks/api/notifications/use-notifications";
-import { cn } from "@/lib/utils";
+import { cn, howl } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { useCookies } from "react-cookie";
 
 type NotificationTone = "success" | "warning" | "danger" | "neutral";
 
@@ -90,6 +92,7 @@ function timeAgo(
 
 export default function Page() {
   const t = useTranslations("ProfessionalNotification");
+  const [{ accessToken }] = useCookies(["accessToken"]);
   const {
     data: notifications = [],
     isLoading,
@@ -98,6 +101,16 @@ export default function Page() {
   } = useNotifications();
   const markAll = useMarkNotifications();
   const clearAll = useDeleteNotifications();
+  const { data: currentSubscription } = useQuery({
+    queryKey: ["current_subscription"],
+    queryFn: async (): Promise<any> => {
+      return howl(`/subscriptions/current`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    },
+  });
 
   const sortedNotifications = [...(notifications as any)].sort(
     (left, right) =>
@@ -131,7 +144,22 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
+    <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8 relative">
+      {!currentSubscription?.data?.hasActiveSubscription && (
+        <div className="absolute bg-white/20 h-full w-full backdrop-blur-xs top-0 left-0">
+          <div className="flex flex-col items-center justify-center h-full gap-4 ">
+            <div className="flex flex-col items-center justify-center gap-2 bg-background rounded-lg p-6 shadow-lg font-semibold text-muted-foreground">
+              Your must have an active subscription to view your bookings.{" "}
+              <Link
+                href="/profile/subscription"
+                className="rounded-lg bg-primary px-4 py-2 text-white"
+              >
+                Subscribe Now
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
         <div className="flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-black/5 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">

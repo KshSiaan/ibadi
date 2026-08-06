@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "ngrok": "ngrok http 3000"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
-import { cn, howl } from "@/lib/utils";
+import { base_api, base_url, cn, howl } from "@/lib/utils";
 import { Purchases } from "@revenuecat/purchases-js";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useEffect } from "react";
@@ -31,7 +31,7 @@ export default function Page() {
   const { mutate: takeFree, isPending: freePending } = useMutation({
     mutationKey: ["take_free_plan"],
     mutationFn: async () => {
-      const response = await fetch(`/subscriptions/free-trial`, {
+      const response = await fetch(`${base_url}${base_api}/subscriptions/free-trial`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -71,13 +71,12 @@ export default function Page() {
     checkSU();
   }, [profile]);
 
-  if (!currentSubscription?.data?.hasActiveSubscription) {
     return (
       <div className="min-h-[calc(100vh-200px)] flex flex-col gap-6 justify-center items-center w-dvw">
         {/* <pre className="bg-gradient-to-br max-h-[80dvh] overflow-scroll fixed top-1/2 left-1/2 -translate-1/2 w-[90dvw] z-50 from-zinc-900/60 via-zinc-800/40 to-zinc-900/20 text-amber-400 rounded-xl p-6 shadow-lg overflow-x-auto text-sm leading-relaxed border border-zinc-700/20">
           <code className="whitespace-pre-wrap">
             {JSON.stringify(
-              currentSubscription?.data?.hasActiveSubscription,
+              currentSubscription?.data?.subscription?.productId === "free_trial",
               null,
               2,
             )}
@@ -126,20 +125,20 @@ export default function Page() {
                 {plan.period}
               </span> */}
               </div>
-
               {Number(plan?.price) <= 0 ? (
                 <button
                   type="button"
                   onClick={() => takeFree()}
-                  disabled={freePending}
+                  disabled={freePending || currentSubscription?.data?.subscription?.productId === "free_trial"}
                   className={cn(
-                    "w-full py-2.5 rounded-lg text-[13px] font-semibold transition-colors mb-6",
+                    "w-full py-2.5 rounded-lg text-[13px] font-semibold transition-colors mb-6 disavled:opacity-50! disabled:cursor-not-allowed",
                     plan.isRecommended
-                      ? "bg-primary text-foreground hover:bg-[#3dbdb4]"
+                      ? "bg-primary disabled:bg-[#3dbdb452] text-foreground hover:bg-[#3dbdb4]"
                       : "bg-[#0d0d1a] text-white border border-gray-800 hover:bg-black",
                   )}
                 >
-                  Start Free Trial
+                  
+                  {currentSubscription?.data?.subscription?.productId === "free_trial"?"Currently Active":"Start Free Trial"}
                 </button>
               ) : (
                 <a
@@ -186,13 +185,5 @@ export default function Page() {
       </Button> */}
       </div>
     );
-  }
-
-  return (
-    <pre className="bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 text-amber-400 rounded-xl p-6 shadow-lg overflow-x-auto text-sm leading-relaxed border border-zinc-700">
-      <code className="whitespace-pre-wrap">
-        {JSON.stringify(currentSubscription, null, 2)}
-      </code>
-    </pre>
-  );
+  
 }
