@@ -88,7 +88,6 @@ export default async function Page() {
 
   const entitlement = data?.subscriber?.entitlements?.["iumi Pro"];
 
-
   const isActive =
     !!entitlement?.expires_date &&
     new Date(entitlement.expires_date).getTime() > Date.now();
@@ -98,7 +97,7 @@ export default async function Page() {
       currentSubscription.data.status !== "active")
   ) {
     try {
-      const res = await fetch(`${base_url}${base_api}/subscriptions/manual`, {
+      const res = await fetch(`${base_url}${base_api}/subscriptions/manual-update`, {
         method: "POST",
         cache: "no-store",
         headers: {
@@ -106,7 +105,7 @@ export default async function Page() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          packageId: entitlement.product_identifier,
+          packageId: entitlement.product_identifier === "subsc4" ? "com.iumi.provider.subscription.monthly" : "com.iumi.provider.subscription.yearly",
           payload: {
             subscriber: {
               entitlements: data.subscriber.entitlements,
@@ -133,6 +132,7 @@ export default async function Page() {
 
   return (
     <div>
+      {`${base_url}${base_api}/subscriptions/manual`}
       {isActive ? (
         <div className="bg-green-500 text-white p-4 rounded-lg mb-4">
           <h2 className="text-lg font-semibold">Subscription Active</h2>
@@ -149,7 +149,15 @@ export default async function Page() {
       </pre>
       <pre className="bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 text-amber-400 rounded-xl p-6 shadow-lg overflow-x-auto text-sm leading-relaxed border border-zinc-700">
         <code className="whitespace-pre-wrap">
-          {JSON.stringify(data, null, 2)}
+          {JSON.stringify({
+          packageId: entitlement.product_identifier,
+          payload: {
+            subscriber: {
+              entitlements: data.subscriber.entitlements,
+              subscriptions: data.subscriber.subscriptions,
+            },
+          },
+        }, null, 2)}
         </code>
       </pre>
     </div>
