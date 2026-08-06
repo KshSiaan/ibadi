@@ -8,7 +8,9 @@ import { useState } from "react";
 import { DatePickerDemo } from "@/components/core/date-picker";
 import { useProviderBookings } from "@/hooks/api/bookings/use-bookings";
 import type { Booking } from "@/lib/api/types";
-import { cn } from "@/lib/utils";
+import { cn, howl } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { useCookies } from "react-cookie";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString([], {
@@ -110,6 +112,7 @@ function ServiceCard({
 }
 
 export default function CalendarPage() {
+  const [{ accessToken }] = useCookies(["accessToken"]);
   const t = useTranslations("ProfessionalCalendar");
   const [date, setDate] = useState<Date | undefined>();
   const {
@@ -119,7 +122,16 @@ export default function CalendarPage() {
   } = useProviderBookings({
     status: "ongoing",
   });
-
+  const { data: currentSubscription } = useQuery({
+    queryKey: ["current_subscription"],
+    queryFn: async (): Promise<any> => {
+      return howl(`/subscriptions/current`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    },
+  });
   const filtered = date
     ? bookings?.filter((b) => {
         const d = new Date(b.startDate);
@@ -132,7 +144,22 @@ export default function CalendarPage() {
     : bookings;
 
   return (
-    <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
+    <div className="min-h-dvh relative bg-[#f5f5f5] px-4 py-8">
+      {!currentSubscription?.data?.hasActiveSubscription && (
+        <div className="absolute bg-white/20 h-full w-full backdrop-blur-xs top-0 left-0">
+          <div className="flex flex-col items-center justify-center h-full gap-4 ">
+            <div className="flex flex-col items-center justify-center gap-2 bg-background rounded-lg p-6 shadow-lg font-semibold text-muted-foreground">
+              Your must have an active subscription to view your bookings.{" "}
+              <Link
+                href="/profile/subscription"
+                className="rounded-lg bg-primary px-4 py-2 text-white"
+              >
+                Subscribe Now
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex justify-between items-center w-min mx-auto mb-8 gap-6">
         <h1 className="text-2xl font-bold text-gray-800 w-min flex text-nowrap items-center gap-2 mx-auto">
           <TimerIcon className="text-primary" />

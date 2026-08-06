@@ -19,6 +19,7 @@ import {
   Star,
   HelpCircle,
   FilesIcon,
+  Book,
 } from "lucide-react";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useCookies } from "react-cookie";
@@ -119,6 +120,11 @@ export default function ProfilePage() {
       label: t("myBalance"),
       href: "/profile/balance",
       icon: <CreditCard className="w-5 h-5" />,
+    },
+    {
+      label: "My Subscription",
+      href: "/profile/subscription",
+      icon: <Book className="w-5 h-5" />,
     },
     {
       label: t("myListing"),

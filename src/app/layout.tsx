@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import GodProvider from "@/provider/god-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Suspense } from "react";
+import { RevenueCatProvider } from "@/lib/api/revenuecat";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -59,7 +60,9 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <GodProvider>
-            <Suspense>{children}</Suspense>
+            <RevenueCatProvider>
+              <Suspense>{children}</Suspense>
+            </RevenueCatProvider>
           </GodProvider>
           <Toaster richColors />
         </NextIntlClientProvider>

@@ -176,12 +176,64 @@ function CompleteCard({
 }) {
   const t = useTranslations("ProfessionalRequest");
   // const firstDay = booking.bookingDays?.[0];
+
+  const TypedBookingType:{
+      id: string;
+      userId: string;
+      addressId: null;
+      providerId: string;
+      isPaid: boolean;
+      bookingType: string;
+      status: string;
+      price: number;
+      startDate: string;
+      endDate: null;
+      totalHours: number;
+      isActive: boolean;
+      nextBooking: null;
+      isDeleted: boolean;
+      createdAt: string;
+      updatedAt: string;
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        profile: null;
+        phoneNumber: string;
+      };
+      provider: {
+        id: string;
+        name: string;
+        email: string;
+        profile: null;
+        phoneNumber: null;
+        avgRating: number;
+        totalReview: number;
+        serviceProviderInfo: {
+          bio: string;
+          coverImage: null;
+          perHourPrice: number;
+          experience: {
+            id: string;
+            value: string;
+          };
+          specialistsIn: {
+            id: string;
+            category: {
+              id: string;
+              name: string;
+              image: string;
+            };
+          }[];
+        };
+      };
+    } = booking as any;
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
       <div className="flex gap-3">
         <div className="size-20 shrink-0 overflow-hidden rounded-xl bg-gray-100">
           <Image
-            src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=160&h=160&fit=crop"
+            src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=160&h=160&fit=crop"
             alt="Booking"
             width={80}
             height={80}
@@ -191,27 +243,31 @@ function CompleteCard({
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-start justify-between">
             <p className="text-sm font-bold text-primary capitalize">
-              {t("booking", { type: booking.bookingType })}
+              {/* {t("booking", { type: booking.bookingType })} */}
+              {TypedBookingType.user?.name || "Unknown User"}
             </p>
             <span className="text-xs font-semibold text-primary">
               ${booking.price.toFixed(2)}
             </span>
           </div>
-          {/* {firstDay && (
+          {TypedBookingType.startDate && (
             <>
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <Clock className="size-3.5 shrink-0" />
                 <span>
-                  From {formatTime(firstDay.startTime)} to{" "}
-                  {formatTime(firstDay.endTime)}
+                  From {new Date(TypedBookingType.startDate).toLocaleDateString()} to{" "}
+                  {new Date(
+                    new Date(TypedBookingType.startDate).getTime() +
+                      TypedBookingType.totalHours * 60 * 60 * 1000,
+                  ).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <Calendar className="size-3.5 shrink-0" />
-                <span>{formatDate(booking.startDate)}</span>
+                <span>{new Date(TypedBookingType.startDate).toLocaleDateString()}</span>
               </div>
             </>
-          )} */}
+          )}
           <div className="mt-1">
             <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               {t("completed")}
