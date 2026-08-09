@@ -22,6 +22,7 @@ import {
 import { cn, howl } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
+import Image from "next/image";
 
 type NotificationTone = "success" | "warning" | "danger" | "neutral";
 
@@ -101,6 +102,7 @@ export default function Page() {
   } = useNotifications();
   const markAll = useMarkNotifications();
   const clearAll = useDeleteNotifications();
+
   const { data: currentSubscription } = useQuery({
     queryKey: ["current_subscription"],
     queryFn: async (): Promise<any> => {
@@ -150,11 +152,17 @@ export default function Page() {
           <div className="flex flex-col items-center justify-center h-full gap-4 ">
             <div className="flex flex-col items-center justify-center gap-2 bg-background rounded-lg p-6 shadow-lg font-semibold text-muted-foreground">
               Your must have an active subscription to view your bookings.{" "}
+              <Image
+                src="/icons/subscription.png"
+                height={96}
+                width={96}
+                alt="subscribe"
+              />
               <Link
                 href="/profile/subscription"
                 className="rounded-lg bg-primary px-4 py-2 text-white"
               >
-                Subscribe Now
+                Check Our Subscription Plans
               </Link>
             </div>
           </div>

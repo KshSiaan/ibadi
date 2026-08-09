@@ -18,8 +18,10 @@ import {
   useCompleteBooking,
   useProviderBookings,
 } from "@/hooks/api/bookings/use-bookings";
-import { cn } from "@/lib/utils";
+import { cn, howl } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useCookies } from "react-cookie";
 
 type Tab = "request" | "ongoing" | "cancelled";
 
@@ -54,12 +56,13 @@ function BookingCard({
   tab: Tab;
   setActiveTab: (tab: Tab) => void;
 }) {
+  const [accessToken] = useCookies(["access_token"]);
   const t = useTranslations("ProfessionalRequest");
   const { mutate: accept, isPending: accepting } = useAcceptBooking();
   const { mutate: cancel, isPending: cancelling } = useCancelBooking();
 
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm">
+    <div className="rounded-2xl bg-white p-4 shadow-sm relative">
       <div className="flex gap-3">
         <div className="size-20 shrink-0 overflow-hidden rounded-xl bg-gray-100">
           <Image
@@ -177,57 +180,57 @@ function CompleteCard({
   const t = useTranslations("ProfessionalRequest");
   // const firstDay = booking.bookingDays?.[0];
 
-  const TypedBookingType:{
+  const TypedBookingType: {
+    id: string;
+    userId: string;
+    addressId: null;
+    providerId: string;
+    isPaid: boolean;
+    bookingType: string;
+    status: string;
+    price: number;
+    startDate: string;
+    endDate: null;
+    totalHours: number;
+    isActive: boolean;
+    nextBooking: null;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+    user: {
       id: string;
-      userId: string;
-      addressId: null;
-      providerId: string;
-      isPaid: boolean;
-      bookingType: string;
-      status: string;
-      price: number;
-      startDate: string;
-      endDate: null;
-      totalHours: number;
-      isActive: boolean;
-      nextBooking: null;
-      isDeleted: boolean;
-      createdAt: string;
-      updatedAt: string;
-      user: {
-        id: string;
-        name: string;
-        email: string;
-        profile: null;
-        phoneNumber: string;
-      };
-      provider: {
-        id: string;
-        name: string;
-        email: string;
-        profile: null;
-        phoneNumber: null;
-        avgRating: number;
-        totalReview: number;
-        serviceProviderInfo: {
-          bio: string;
-          coverImage: null;
-          perHourPrice: number;
-          experience: {
-            id: string;
-            value: string;
-          };
-          specialistsIn: {
-            id: string;
-            category: {
-              id: string;
-              name: string;
-              image: string;
-            };
-          }[];
+      name: string;
+      email: string;
+      profile: null;
+      phoneNumber: string;
+    };
+    provider: {
+      id: string;
+      name: string;
+      email: string;
+      profile: null;
+      phoneNumber: null;
+      avgRating: number;
+      totalReview: number;
+      serviceProviderInfo: {
+        bio: string;
+        coverImage: null;
+        perHourPrice: number;
+        experience: {
+          id: string;
+          value: string;
         };
+        specialistsIn: {
+          id: string;
+          category: {
+            id: string;
+            name: string;
+            image: string;
+          };
+        }[];
       };
-    } = booking as any;
+    };
+  } = booking as any;
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
       <div className="flex gap-3">
@@ -255,7 +258,8 @@ function CompleteCard({
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <Clock className="size-3.5 shrink-0" />
                 <span>
-                  From {new Date(TypedBookingType.startDate).toLocaleDateString()} to{" "}
+                  From{" "}
+                  {new Date(TypedBookingType.startDate).toLocaleDateString()} to{" "}
                   {new Date(
                     new Date(TypedBookingType.startDate).getTime() +
                       TypedBookingType.totalHours * 60 * 60 * 1000,
@@ -264,7 +268,9 @@ function CompleteCard({
               </div>
               <div className="flex items-center gap-1.5 text-xs text-gray-500">
                 <Calendar className="size-3.5 shrink-0" />
-                <span>{new Date(TypedBookingType.startDate).toLocaleDateString()}</span>
+                <span>
+                  {new Date(TypedBookingType.startDate).toLocaleDateString()}
+                </span>
               </div>
             </>
           )}
@@ -290,6 +296,19 @@ export default function RequestPage() {
   const [activeTab, setActiveTab] = useState<Tab>("request");
   const [showComplete, setShowComplete] = useState(false);
   const searchParams = useSearchParams();
+  const [accessToken] = useCookies(["access_token"]);
+
+  const { data: currentSubscription } = useQuery({
+    queryKey: ["current_subscription"],
+    queryFn: async (): Promise<any> => {
+      return howl(`/subscriptions/current`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    },
+  });
+
   useEffect(() => {
     if (searchParams.get("completed") === "true") {
       setShowComplete(true);
@@ -309,7 +328,7 @@ export default function RequestPage() {
 
   if (showComplete) {
     return (
-      <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
+      <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8 relative">
         <div className="relative mb-8 flex items-center justify-center">
           <button
             type="button"
@@ -341,7 +360,28 @@ export default function RequestPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8">
+    <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8 relative">
+      {!currentSubscription?.data?.hasActiveSubscription && (
+        <div className="absolute bg-white/20 h-full w-full backdrop-blur-xs top-0 left-0">
+          <div className="flex flex-col items-center justify-center h-full gap-4 ">
+            <div className="flex flex-col items-center justify-center gap-2 bg-background rounded-lg p-6 shadow-lg font-semibold text-muted-foreground">
+              Your must have an active subscription to view your bookings.{" "}
+              <Image
+                src="/icons/subscription.png"
+                height={96}
+                width={96}
+                alt="subscribe"
+              />
+              <Link
+                href="/profile/subscription"
+                className="rounded-lg bg-primary px-4 py-2 text-white"
+              >
+                Check Our Subscription Plans
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="relative mb-6 flex items-center justify-center gap-28 w-full">
         <h1 className="text-2xl font-bold text-gray-800 inline-block">
           {t("request")}
