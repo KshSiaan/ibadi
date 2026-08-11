@@ -1,4 +1,3 @@
-
 import Footer from "@/components/core/footer";
 import Navbar from "@/components/core/navbar";
 
@@ -49,7 +48,7 @@ export default async function HomeLayout({
 
       {children}
 
-      <Content/>
+      <Content />
 
       <Footer />
     </>

@@ -1,7 +1,7 @@
-"use client"
-import { howl } from '@/lib/utils'
-import { useQuery } from '@tanstack/react-query'
-import React from 'react'
+"use client";
+import { howl } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import React from "react";
 import { ArrowLeftRight, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,58 +9,69 @@ import { BiSolidBank } from "react-icons/bi";
 import ClientReviews from "@/components/core/client-reviews";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 export default function Content() {
-    
-    const {data,isPending} = useQuery({
-        queryKey: ['content'],
-        queryFn: async ():Promise<{
-            success: boolean;
-            message: string;
-            data: {
-                id: string;
-                image: string;
-                title: string;
-                content: string;
-                buttonText: string;
-                buttonLink: string;
-                createdAt: string;
-                updatedAt: string;
-            }[];
-        }> => {
-            return howl(`/contents/web-about-us`);
-        }
-    })
-      const t = useTranslations("HomeLayout");
-    
-    
-      const serviceCards = [
-        {
-          id: "rc-1",
-          title: t("serviceCard1Title"),
-          description: t("serviceCard1Description"),
-        },
-        {
-          id: "en-1",
-          title: t("serviceCard2Title"),
-          description: t("serviceCard2Description"),
-        },
-        {
-          id: "rc-2",
-          title: t("serviceCard3Title"),
-          description: t("serviceCard3Description"),
-        },
-        {
-          id: "en-2",
-          title: t("serviceCard4Title"),
-          description: t("serviceCard4Description"),
-        },
-      ];
-    
-  return (
+  const { data, isPending } = useQuery({
+    queryKey: ["content"],
+    queryFn: async (): Promise<{
+      success: boolean;
+      message: string;
+      data: {
+        id: string;
+        image: string;
+        title: string;
+        content: string;
+        buttonText: string;
+        buttonLink: string;
+        createdAt: string;
+        updatedAt: string;
+      }[];
+    }> => {
+      return howl(`/contents/web-about-us`);
+    },
+  });
+  const t = useTranslations("HomeLayout");
 
+  const { data: getServiceData, isPending: getServicePending } = useQuery({
+    queryKey: ["service"],
+    queryFn: async (): Promise<any> => {
+      return howl(`/services`);
+    },
+  });
+
+  // const serviceCards = [
+  //   {
+  //     id: "rc-1",
+  //     title: t("serviceCard1Title"),
+  //     description: t("serviceCard1Description"),
+  //   },
+  //   {
+  //     id: "en-1",
+  //     title: t("serviceCard2Title"),
+  //     description: t("serviceCard2Description"),
+  //   },
+  //   {
+  //     id: "rc-2",
+  //     title: t("serviceCard3Title"),
+  //     description: t("serviceCard3Description"),
+  //   },
+  //   {
+  //     id: "en-2",
+  //     title: t("serviceCard4Title"),
+  //     description: t("serviceCard4Description"),
+  //   },
+  // ];
+
+  const serviceCards = getServiceData?.data?.data?.map((item: any) => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    image: item.image,
+  }));
+
+  return (
     <>
-    {/* <div>
+      {/* <div>
       {isPending ? (
         <p>Loading...</p>
       ) : (
@@ -71,42 +82,43 @@ export default function Content() {
         </pre></>
       )}
     </div> */}
-{
-    data?.data?.map((item) => (
-              <section className="py-16 md:py-24">
-        <div className="container mx-auto grid grid-cols-1 items-center gap-12 px-6 lg:grid-cols-2 lg:gap-34 lg:px-16">
-          {/* Image with teal offset border */}
-          <div className="relative">
-            <div
-              className="absolute rounded-2xl border-4 border-primary"
-              style={{
-                inset: "auto -16px -16px auto",
-                width: "calc(100% - 20px)",
-                height: "calc(100% - 20px)",
-              }}
-            />
-            <Image
-              src={item?.image}
-              alt="About iBadi — caregiver with elderly person"
-              width={540}
-              height={460}
-              className="relative z-10 w-full rounded-2xl object-cover"
-              style={{ aspectRatio: "540/460" }}
-            />
-          </div>
+      {data?.data?.map((item) => (
+        <section className="py-16 md:py-24" key={item.id}>
+          <div className="container mx-auto grid grid-cols-1 items-center gap-12 px-6 lg:grid-cols-2 lg:gap-34 lg:px-16">
+            {/* Image with teal offset border */}
+            <div className="relative">
+              <div
+                className="absolute rounded-2xl border-4 border-primary"
+                style={{
+                  inset: "auto -16px -16px auto",
+                  width: "calc(100% - 20px)",
+                  height: "calc(100% - 20px)",
+                }}
+              />
+              <Image
+                src={item?.image}
+                alt="About iBadi — caregiver with elderly person"
+                width={540}
+                height={460}
+                className="relative z-10 w-full rounded-2xl object-cover"
+                style={{ aspectRatio: "540/460" }}
+              />
+            </div>
 
-          {/* Text */}
-          <div className="flex flex-col gap-5">
-            <h2 className="text-4xl font-bold text-gray-900">{item?.title}</h2>
-            <p
-            className="text-sm leading-relaxed text-gray-500"
-            dangerouslySetInnerHTML={{
-                __html: item?.content ?? "",
-            }}
-            />
-              
-            
-            {/* <ul className="flex flex-col gap-3">
+            {/* Text */}
+            <div className="flex flex-col gap-5">
+              <h2 className="text-4xl font-bold text-gray-900">
+                {item?.title}
+              </h2>
+              <p
+                className="text-sm leading-relaxed text-gray-500"
+                // biome-ignore lint/security/noDangerouslySetInnerHtml: <explanation>
+                dangerouslySetInnerHTML={{
+                  __html: item?.content ?? "",
+                }}
+              />
+
+              {/* <ul className="flex flex-col gap-3">
               {aboutPoints.map((pt) => (
                 <li
                   key={pt}
@@ -117,17 +129,15 @@ export default function Content() {
                 </li>
               ))}
             </ul> */}
-            <div className="pt-2">
-              <Button className="rounded-md px-8" asChild>
-                <Link href={item?.buttonLink}>
-                  {item?.buttonText}
-                </Link>
-              </Button>
+              <div className="pt-2">
+                <Button className="rounded-md px-8" asChild>
+                  <Link href={item?.buttonLink}>{item?.buttonText}</Link>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>))
-}
+        </section>
+      ))}
 
       {/* ── OUR SERVICES ── */}
       <section className="bg-background py-16 md:py-24">
@@ -136,7 +146,7 @@ export default function Content() {
             {t("ourServices")}
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {serviceCards.map((card, index) => (
+            {serviceCards?.map((card: any, index: number) => (
               <div
                 key={card.id}
                 className={cn(
@@ -146,11 +156,18 @@ export default function Content() {
               >
                 {/* Teal icon square */}
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary">
-                  {index % 2 === 0 ? (
+                  {/* {index % 2 === 0 ? (
                     <BiSolidBank className="text-white size-5" />
                   ) : (
                     <ArrowLeftRight className="text-white size-5" />
-                  )}
+                  )} */}
+                  <Image
+                    src={card?.image ?? "/icons/service-icon.svg"}
+                    alt={`Service ${index + 1} icon`}
+                    width={34}
+                    className="size-5"
+                    height={34}
+                  />
                 </div>
                 <div>
                   <h3 className="mb-1 text-sm font-bold text-gray-800">
@@ -252,7 +269,7 @@ export default function Content() {
             </div>
           </div>
         </section>
-      </div></>
-  )
+      </div>
+    </>
+  );
 }
-

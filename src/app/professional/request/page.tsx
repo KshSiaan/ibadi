@@ -22,6 +22,7 @@ import { cn, howl } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useCookies } from "react-cookie";
+import SubscribeBanner from "@/components/core/subscribe-banner";
 
 type Tab = "request" | "ongoing" | "cancelled";
 
@@ -361,27 +362,7 @@ export default function RequestPage() {
 
   return (
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8 relative">
-      {!currentSubscription?.data?.hasActiveSubscription && (
-        <div className="absolute bg-white/20 h-full w-full backdrop-blur-xs top-0 left-0">
-          <div className="flex flex-col items-center justify-center h-full gap-4 ">
-            <div className="flex flex-col items-center justify-center gap-2 bg-background rounded-lg p-6 shadow-lg font-semibold text-muted-foreground">
-              Your must have an active subscription to view your bookings.{" "}
-              <Image
-                src="/icons/subscription.png"
-                height={96}
-                width={96}
-                alt="subscribe"
-              />
-              <Link
-                href="/profile/subscription"
-                className="rounded-lg bg-primary px-4 py-2 text-white"
-              >
-                Check Our Subscription Plans
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+      {!currentSubscription?.data?.hasActiveSubscription && <SubscribeBanner />}
       <div className="relative mb-6 flex items-center justify-center gap-28 w-full">
         <h1 className="text-2xl font-bold text-gray-800 inline-block">
           {t("request")}

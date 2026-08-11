@@ -14,6 +14,8 @@ import { useCreateReview } from "@/hooks/api/reviews/use-reviews";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import type { Booking } from "@/lib/api/types";
 import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 type Tab = "upcoming" | "past" | "cancelled";
 
@@ -201,7 +203,8 @@ function BookingCard({
         </div>
         <div className="flex flex-1 flex-col gap-1">
           <p className="text-sm font-bold text-primary">
-            Booking #{booking.id.slice(12)}
+            {}
+            {booking.provider?.name || "Unknown Provider"}
           </p>
           {/* <div className="flex items-center gap-1.5 text-xs text-gray-500">
             <Clock className="size-3.5 shrink-0" />
@@ -211,7 +214,7 @@ function BookingCard({
             <Calendar className="size-3.5 shrink-0" />
             <span>{dateStr}</span>
           </div>
-          <div className="mt-1 flex flex-wrap gap-2">
+          <div className="mt-1 flex flex-wrap gap-2 justify-between items-center">
             {tab === "upcoming" && (
               <span className="text-xs font-semibold text-primary">
                 {booking.status === "pending" ? tPending : booking.status}
@@ -239,6 +242,11 @@ function BookingCard({
                 {tCancelled}
               </span>
             )}
+            <div className="">
+              <Button variant="outline" asChild>
+                <Link href={`/service/${booking.id}`}>See more</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -259,7 +267,7 @@ function UserServicePage() {
   ];
 
   const upcomingQuery = useUserBookings({ upcoming: true, status: "ongoing" });
-  const pastQuery = useUserBookings({ past: true });
+  const pastQuery = useUserBookings({ status: "completed" });
   const cancelledQuery = useUserBookings({ status: "cancelled" });
 
   const activeQuery =
