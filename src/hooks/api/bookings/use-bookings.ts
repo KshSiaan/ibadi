@@ -34,7 +34,7 @@ export function useUserBookings(params?: { upcoming?: boolean; past?: boolean; i
   const query = new URLSearchParams();
   // if (params?.upcoming) query.set("upcoming", "true");
   // if (params?.past) query.set("past", "true");
-  if (params?.status) query.set("status", params.status === "cancelled" ? "canceled" : params.status);
+  if (params?.status) query.set("status", params.status === "cancelled" ? "canceled" : params.status=== "completed" ? "complete" : params.status);
   if (params?.include) query.set("include", params.include);
 
   return useQuery<Booking[]>({
