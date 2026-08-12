@@ -36,8 +36,8 @@ import { useRouter } from "next/navigation";
 
 export default function ResultsPage() {
   const t = useTranslations("BookResults");
-  const router = useRouter();
-  const { selectedService, selectedCategoryId } = useServiceBooking();
+  const { selectedService, selectedCategoryId, selectedSubCategoryId } =
+    useServiceBooking();
   const { data: professionals = [], isLoading, error } = useHomepage();
   const { data: faqs = [], isLoading: faqsLoading } =
     useGetFaqsByCategory(selectedCategoryId);

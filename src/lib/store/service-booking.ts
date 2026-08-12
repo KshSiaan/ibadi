@@ -10,6 +10,9 @@ export interface ServiceBookingState {
   selectedCategoryId: string;
   setSelectedCategoryId: (id: string) => void;
 
+  selectedSubCategoryId: string;
+  setSelectedSubCategoryId: (id: string) => void;
+
   /* ─── Search ─── */
   searchTerm: string;
   setSearchTerm: (term: string) => void;
@@ -96,6 +99,10 @@ export const useServiceBooking = create<ServiceBookingState>()(
       selectedCategoryId: "",
       setSelectedCategoryId: (id) =>
         set({ selectedCategoryId: id }),
+
+      selectedSubCategoryId: "",
+      setSelectedSubCategoryId: (id) =>
+        set({ selectedSubCategoryId: id }),
 
       /* ─── Search ─── */
       searchTerm: "",
@@ -246,6 +253,9 @@ reset: () =>
     /* ─── Service Selection ─── */
     selectedService: "Elderly care",
     selectedCategoryId: "",
+    selectedSubCategoryId: "",
+
+    /* ─── Search ─── */
 
     /* ─── Search ─── */
     searchTerm: "",
@@ -295,6 +305,7 @@ reset: () =>
       partialize: (state) => ({
         selectedService: state.selectedService,
         selectedCategoryId: state.selectedCategoryId,
+        selectedSubCategoryId: state.selectedSubCategoryId,
         searchTerm: state.searchTerm,
         homepageFilters: state.homepageFilters,
         serviceAddress: state.serviceAddress,

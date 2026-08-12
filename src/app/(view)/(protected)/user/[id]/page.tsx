@@ -31,6 +31,8 @@ import {
   useGetFavorites,
 } from "@/hooks/api/favorites/use-favorites";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
+import { useQuery } from "@tanstack/react-query";
+import { howl } from "@/lib/utils";
 
 export default function UserProfilePage({
   params,
@@ -48,6 +50,45 @@ export default function UserProfilePage({
     useCreateFavorite();
   const { mutate: deleteFavorite, isPending: isDeletingFavorite } =
     useDeleteFavorite();
+  const { data: reviews } = useQuery({
+    queryKey: [`provider_reviews`, id],
+    queryFn: async (): Promise<{
+      success: boolean;
+      message: string;
+      data: {
+        data: {
+          id: string;
+          rating: number;
+          review: string;
+          userId: string;
+          authorId: string;
+          createdAt: string;
+          updatedAt: string;
+          user: {
+            id: string;
+            name: string;
+            email: string;
+            phoneNumber: null;
+            profile: null;
+          };
+          author: {
+            id: string;
+            name: string;
+            email: string;
+            phoneNumber: string;
+            profile: null;
+          };
+        }[];
+        meta: {
+          page: number;
+          limit: number;
+          total: number;
+        };
+      };
+    }> => {
+      return howl(`/reviews/user/${id}`);
+    },
+  });
 
   const [expanded, setExpanded] = useState(false);
   const [frequencyOpen, setFrequencyOpen] = useState(false);
@@ -336,7 +377,7 @@ export default function UserProfilePage({
               )}
             </div>
           </div>
-
+          {}
           {/* Rating breakdown */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
             <div className="mb-4 flex items-center gap-3">
@@ -356,6 +397,25 @@ export default function UserProfilePage({
                   {t("ratings", { count: user.totalReview ?? 0 })}
                 </p>
               </div>
+            </div>
+            <div className="">
+              {reviews?.data?.data?.map((review) => (
+                <div
+                  key={review.id}
+                  className="border-b border-gray-200 pb-4 mb-4"
+                >
+                  <div className="text-sm font-semibold text-[#1e2d4f] flex items-center gap-2 mb-1">
+                    <Avatar>
+                      <AvatarImage src={review.user.profile ?? ""} />
+                      <AvatarFallback>
+                        {review.user.name?.[0] ?? "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    {review.user.name}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-4">{review.review}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -453,7 +513,7 @@ export default function UserProfilePage({
             </button>
           </div>
 
-          <Button asChild>
+          <Button>
             <Link
               href={`/user/${id}/booking-time?frequency=${frequency}&pricePerHour=${info?.perHourPrice ?? 0}`}
             >

@@ -5,7 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, howl } from "@/lib/utils";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import {
   Bell,
@@ -18,6 +18,7 @@ import {
   MessageSquareIcon,
   Trash2,
   Plus,
+  ChevronLeft,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -41,6 +42,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
+import { useQuery } from "@tanstack/react-query";
 
 /* ─── ServiceNode ─── */
 function ServiceNode({
@@ -56,16 +58,8 @@ function ServiceNode({
   id: string;
   angleDeg: number;
   radius: number;
-  onClick?: () => void;
+  onClick: () => void;
 }) {
-  const {
-    setSelectedService,
-    setSelectedCategoryId,
-    homepageFilters,
-    setHomepageFilters,
-  } = useServiceBooking();
-  const { data: categories = [], isLoading } = useCategories();
-  const router = useRouter();
   const rad = (angleDeg * Math.PI) / 180;
   const x = Math.round(radius * Math.cos(rad));
   const y = Math.round(radius * Math.sin(rad));
@@ -73,11 +67,7 @@ function ServiceNode({
     // biome-ignore lint/a11y/useButtonType: <explanation>
     <button
       // href={`/book?service=${id}`}
-      onClick={() => {
-        setSelectedService(label);
-        setSelectedCategoryId(id);
-        router.push("/book/schedule");
-      }}
+      onClick={onClick}
       className="absolute flex flex-col items-center gap-2 focus:outline-none"
       style={{
         top: "50%",
@@ -160,6 +150,13 @@ function SearchPopoverContent({
 
 /* ─── Notification Popover Content ─── */
 function NotificationPopoverContent() {
+  const { data, isPending } = useQuery({
+    queryKey: [`notifications`],
+    queryFn: async () => {
+      return howl(`/notifications`);
+    },
+  });
+
   const t = useTranslations("Home");
   return (
     <div className="w-[300px] p-0">
@@ -172,6 +169,11 @@ function NotificationPopoverContent() {
         <Bell className="size-8 text-gray-200" />
         {t("noNotifications")}
       </div>
+      {/* <pre className="bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 text-amber-400 rounded-xl p-6 shadow-lg overflow-x-auto text-sm leading-relaxed border border-zinc-700">
+          <code className="whitespace-pre-wrap">
+            {JSON.stringify(data, null, 2)}
+          </code>
+        </pre>{" "} */}
     </div>
   );
 }
@@ -240,14 +242,14 @@ function AddressForm({
         />
       </div>
       {/* <div className="">
-        <input
-          value={form.country}
-          onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-          placeholder="Country"
-          required
-          className="rounded-lg w-full border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-        />
-      </div> */}
+          <input
+            value={form.country}
+            onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+            placeholder="Country"
+            required
+            className="rounded-lg w-full border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div> */}
       <div className="flex gap-2 pt-1">
         <button
           type="button"
@@ -455,8 +457,57 @@ export default function Page() {
   const [addressOpen, setAddressOpen] = useState(false);
   const { data: categories = [], isLoading } = useCategories();
   const { data: user } = useMyProfile();
-  const handleServiceSelect = (service: string) => {
+  const router = useRouter();
+  const { setSelectedSubCategoryId } = useServiceBooking();
+  const { data, isPending } = useQuery({
+    queryKey: ["subcategories"],
+    queryFn: async (): Promise<{
+      success: boolean;
+      message: string;
+      data: {
+        data: Array<{
+          id: string;
+          name: string;
+          categoryId: string;
+          image: string;
+          isDeleted: boolean;
+          createdAt: string;
+          updatedAt: string;
+          category: {
+            id: string;
+            name: string;
+            image: string;
+            isDeleted: boolean;
+            createdAt: string;
+            updatedAt: string;
+          };
+        }>;
+        meta: {
+          page: number;
+          limit: number;
+          total: number;
+        };
+      };
+    }> => {
+      return howl(`/subcategories`);
+    },
+  });
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
+
+  const handleServiceSelect = (service: string, id: string) => {
+    const hasSubcategories = data?.data?.data?.some(
+      (sub) => sub.categoryId === id,
+    );
+
+    setSelectedCategoryId(id);
     setSelectedService(service);
+
+    if (!hasSubcategories) {
+      router.push("/book/schedule");
+    }
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -522,7 +573,21 @@ export default function Page() {
           </PopoverContent>
         </Popover>
       </div>
-
+      {selectedCategoryId && (
+        <div className="w-full max-w-xl">
+          <Button
+            onClick={() => {
+              setSelectedCategoryId(null);
+              setSelectedService("");
+            }}
+            className="mt-4"
+            variant="outline"
+          >
+            <ChevronLeft />
+            Go Back
+          </Button>
+        </div>
+      )}
       {/* Radial wheel */}
       <div
         className="relative origin-center scale-[0.55] sm:scale-75 md:scale-90 lg:scale-100"
@@ -578,35 +643,42 @@ export default function Page() {
           <span className="text-lg font-bold text-primary">Support</span>
         </div>
 
-        {(categories.length > 0
-          ? categories
-          : Array.from({ length: 5 }, (_, i) => ({
-              id: `placeholder-${i}`,
-              name: "",
-              image: "",
-              isDeleted: false,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }))
-        ).map((category, index) => {
-          const totalItems = (
-            categories.length > 0 ? categories : Array.from({ length: 5 })
-          ).length;
-          const angleDeg = (index * 360) / totalItems - 90;
-          return (
-            <ServiceNode
-              key={category.id}
-              id={category.id}
-              icon={category?.image ?? ""}
-              label={category.name}
-              angleDeg={angleDeg}
-              radius={210}
-              onClick={() => handleServiceSelect(category.name)}
-            />
-          );
-        })}
-      </div>
+        {(() => {
+          const selectedSubcategories =
+            data?.data?.data?.filter(
+              (sub) => sub.categoryId === selectedCategoryId,
+            ) ?? [];
 
+          const nodes = selectedCategoryId ? selectedSubcategories : categories;
+
+          return nodes.map((item, index) => {
+            const totalItems = nodes.length;
+            const angleDeg = (index * 360) / totalItems - 90;
+
+            const isSubcategory = !!selectedCategoryId;
+
+            return (
+              <ServiceNode
+                key={item.id}
+                id={item.id}
+                icon={item.image ?? ""}
+                label={item.name}
+                angleDeg={angleDeg}
+                radius={210}
+                onClick={() => {
+                  if (isSubcategory) {
+                    setSelectedService(item.name);
+                    setSelectedSubCategoryId(item.id);
+                    router.push("/book/schedule");
+                  } else {
+                    handleServiceSelect(item.name, item.id);
+                  }
+                }}
+              />
+            );
+          });
+        })()}
+      </div>
       {/* Address button */}
       {user?.email && (
         <button
@@ -614,6 +686,7 @@ export default function Page() {
           onClick={() => setAddressOpen(true)}
           className="mt-8 flex items-center gap-1 text-lg font-bold text-primary"
         >
+          <span className="text-lg font-bold text-gray-800">Address: </span>
           {serviceAddress || "+ Add address"}
           <ChevronDown className="size-5" />
         </button>

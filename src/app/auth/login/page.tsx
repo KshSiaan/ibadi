@@ -7,7 +7,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useFcmContext } from "@/context/FcmContext";
 import { useGoogleLogin } from "@/hooks/api/auth/use-google-login";
@@ -321,6 +326,18 @@ export default function LoginPage() {
             </p>
           </div>
         </CardContent>
+        <CardFooter>
+          <CardDescription className="text-center text-xs text-gray-500">
+            By Logging in , Your agree to our{" "}
+            <Link href="/terms" className="text-primary hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-primary hover:underline">
+              Privacy Policy
+            </Link>
+          </CardDescription>
+        </CardFooter>
       </Card>
     </main>
   );

@@ -85,7 +85,9 @@ export default function BookingDetailPage() {
       <div className="mx-auto flex max-w-md flex-col gap-4 px-4 pb-32">
         {/* Professional row */}
         <div className="rounded-xl bg-white p-4 shadow-sm">
-          <h4 className="text-sm font-bold text-[#1e2d4f] mb-2">Customer:</h4>
+          <h4 className="text-sm font-bold text-[#1e2d4f] mb-2">
+            Professional:
+          </h4>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar className="size-12 shrink-0">
@@ -241,6 +243,12 @@ export default function BookingDetailPage() {
             </div>
           )}
         </div>
+        {new Date(booking?.startDate ?? "") < new Date() && (
+          <p className="mt-2 text-xs text-gray-500">
+            Service date has passed. Please submit a review for your
+            professional to help others make informed decisions.
+          </p>
+        )}
       </div>
 
       {/* Bottom CTA */}
@@ -249,13 +257,18 @@ export default function BookingDetailPage() {
           <div className="mx-auto max-w-md">
             <button
               type="button"
-              disabled={isCreatingReview}
+              disabled={
+                isCreatingReview ||
+                !(new Date(booking?.startDate ?? "") < new Date())
+              }
               onClick={() => {
                 setOpen(true);
               }}
-              className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:bg-gray-300"
             >
-              Submit Review
+              {new Date(booking?.startDate ?? "") < new Date()
+                ? "Submit Review"
+                : "You can review after scheduled service date"}
             </button>
           </div>
         </div>
@@ -311,7 +324,7 @@ export default function BookingDetailPage() {
                 onClick={() => {
                   createReview(
                     {
-                      userId: booking?.userId ?? "",
+                      userId: booking?.providerId ?? "",
                       rating,
                       review: reviewText,
                     },
@@ -319,7 +332,7 @@ export default function BookingDetailPage() {
                       onSuccess: () => {
                         toast.success("Review submitted successfully!");
                         setOpen(false);
-                        router.push("/service");
+                        // router.push("/service");
                       },
                     },
                   );
