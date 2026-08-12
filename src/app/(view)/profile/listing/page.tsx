@@ -9,6 +9,8 @@ import { useGetExperienceOptions } from "@/hooks/api/experience-options/use-expe
 import { useGetOthersTaskOptions } from "@/hooks/api/others-task-options/use-others-task-options";
 import { useCategories } from "@/hooks/api/use-categories";
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
+import { howl } from "@/lib/utils";
 
 export default function ListingPage() {
   const t = useTranslations("Listing");
@@ -20,28 +22,80 @@ export default function ListingPage() {
   const { data: experienceOptions } = useGetExperienceOptions();
   const { data: taskOptions } = useGetOthersTaskOptions();
   const { data: categories } = useCategories();
+  const { data, isPending } = useQuery({
+    queryKey: ["subcategories"],
+    queryFn: async (): Promise<{
+      success: boolean;
+      message: string;
+      data: {
+        data: Array<{
+          id: string;
+          name: string;
+          categoryId: string;
+          image: string;
+          isDeleted: boolean;
+          createdAt: string;
+          updatedAt: string;
+          category: {
+            id: string;
+            name: string;
+            image: string;
+            isDeleted: boolean;
+            createdAt: string;
+            updatedAt: string;
+          };
+        }>;
+        meta: {
+          page: number;
+          limit: number;
+          total: number;
+        };
+      };
+    }> => {
+      return howl(`/subcategories`);
+    },
+  });
 
   const [bio, setBio] = useState("");
   const [perHourPrice, setPerHourPrice] = useState("");
   const [experienceOptionId, setExperienceOptionId] = useState("");
   const [taskIds, setTaskIds] = useState<string[]>([]);
   const [specialistIds, setSpecialistIds] = useState<string[]>([]);
+  const [subSpecialistIds, setSubSpecialistIds] = useState<string[]>([]);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const info = profile?.serviceProviderInfo;
-    if (info) {
-      setBio(info.bio ?? "");
-      setPerHourPrice(
-        info.perHourPrice != null ? String(info.perHourPrice) : "",
-      );
-      setExperienceOptionId(info.experience?.id ?? "");
-      setTaskIds(info.othersRequiredTasks?.map((t) => t.othersTask.id) ?? []);
-      setSpecialistIds(info.specialistsIn?.map((s) => s.category.id) ?? []);
-      setCoverPreview(info.coverImage ?? null);
-    }
+    const info: any = profile?.serviceProviderInfo;
+
+    if (!info) return;
+
+    setBio(info.bio ?? "");
+
+    setPerHourPrice(info.perHourPrice != null ? String(info.perHourPrice) : "");
+
+    setExperienceOptionId(info.experienceOptionId ?? info.experience?.id ?? "");
+
+    setTaskIds(
+      info.othersRequiredTasks?.map(
+        (item: any) => item.othersTaskId ?? item.othersTask?.id,
+      ) ?? [],
+    );
+
+    setSpecialistIds(
+      info.specialistsIn?.map(
+        (item: any) => item.categoryId ?? item.category?.id,
+      ) ?? [],
+    );
+
+    setSubSpecialistIds(
+      info.providerSubcategories?.map(
+        (item: any) => item.subcategoryId ?? item.subcategory?.id,
+      ) ?? [],
+    );
+
+    setCoverPreview(info.coverImage ?? null);
   }, [profile]);
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,17 +113,29 @@ export default function ListingPage() {
     setError("");
 
     const formData = new FormData();
+
     formData.append("bio", bio);
     formData.append("perHourPrice", perHourPrice);
-    if (experienceOptionId)
+
+    if (experienceOptionId) {
       formData.append("experienceOptionId", experienceOptionId);
-    taskIds.forEach((id) => {
-      formData.append("othersRequiredTasks[]", id);
-    });
+    }
+
     specialistIds.forEach((id) => {
       formData.append("specialistsIn[]", id);
     });
-    if (coverFile) formData.append("coverImage", coverFile);
+
+    subSpecialistIds.forEach((id) => {
+      formData.append("providerSubcategories[]", id);
+    });
+
+    taskIds.forEach((id) => {
+      formData.append("othersRequiredTasks[]", id);
+    });
+
+    if (coverFile) {
+      formData.append("coverImage", coverFile);
+    }
 
     try {
       await updateInfo.mutateAsync(formData);
@@ -138,6 +204,7 @@ export default function ListingPage() {
 
           {/* Bio */}
           <div>
+            {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
             <label className="text-sm font-medium text-gray-700 mb-2 block">
               {t("bio")}
             </label>
@@ -152,6 +219,7 @@ export default function ListingPage() {
 
           {/* Per hour price */}
           <div>
+            {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
             <label className="text-sm font-medium text-gray-700 mb-2 block">
               {t("pricePerHour")}
             </label>
@@ -168,6 +236,7 @@ export default function ListingPage() {
           {/* Experience */}
           {experienceOptions && experienceOptions.length > 0 && (
             <div>
+              {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
               <label className="text-sm font-medium text-gray-700 mb-2 block">
                 {t("experience")}
               </label>
@@ -189,6 +258,7 @@ export default function ListingPage() {
           {/* Specialties */}
           {categories && categories.length > 0 && (
             <div>
+              {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
               <label className="text-sm font-medium text-gray-700 mb-2 block">
                 {t("specialties")}
               </label>
@@ -197,11 +267,37 @@ export default function ListingPage() {
                   <button
                     key={cat.id}
                     type="button"
+                    disabled={data?.data?.data.some(
+                      (sub) => sub.categoryId === cat.id,
+                    )}
                     onClick={() =>
                       setSpecialistIds((prev) => toggleId(prev, cat.id))
                     }
+                    className={`px-3 py-2 rounded-full disabled:opacity-50 text-sm border transition-colors ${"bg-white text-gray-700 border-gray-300"}`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data?.data?.data && data.data.data.length > 0 && (
+            <div>
+              {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Sub Specialties
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {data?.data?.data.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() =>
+                      setSubSpecialistIds((prev) => toggleId(prev, cat.id))
+                    }
                     className={`px-3 py-2 rounded-full text-sm border transition-colors ${
-                      specialistIds.includes(cat.id)
+                      subSpecialistIds.includes(cat.id)
                         ? "bg-primary text-white border-primary"
                         : "bg-white text-gray-700 border-gray-300"
                     }`}
@@ -216,6 +312,7 @@ export default function ListingPage() {
           {/* Other tasks */}
           {taskOptions && taskOptions.length > 0 && (
             <div>
+              {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
               <label className="text-sm font-medium text-gray-700 mb-2 block">
                 {t("otherTasksOffered")}
               </label>

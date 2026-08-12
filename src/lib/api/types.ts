@@ -404,6 +404,7 @@ export interface HomepageFilters {
 
   // Categories
   categoryId?: string;
+  subcategoryIds?: string;
   categoryIds?: string;
 
   // Experience / Tasks

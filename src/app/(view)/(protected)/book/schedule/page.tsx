@@ -76,6 +76,7 @@ export default function SchedulePage() {
     selectedEvening,
     setSelectedEvening,
     selectedCategoryId,
+    selectedSubCategoryId,
     searchTerm,
     checkedTasks,
     setHomepageFilters,
@@ -173,6 +174,7 @@ export default function SchedulePage() {
       duration: duration[0],
 
       categoryId: selectedCategoryId || undefined,
+      subcategoryIds: selectedSubCategoryId || undefined,
 
       otherTaskIds: taskIds,
 
