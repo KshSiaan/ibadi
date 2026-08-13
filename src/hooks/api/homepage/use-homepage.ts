@@ -7,7 +7,7 @@ import type { AvailabilityRequest, HomepageProvider, TimeSlot } from "@/lib/api/
 
 export function useHomepage() {
   const { homepageFilters } = useServiceBooking();
-
+//LOL
   // /homepage?searchTerm=john&categoryId=6822a4b5c8d9e1f2a3b4c5d6&experienceOptionId=6822a4b5c8d9e1f2a3b4c5d6&otherTaskIds=6822a4b5c8d9e1f2a3b4c5d1,6822a4b5c8d9e1f2a3b4c5d2&minPrice=20&maxPrice=100&date=2026-05-20&startTime=10:00&endTime=12:00&page=1&limit=10&sort=-createdAt
   const query = new URLSearchParams();
   Object.entries(homepageFilters).forEach(([k, v]) => {
