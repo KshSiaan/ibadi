@@ -78,7 +78,7 @@ export default function Page() {
   }, [profile]);
 
   return (
-    <div className="min-h-[calc(100vh-200px)] flex flex-col gap-6 justify-center items-center w-dvw">
+    <div className="min-h-[calc(100vh-200px)] lg:flex flex-col gap-6 justify-center items-center w-dvw">
       {/* <pre className="bg-gradient-to-br max-h-[80dvh] overflow-scroll fixed top-1/2 left-1/2 -translate-1/2 w-[90dvw] z-50 from-zinc-900/60 via-zinc-800/40 to-zinc-900/20 text-amber-400 rounded-xl p-6 shadow-lg overflow-x-auto text-sm leading-relaxed border border-zinc-700/20">
           <code className="whitespace-pre-wrap">
             {JSON.stringify(
@@ -88,11 +88,10 @@ export default function Page() {
             )}
           </code>
         </pre> */}
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6 mt-12 text-center">
         Choose Your Subscription Plan
       </h1>
-      {currentPlan}
-      <div className="grid grid-cols-3 gap-6 w-[60dvw]">
+      <div className="grid lg:grid-cols-3 gap-6 w-[90dvw] lg:w-[60dvw] mx-auto">
         {data?.data?.data?.map((plan: any) => (
           <div
             key={plan.id}

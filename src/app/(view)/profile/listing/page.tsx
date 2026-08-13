@@ -90,9 +90,9 @@ export default function ListingPage() {
     );
 
     setSubSpecialistIds(
-      info.providerSubcategories?.map(
-        (item: any) => item.subcategoryId ?? item.subcategory?.id,
-      ) ?? [],
+      info.providerSubcategories
+        ?.map((item: any) => item.subcategoryId ?? item.subcategory?.id)
+        .filter((id: string): id is string => Boolean(id)) ?? [],
     );
 
     setCoverPreview(info.coverImage ?? null);
@@ -124,7 +124,7 @@ export default function ListingPage() {
     specialistIds.forEach((id) => {
       formData.append("specialistsIn[]", id);
     });
-
+    console.log("subSpecialistIds:", subSpecialistIds);
     subSpecialistIds.forEach((id) => {
       formData.append("providerSubcategories[]", id);
     });
@@ -267,13 +267,14 @@ export default function ListingPage() {
                   <button
                     key={cat.id}
                     type="button"
-                    disabled={data?.data?.data.some(
-                      (sub) => sub.categoryId === cat.id,
-                    )}
                     onClick={() =>
                       setSpecialistIds((prev) => toggleId(prev, cat.id))
                     }
-                    className={`px-3 py-2 rounded-full disabled:opacity-50 text-sm border transition-colors ${"bg-white text-gray-700 border-gray-300"}`}
+                    className={`px-3 py-2 rounded-full text-sm border transition-colors ${
+                      specialistIds.includes(cat.id)
+                        ? "bg-primary text-white border-primary"
+                        : "bg-white text-gray-700 border-gray-300"
+                    }`}
                   >
                     {cat.name}
                   </button>
