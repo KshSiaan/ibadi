@@ -26,10 +26,6 @@ export function useLogin() {
         throw new Error(response.message || "Login failed");
       }
       
-<<<<<<< HEAD
-
-=======
->>>>>>> 04d8663768bf6b774b37f0dde2479a8ebb8d5e35
       return response.data;
     },
     onSuccess: (data) => {

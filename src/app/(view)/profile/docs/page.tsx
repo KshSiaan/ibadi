@@ -35,17 +35,13 @@ export default function Page() {
   const handleSave = () => {
     const formData = new FormData();
 
-    if (palliative && palliativeImage) {
-      formData.append("palliativeCare", palliativeImage);
-    }
+    const images = [palliativeImage, drivingImage, businessImage].filter(
+      (image): image is File => image !== null,
+    );
 
-    if (driving && drivingImage) {
-      formData.append("drivingLicense", drivingImage);
-    }
-
-    if (business && businessImage) {
-      formData.append("businessProfiles", businessImage);
-    }
+    images.forEach((image) => {
+      formData.append("images", image);
+    });
 
     mutate(formData, {
       onSuccess: () => {
