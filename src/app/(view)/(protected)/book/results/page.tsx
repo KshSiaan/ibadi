@@ -36,9 +36,10 @@ import { useRouter } from "next/navigation";
 
 export default function ResultsPage() {
   const t = useTranslations("BookResults");
-  const { selectedService, selectedCategoryId, selectedSubCategoryId } =
-    useServiceBooking();
+  const { selectedService, selectedCategoryId } = useServiceBooking();
+
   const { data: professionals = [], isLoading, error } = useHomepage();
+  const { homepageFilters } = useServiceBooking();
   const { data: faqs = [], isLoading: faqsLoading } =
     useGetFaqsByCategory(selectedCategoryId);
   const [faqOpen, setFaqOpen] = useState(false);
@@ -46,7 +47,6 @@ export default function ResultsPage() {
 
   return (
     <div className="flex min-h-dvh container mx-auto flex-col">
-      {/* Filter Panel */}
       {filterOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-white">
           <div className="mx-auto flex max-w-lg items-center justify-between border-b border-gray-100 px-4 py-4">
