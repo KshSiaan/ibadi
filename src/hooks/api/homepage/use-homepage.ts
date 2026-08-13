@@ -17,7 +17,7 @@ export function useHomepage() {
     queryKey: ["homepage", homepageFilters],
     queryFn: async () => {
       const qs = query.toString();
-        console.log("qs", qs);
+      console.log("qs", qs);
       const response = await apiClient.get<ApiResponse<PaginatedResponse<HomepageProvider>>>(
         `/homepage${qs ? `?${qs}` : ""}`,
       );
