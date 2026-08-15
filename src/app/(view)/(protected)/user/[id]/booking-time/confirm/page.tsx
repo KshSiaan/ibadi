@@ -10,6 +10,7 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
+  AlertCircleIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -27,6 +28,8 @@ import { useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import type { Address, PaymentMethod } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Spinner } from "@/components/ui/spinner";
 
 const MONTH_NAMES = [
   "January",
@@ -799,22 +802,42 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
 
       {/* Bottom CTA */}
       <div className="sticky bottom-0 bg-[#f5f5f5] px-4 pb-6 pt-2">
-        <div className="mx-auto max-w-4xl flex flex-col gap-2">
-          {error && <p className="text-center text-xs text-red-500">{error}</p>}
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={isPending || checkoutPending}
-            className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
-          >
-            {isPending && <Loader2 className="size-4 animate-spin" />}
-            {isPending
-              ? t("confirming")
-              : checkoutPending
+        {loadingPayments ? (
+          <div className="flex justify-center items-center gap-2 text-sm text-primary">
+            <Spinner /> Preparing..
+          </div>
+        ) : !activePayment ? (
+          <Alert className="mx-auto max-w-4xl" variant="destructive">
+            <AlertCircleIcon />
+            <AlertDescription className="text-xs text-gray-700">
+              Please add a payment method from your profile before confirming
+              the booking.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <div className="mx-auto max-w-4xl flex flex-col gap-2">
+            {error && (
+              <p className="text-center text-xs text-red-500">{error}</p>
+            )}
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={
+                isPending || checkoutPending || !activeAddress || !activePayment
+              }
+              className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {isPending && <Loader2 className="size-4 animate-spin" />}
+              {isPending
                 ? t("confirming")
-                : t("confirmBooking")}
-          </button>
-        </div>
+                : checkoutPending
+                  ? t("confirming")
+                  : !activePayment
+                    ? "Please add a Payment method from profile"
+                    : t("confirmBooking")}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Add Card Dialog */}

@@ -125,7 +125,7 @@ export default function BookingsPage() {
                   }
                 >
                   <DialogTrigger asChild>
-                    <Button className="w-full mt-3">
+                    <Button className="w-full mt-3 hidden">
                       {t("completePayment")}
                     </Button>
                   </DialogTrigger>

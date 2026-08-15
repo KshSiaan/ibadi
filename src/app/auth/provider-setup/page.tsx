@@ -16,6 +16,9 @@ import { useCreateWorkSchedule } from "@/hooks/api/work-schedule/use-work-schedu
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useCreateVerificationRequest } from "@/hooks/api/verification-request/use-verification-request";
 import { useServiceBooking } from "@/lib/store/service-booking";
+import { useQuery } from "@tanstack/react-query";
+import { howl } from "@/lib/utils";
+import { useUpdateProfile } from "@/hooks/api/user/use-update-profile";
 
 type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 type DayKey = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
@@ -90,6 +93,7 @@ interface DaySchedule {
 
 interface FormData {
   specialistsInIds: string[];
+  providerSubcategories: string[];
   taskOptions: Record<string, boolean>;
   bio: string;
   perHourPrice: string;
@@ -116,6 +120,39 @@ export default function ProviderSetupPage() {
     useGetOthersTaskOptions();
   const { data: categories = [], isLoading: loadingCategories } =
     useCategories();
+  const { data, isPending } = useQuery({
+    queryKey: ["subcategories"],
+    queryFn: async (): Promise<{
+      success: boolean;
+      message: string;
+      data: {
+        data: Array<{
+          id: string;
+          name: string;
+          categoryId: string;
+          image: string;
+          isDeleted: boolean;
+          createdAt: string;
+          updatedAt: string;
+          category: {
+            id: string;
+            name: string;
+            image: string;
+            isDeleted: boolean;
+            createdAt: string;
+            updatedAt: string;
+          };
+        }>;
+        meta: {
+          page: number;
+          limit: number;
+          total: number;
+        };
+      };
+    }> => {
+      return howl(`/subcategories`);
+    },
+  });
   const { mutate: createSchedule, isPending: loadingSchedule } =
     useCreateWorkSchedule();
   const { mutate: updateServiceProvider, isPending: loadingServiceProvider } =
@@ -125,9 +162,12 @@ export default function ProviderSetupPage() {
     isPending: loadingVerificationRequest,
   } = useCreateVerificationRequest();
 
+  const updateProfile = useUpdateProfile();
+
   const [step, setStep] = useState<Step>(0);
   const [form, setForm] = useState<FormData>({
     specialistsInIds: [],
+    providerSubcategories: [],
     taskOptions: {},
     bio: "",
     perHourPrice: "",
@@ -174,6 +214,14 @@ export default function ProviderSetupPage() {
       specialistsInIds: p.specialistsInIds.includes(id)
         ? p.specialistsInIds.filter((c) => c !== id)
         : [...p.specialistsInIds, id],
+    }));
+  }
+  function toggleSubCategory(id: string) {
+    setForm((p) => ({
+      ...p,
+      providerSubcategories: p.providerSubcategories.includes(id)
+        ? p.providerSubcategories.filter((c) => c !== id)
+        : [...p.providerSubcategories, id],
     }));
   }
 
@@ -243,6 +291,13 @@ export default function ProviderSetupPage() {
       toast.error("You can upload a maximum of 5 verification images.");
       return;
     }
+
+    if (form.coverImage) {
+      const formData = new FormData();
+      formData.append("profile", form.coverImage);
+      updateProfile.mutateAsync(formData);
+    }
+
     try {
       // Build workSchedule payload
       const workSchedulePayload = DAYS.filter(
@@ -425,6 +480,38 @@ export default function ProviderSetupPage() {
             {form.specialistsInIds.length > 0 && (
               <p className="mt-3 text-center text-xs text-primary font-semibold">
                 {form.specialistsInIds.length} selected
+              </p>
+            )}
+            <p className="text-sm font-semibold text-gray-800 mt-6 w-full text-start">
+              Sub-specialties:
+            </p>
+            {isPending ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="size-5 animate-spin text-gray-400" />
+              </div>
+            ) : Number(data?.data?.data?.length) > 0 ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 mt-8">
+                {data?.data?.data?.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => toggleSubCategory(cat.id)}
+                    className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                      form.providerSubcategories.includes(cat.id)
+                        ? "bg-primary text-white shadow-md"
+                        : "bg-white text-gray-700 shadow-sm hover:shadow-md"
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">No categories available</p>
+            )}
+            {form.providerSubcategories.length > 0 && (
+              <p className="mt-3 text-center text-xs text-primary font-semibold">
+                {form.providerSubcategories.length} selected
               </p>
             )}
           </div>

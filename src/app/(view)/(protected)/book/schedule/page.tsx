@@ -27,7 +27,7 @@ const MONTH_NAMES = [
   "December",
 ];
 
-const morningSlots = ["9-0", "9-12", "12-15"];
+const morningSlots = ["12-9", "9-12", "12-15"];
 const eveningSlots = ["15-18", "18-21", "21-00"];
 
 /** Get the Monday-based week containing `date`. */

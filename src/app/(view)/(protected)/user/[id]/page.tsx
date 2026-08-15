@@ -1,9 +1,11 @@
 "use client";
 
 import {
+  AlertCircle,
   ArrowLeft,
   CheckCircle2,
   Heart,
+  LayoutGridIcon,
   Loader2,
   Share2,
   Star,
@@ -243,16 +245,36 @@ export default function UserProfilePage({
             </div>
 
             <div className="flex flex-col items-center gap-1 px-2">
-              <div className="size-9" />
+              <div className="size-9 flex items-center justify-center">
+                <LayoutGridIcon className="size-6 text-primary" />
+              </div>
               <span className="text-sm font-bold text-gray-800">
-                {tasks.length}
+                {categories.length}
               </span>
               <p className="text-[10px] text-gray-400">{t("services")}</p>
             </div>
 
             <div className="flex flex-col items-center justify-center gap-1 px-2">
-              {user.isVerified && (
-                <CheckCircle2 className="size-8 text-primary" />
+              {user.isVerified ? (
+                <>
+                  <div className="size-9 flex items-center justify-center">
+                    <CheckCircle2 className="size-6 text-primary" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-800">
+                    Verified
+                  </span>
+                  <p className="text-[10px] text-gray-400">Profile</p>
+                </>
+              ) : (
+                <>
+                  <div className="size-9 flex items-center justify-center">
+                    <AlertCircle className="size-6 text-muted-foreground" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-800">
+                    Unverified
+                  </span>
+                  <p className="text-[10px] text-gray-400">Profile</p>
+                </>
               )}
             </div>
           </div>
@@ -513,7 +535,7 @@ export default function UserProfilePage({
             </button>
           </div>
 
-          <Button>
+          <Button asChild>
             <Link
               href={`/user/${id}/booking-time?frequency=${frequency}&pricePerHour=${info?.perHourPrice ?? 0}`}
             >
