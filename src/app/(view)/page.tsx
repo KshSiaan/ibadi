@@ -43,6 +43,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useQuery } from "@tanstack/react-query";
+import { Spinner } from "@/components/ui/spinner";
 
 /* ─── ServiceNode ─── */
 function ServiceNode({
@@ -506,14 +507,16 @@ export default function Page() {
       (sub) => sub.categoryId === id,
     );
 
-    setSelectedCategoryId(id);
     setBookingCategoryId(id);
     setSelectedSubCategoryId("");
     setSelectedService(service);
 
     if (!hasSubcategories) {
       router.push("/book/schedule");
+      return;
     }
+
+    setSelectedCategoryId(id);
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
@@ -601,94 +604,111 @@ export default function Page() {
         className="relative origin-center scale-[0.55] sm:scale-75 md:scale-90 lg:scale-100"
         style={{ width: 520, height: 520 }}
       >
-        <div
-          className="absolute flex flex-col items-center gap-2"
-          style={{
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%,-50%)",
-          }}
-        >
-          <Dialog>
-            <DialogTrigger asChild>
-              <div
-                className="flex items-center justify-center rounded-full border-2 border-primary bg-white shadow-lg"
-                style={{ width: 148, height: 148 }}
-              >
-                <Image
-                  src="/icons/headphone-icon.svg"
-                  alt="Support"
-                  width={64}
-                  height={64}
-                />
-              </div>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle></DialogTitle>
-              </DialogHeader>
-              <div className="">
-                <Image
-                  src="/icons/home/call.svg"
-                  height={240}
-                  width={240}
-                  alt="Support"
-                  className="mx-auto size-48"
-                />
-                <Button className="mt-4 w-full" size="lg">
-                  <PhoneOutgoing /> Call
-                </Button>
-                <Button className="mt-4 w-full" size="lg" asChild>
-                  <Link
-                    href={`/inbox/admin?name=${encodeURIComponent("Admin")}&image=${encodeURIComponent("")}&participantId=69c4f90e6db7d36f60fec4aa`}
+        {isLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center gap-2">
+            <Spinner /> Loading...
+          </div>
+        ) : (
+          <>
+            <div
+              className="absolute flex flex-col items-center gap-2"
+              style={{
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%,-50%)",
+              }}
+            >
+              {/* Support node */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <div
+                    className="flex items-center justify-center rounded-full border-2 border-primary bg-white shadow-lg"
+                    style={{ width: 148, height: 148 }}
                   >
-                    <MessageSquareIcon /> Message
-                  </Link>
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <span className="text-lg font-bold text-primary">Support</span>
-        </div>
+                    <Image
+                      src="/icons/headphone-icon.svg"
+                      alt="Support"
+                      width={64}
+                      height={64}
+                    />
+                  </div>
+                </DialogTrigger>
 
-        {(() => {
-          const selectedSubcategories =
-            data?.data?.data?.filter(
-              (sub) => sub.categoryId === selectedCategoryId,
-            ) ?? [];
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle />
+                  </DialogHeader>
 
-          const nodes = selectedCategoryId ? selectedSubcategories : categories;
+                  <div>
+                    <Image
+                      src="/icons/home/call.svg"
+                      height={240}
+                      width={240}
+                      alt="Support"
+                      className="mx-auto size-48"
+                    />
 
-          return nodes.map((item, index) => {
-            const totalItems = nodes.length;
-            const angleDeg = (index * 360) / totalItems - 90;
+                    <Button className="mt-4 w-full" size="lg">
+                      <PhoneOutgoing /> Call
+                    </Button>
 
-            const isSubcategory = !!selectedCategoryId;
+                    <Button className="mt-4 w-full" size="lg" asChild>
+                      <Link
+                        href={`/inbox/admin?name=${encodeURIComponent("Admin")}&image=${encodeURIComponent("")}&participantId=69c4f90e6db7d36f60fec4aa`}
+                      >
+                        <MessageSquareIcon /> Message
+                      </Link>
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
-            return (
-              <ServiceNode
-                key={item.id}
-                id={item.id}
-                icon={item.image ?? ""}
-                label={item.name}
-                angleDeg={angleDeg}
-                radius={210}
-                onClick={() => {
-                  if (isSubcategory) {
-                    if (selectedCategoryId) {
-                      setBookingCategoryId(selectedCategoryId);
-                    }
-                    setSelectedService(item.name);
-                    setSelectedSubCategoryId(item.id);
-                    router.push("/book/schedule");
-                  } else {
-                    handleServiceSelect(item.name, item.id);
-                  }
-                }}
-              />
-            );
-          });
-        })()}
+              <span className="text-lg font-bold text-primary">Support</span>
+            </div>
+
+            {(() => {
+              const selectedSubcategories =
+                data?.data?.data?.filter(
+                  (sub) => sub.categoryId === selectedCategoryId,
+                ) ?? [];
+
+              const nodes = selectedCategoryId
+                ? selectedSubcategories
+                : categories;
+
+              return nodes.map((item, index) => {
+                const totalItems = nodes.length;
+                const angleDeg = (index * 360) / totalItems - 90;
+
+                const isSubcategory = !!selectedCategoryId;
+
+                return (
+                  <ServiceNode
+                    key={item.id}
+                    id={item.id}
+                    icon={item.image ?? ""}
+                    label={item.name}
+                    angleDeg={angleDeg}
+                    radius={210}
+                    onClick={() => {
+                      if (isSubcategory) {
+                        if (selectedCategoryId) {
+                          setBookingCategoryId(selectedCategoryId);
+                        }
+
+                        setSelectedService(item.name);
+                        setSelectedSubCategoryId(item.id);
+                        router.push("/book/schedule");
+                      } else {
+                        handleServiceSelect(item.name, item.id);
+                      }
+                    }}
+                  />
+                );
+              });
+            })()}
+          </>
+        )}
       </div>
       {/* Address button */}
       {user?.email && (

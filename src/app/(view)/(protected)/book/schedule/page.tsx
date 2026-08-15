@@ -219,7 +219,7 @@ export default function SchedulePage() {
     <div className="flex min-h-dvh flex-col bg-[#f5f5f5]">
       <div className="bg-primary px-6 py-4">
         <div className="mx-auto flex max-w-lg items-center gap-3">
-          <Link href="/book" className="text-white/80 hover:text-white">
+          <Link href="/" className="text-white/80 hover:text-white">
             <ArrowLeft className="size-5" />
           </Link>
           <span className="text-base font-semibold text-white">
