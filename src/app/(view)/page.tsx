@@ -583,7 +583,7 @@ export default function Page() {
         </Popover>
       </div>
       {selectedCategoryId && (
-        <div className="w-full max-w-xl">
+        <div className="w-full max-w-xl flex justify-center items-center">
           <Button
             onClick={() => {
               setSelectedCategoryId(null);
@@ -591,11 +591,13 @@ export default function Page() {
               setSelectedSubCategoryId("");
               setSelectedService("");
             }}
-            className="mt-4"
-            variant="outline"
+            className="mt-4 text-2xl text-primary"
+            size="lg"
+            variant="ghost"
           >
-            <ChevronLeft />
-            Go Back
+            <ChevronLeft className="size-6" />
+            {selectedCategoryId &&
+              categories.find((cat) => cat.id === selectedCategoryId)?.name}
           </Button>
         </div>
       )}
@@ -610,61 +612,63 @@ export default function Page() {
           </div>
         ) : (
           <>
-            <div
-              className="absolute flex flex-col items-center gap-2"
-              style={{
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%,-50%)",
-              }}
-            >
-              {/* Support node */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <div
-                    className="flex items-center justify-center rounded-full border-2 border-primary bg-white shadow-lg"
-                    style={{ width: 148, height: 148 }}
-                  >
-                    <Image
-                      src="/icons/headphone-icon.svg"
-                      alt="Support"
-                      width={64}
-                      height={64}
-                    />
-                  </div>
-                </DialogTrigger>
+            {!selectedCategoryId && (
+              <div
+                className="absolute flex flex-col items-center gap-2"
+                style={{
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%,-50%)",
+                }}
+              >
+                {/* Support node */}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <div
+                      className="flex items-center justify-center rounded-full border-2 border-primary bg-white shadow-lg"
+                      style={{ width: 148, height: 148 }}
+                    >
+                      <Image
+                        src="/icons/headphone-icon.svg"
+                        alt="Support"
+                        width={64}
+                        height={64}
+                      />
+                    </div>
+                  </DialogTrigger>
 
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle />
-                  </DialogHeader>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle />
+                    </DialogHeader>
 
-                  <div>
-                    <Image
-                      src="/icons/home/call.svg"
-                      height={240}
-                      width={240}
-                      alt="Support"
-                      className="mx-auto size-48"
-                    />
+                    <div>
+                      <Image
+                        src="/icons/home/call.svg"
+                        height={240}
+                        width={240}
+                        alt="Support"
+                        className="mx-auto size-48"
+                      />
 
-                    <Button className="mt-4 w-full" size="lg">
-                      <PhoneOutgoing /> Call
-                    </Button>
+                      <Button className="mt-4 w-full" size="lg">
+                        <PhoneOutgoing /> Call
+                      </Button>
 
-                    <Button className="mt-4 w-full" size="lg" asChild>
-                      <Link
-                        href={`/inbox/admin?name=${encodeURIComponent("Admin")}&image=${encodeURIComponent("")}&participantId=69c4f90e6db7d36f60fec4aa`}
-                      >
-                        <MessageSquareIcon /> Message
-                      </Link>
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                      <Button className="mt-4 w-full" size="lg" asChild>
+                        <Link
+                          href={`/inbox/admin?name=${encodeURIComponent("Admin")}&image=${encodeURIComponent("")}&participantId=69c4f90e6db7d36f60fec4aa`}
+                        >
+                          <MessageSquareIcon /> Message
+                        </Link>
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
 
-              <span className="text-lg font-bold text-primary">Support</span>
-            </div>
+                <span className="text-lg font-bold text-primary">Support</span>
+              </div>
+            )}
 
             {(() => {
               const selectedSubcategories =
@@ -678,8 +682,11 @@ export default function Page() {
 
               return nodes.map((item, index) => {
                 const totalItems = nodes.length;
-                const angleDeg = (index * 360) / totalItems - 90;
-
+                let angleDeg = (index * 360) / totalItems - 90;
+                //if service category is selected should appear from top side by side
+                if (selectedCategoryId) {
+                  angleDeg = index * 60 - 120; // Adjust the angle for subcategories
+                }
                 const isSubcategory = !!selectedCategoryId;
 
                 return (
