@@ -26,15 +26,10 @@ export default function Page() {
   const handleServiceSelect = (category: any) => {
     setSelectedService(category.name);
     setSelectedCategoryId(category.id);
-    if (category.name === "Care") {
-      setHomepageFilters({
-        ...homepageFilters,
-        categoryId: category.id,
-      });
-
-      router.push("/book/results");
-      return;
-    }
+    setHomepageFilters({
+      ...homepageFilters,
+      categoryId: category.id,
+    });
 
     router.push("/book/schedule");
   };

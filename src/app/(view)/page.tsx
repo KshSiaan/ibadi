@@ -451,14 +451,18 @@ function AddressManager({ onClose }: { onClose: () => void }) {
 
 /* ─── Page ─── */
 export default function Page() {
-  const { setSelectedService, setServiceAddress, serviceAddress } =
-    useServiceBooking();
+  const {
+    setSelectedService,
+    setServiceAddress,
+    serviceAddress,
+    setSelectedCategoryId: setBookingCategoryId,
+    setSelectedSubCategoryId,
+  } = useServiceBooking();
   const { data: addresses = [] } = useGetMyAddresses();
   const [addressOpen, setAddressOpen] = useState(false);
   const { data: categories = [], isLoading } = useCategories();
   const { data: user } = useMyProfile();
   const router = useRouter();
-  const { setSelectedSubCategoryId } = useServiceBooking();
   const { data, isPending } = useQuery({
     queryKey: ["subcategories"],
     queryFn: async (): Promise<{
@@ -503,6 +507,8 @@ export default function Page() {
     );
 
     setSelectedCategoryId(id);
+    setBookingCategoryId(id);
+    setSelectedSubCategoryId("");
     setSelectedService(service);
 
     if (!hasSubcategories) {
@@ -578,6 +584,8 @@ export default function Page() {
           <Button
             onClick={() => {
               setSelectedCategoryId(null);
+              setBookingCategoryId("");
+              setSelectedSubCategoryId("");
               setSelectedService("");
             }}
             className="mt-4"
@@ -667,6 +675,9 @@ export default function Page() {
                 radius={210}
                 onClick={() => {
                   if (isSubcategory) {
+                    if (selectedCategoryId) {
+                      setBookingCategoryId(selectedCategoryId);
+                    }
                     setSelectedService(item.name);
                     setSelectedSubCategoryId(item.id);
                     router.push("/book/schedule");
