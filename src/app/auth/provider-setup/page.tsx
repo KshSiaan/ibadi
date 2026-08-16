@@ -491,20 +491,23 @@ export default function ProviderSetupPage() {
               </div>
             ) : Number(data?.data?.data?.length) > 0 ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 mt-8">
-                {data?.data?.data?.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => toggleSubCategory(cat.id)}
-                    className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${
-                      form.providerSubcategories.includes(cat.id)
-                        ? "bg-primary text-white shadow-md"
-                        : "bg-white text-gray-700 shadow-sm hover:shadow-md"
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+                {data?.data?.data?.map(
+                  (cat) =>
+                    form.specialistsInIds.includes(cat.categoryId) && (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => toggleSubCategory(cat.id)}
+                        className={`rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                          form.providerSubcategories.includes(cat.id)
+                            ? "bg-primary text-white shadow-md"
+                            : "bg-white text-gray-700 shadow-sm hover:shadow-md"
+                        }`}
+                      >
+                        {cat.name}
+                      </button>
+                    ),
+                )}
               </div>
             ) : (
               <p className="text-sm text-gray-400">No categories available</p>

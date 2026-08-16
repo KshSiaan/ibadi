@@ -258,10 +258,15 @@ export default function ListingPage() {
           {/* Specialties */}
           {categories && categories.length > 0 && (
             <div>
-              {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
-                {t("specialties")}
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  {t("specialties")}
+                </label>
+                <p className="text-xs text-gray-500 font-semibold">
+                  {specialistIds.length} Specialties selected
+                </p>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {categories.map((cat) => (
                   <button
@@ -285,27 +290,35 @@ export default function ListingPage() {
 
           {data?.data?.data && data.data.data.length > 0 && (
             <div>
-              {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Sub Specialties
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Sub Specialties
+                </label>
+                <p className="text-xs text-gray-500 font-semibold">
+                  {subSpecialistIds.length} Sub-specialties selected
+                </p>
+              </div>
               <div className="flex flex-wrap gap-2">
-                {data?.data?.data.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() =>
-                      setSubSpecialistIds((prev) => toggleId(prev, cat.id))
-                    }
-                    className={`px-3 py-2 rounded-full text-sm border transition-colors ${
-                      subSpecialistIds.includes(cat.id)
-                        ? "bg-primary text-white border-primary"
-                        : "bg-white text-gray-700 border-gray-300"
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+                {data?.data?.data.map(
+                  (cat) =>
+                    specialistIds.includes(cat.categoryId) && (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() =>
+                          setSubSpecialistIds((prev) => toggleId(prev, cat.id))
+                        }
+                        className={`px-3 py-2 rounded-full text-sm border transition-colors ${
+                          subSpecialistIds.includes(cat.id)
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white text-gray-700 border-gray-300"
+                        }`}
+                      >
+                        {cat.name}
+                      </button>
+                    ),
+                )}
               </div>
             </div>
           )}

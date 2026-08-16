@@ -722,7 +722,7 @@ export default function Page() {
         <button
           type="button"
           onClick={() => setAddressOpen(true)}
-          className="mt-8 flex items-center gap-1 text-lg font-bold text-primary"
+          className="mt-8 flex items-center gap-1 text-lg font-bold text-muted-foreground"
         >
           <span className="text-lg font-bold text-gray-800">Address: </span>
           {serviceAddress || "+ Add address"}
