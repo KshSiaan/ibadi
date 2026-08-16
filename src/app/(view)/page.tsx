@@ -44,6 +44,7 @@ import { useRouter } from "next/navigation";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
+import { useCookies } from "react-cookie";
 
 /* ─── ServiceNode ─── */
 function ServiceNode({
@@ -501,6 +502,7 @@ export default function Page() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
+  const [{ accessToken }] = useCookies(["accessToken"]);
 
   const handleServiceSelect = (service: string, id: string) => {
     const hasSubcategories = data?.data?.data?.some(
@@ -655,13 +657,21 @@ export default function Page() {
                         <PhoneOutgoing /> Call
                       </Button>
 
-                      <Button className="mt-4 w-full" size="lg" asChild>
-                        <Link
-                          href={`/inbox/admin?name=${encodeURIComponent("Admin")}&image=${encodeURIComponent("")}&participantId=69c4f90e6db7d36f60fec4aa`}
-                        >
-                          <MessageSquareIcon /> Message
-                        </Link>
-                      </Button>
+                      {accessToken ? (
+                        <Button className="mt-4 w-full" size="lg" asChild>
+                          <Link
+                            href={`/inbox/admin?name=${encodeURIComponent("Admin")}&image=${encodeURIComponent("")}&participantId=69c4f90e6db7d36f60fec4aa`}
+                          >
+                            <MessageSquareIcon /> Message
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Button className="mt-4 w-full" size="lg" asChild>
+                          <Link href={`/support`}>
+                            <MessageSquareIcon /> Message
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   </DialogContent>
                 </Dialog>
