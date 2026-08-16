@@ -17,12 +17,12 @@ export default function Page() {
   const [palliative, setPalliative] = React.useState(false);
   const [driving, setDriving] = React.useState(false);
   const [business, setBusiness] = React.useState(false);
-
   const [palliativeImage, setPalliativeImage] = React.useState<File | null>(
     null,
   );
   const [drivingImage, setDrivingImage] = React.useState<File | null>(null);
   const [businessImage, setBusinessImage] = React.useState<File | null>(null);
+
   const { mutate, isPending } = useUpdateServiceProviderInfo();
   useEffect(() => {
     if (!data?.serviceProviderInfo) return;
@@ -35,13 +35,23 @@ export default function Page() {
   const handleSave = () => {
     const formData = new FormData();
 
-    const images = [palliativeImage, drivingImage, businessImage].filter(
-      (image): image is File => image !== null,
-    );
+    // const images = [palliativeImage, drivingImage, businessImage].filter(
+    //   (image): image is File => image !== null,
+    // );
 
-    images.forEach((image) => {
-      formData.append("images", image);
-    });
+    // images.forEach((image) => {
+    //   formData.append("images", image);
+    // });
+
+    if (palliative && palliativeImage) {
+      formData.append("palliativeCare", palliativeImage);
+    }
+    if (driving && drivingImage) {
+      formData.append("drivingLicense", drivingImage);
+    }
+    if (business && businessImage) {
+      formData.append("businessProfiles", businessImage);
+    }
 
     mutate(formData, {
       onSuccess: () => {
@@ -135,12 +145,12 @@ export default function Page() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-gray-700">
-              Other Documents
+              Business Profiles
             </p>
 
             <p className="text-xs text-gray-400">
-              Any other documents that the specialist may have uploaded to their
-              profile.
+              Any business profiles that the specialist may have uploaded to
+              their profile.
             </p>
           </div>
 
@@ -160,6 +170,34 @@ export default function Page() {
           <UploadBox file={businessImage} onChange={setBusinessImage} />
         )}
       </div>
+      {/* <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-gray-700">
+              Other Documents
+            </p>
+
+            <p className="text-xs text-gray-400">
+              Any other documents that the specialist may have uploaded to their
+              profile.
+            </p>
+          </div>
+
+          <Switch
+            checked={other}
+            onCheckedChange={(checked) => {
+              setOther(checked);
+              setOtherImage(checked ? null : null);
+
+              if (!checked) {
+                setOtherImage(null);
+              }
+            }}
+          />
+        </div>
+
+        {other && <UploadBox file={otherImage} onChange={setOtherImage} />}
+      </div> */}
       {/* <div className="mt-2 flex w-full w-full flex-col gap-3">
         <label className="flex cursor-pointer items-center justify-center w-full rounded-xl bg-white px-6 py-8 shadow-sm hover:shadow-md transition-shadow border-2 border-dashed border-gray-200">
           <div className="flex flex-col items-center gap-2">
