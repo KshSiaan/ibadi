@@ -380,7 +380,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
     <div className="min-h-dvh bg-[#f5f5f5]">
       {/* Header */}
 
-      <div className="flex items-center justify-center bg-[#f5f5f5] px-4 py-4 relative">
+      <div className="flex items-center justify-center bg-[#f5f5f5] px-4 py-4 relative mx-auto max-w-4xl">
         <button
           type="button"
           onClick={() => router.back()}

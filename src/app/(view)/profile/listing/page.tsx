@@ -290,15 +290,19 @@ export default function ListingPage() {
 
           {data?.data?.data && data.data.data.length > 0 && (
             <div>
-              <div className="flex items-center justify-between mb-2">
-                {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Sub Specialties
-                </label>
-                <p className="text-xs text-gray-500 font-semibold">
-                  {subSpecialistIds.length} Sub-specialties selected
-                </p>
-              </div>
+              {data.data.data.some((cat) =>
+                specialistIds.includes(cat.categoryId),
+              ) && (
+                <div className="flex items-center justify-between mb-2">
+                  {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Sub Specialties
+                  </label>
+                  <p className="text-xs text-gray-500 font-semibold">
+                    {subSpecialistIds.length} Sub-specialties selected
+                  </p>
+                </div>
+              )}
               <div className="flex flex-wrap gap-2">
                 {data?.data?.data.map(
                   (cat) =>
