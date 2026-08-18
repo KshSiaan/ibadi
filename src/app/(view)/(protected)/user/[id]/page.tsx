@@ -167,7 +167,7 @@ export default function UserProfilePage({
   return (
     <div className="min-h-dvh bg-muted">
       {/* Header */}
-      <div className="flex items-center justify-between bg-muted px-4 py-3">
+      <div className="flex items-center justify-between bg-muted px-4 py-3 mx-auto max-w-4xl">
         <button
           type="button"
           onClick={() => router.back()}

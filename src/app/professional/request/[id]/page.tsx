@@ -97,7 +97,7 @@ export default function BookingDetailPage() {
                     <p className="text-sm font-bold text-[#1e2d4f]">
                       {user?.name}
                     </p>
-                    {booking?.status === "requested" && (
+                    {booking?.providerId && booking.status !== "requested" && (
                       <p className="text-xs text-gray-400 flex items-center gap-1">
                         <PhoneIcon size={14} />
                         {user?.phoneNumber}
