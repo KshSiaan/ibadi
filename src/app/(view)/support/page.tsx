@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { howl } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
+import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -103,6 +105,14 @@ export default function Page() {
     <main className="min-h-dvh w-full bg-muted/30 px-4 py-8">
       <div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-2xl items-center justify-center">
         <div className="w-full rounded-2xl border bg-background p-6 shadow-sm sm:p-8">
+          <div className="">
+            <Button variant="outline" asChild>
+              <Link href="/">
+                <ChevronLeft />
+                Go back
+              </Link>
+            </Button>
+          </div>
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold tracking-tight">
               Iumi Admin Support
