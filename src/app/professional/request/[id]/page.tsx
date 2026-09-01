@@ -65,7 +65,7 @@ export default function BookingDetailPage() {
   return (
     <div className="min-h-dvh bg-[#f5f5f5]">
       {/* Header */}
-      <div className="relative flex items-center justify-center bg-[#f5f5f5] px-4 py-4">
+      <div className="relative flex items-center justify-center bg-[#f5f5f5] px-4 py-4 max-w-md mx-auto">
         <button
           type="button"
           onClick={() => router.back()}
