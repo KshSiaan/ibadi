@@ -351,20 +351,21 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
       },
       {
         onSuccess: (res) => {
-          checkout(
-            {
-              bookingId: res.id,
-              additionalComment: comment,
-            },
-            {
-              onSuccess: () => {
-                setConfirmed(true);
-              },
-              onError: (err) => {
-                setError(err.message);
-              },
-            },
-          );
+          //   checkout(
+          //     {
+          //       bookingId: res.id,
+          //       additionalComment: comment,
+          //     },
+          //     {
+          //       onSuccess: () => {
+          //         setConfirmed(true);
+          //       },
+          //       onError: (err) => {
+          //         setError(err.message);
+          //       },
+          //     },
+          //   );
+          setConfirmed(true);
         },
         onError: (err) => setError(err.message),
       },
@@ -806,14 +807,6 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
           <div className="flex justify-center items-center gap-2 text-sm text-primary">
             <Spinner /> Preparing..
           </div>
-        ) : !activePayment ? (
-          <Alert className="mx-auto max-w-4xl" variant="destructive">
-            <AlertCircleIcon />
-            <AlertDescription className="text-xs text-gray-700">
-              Please add a payment method from your profile before confirming
-              the booking.
-            </AlertDescription>
-          </Alert>
         ) : (
           <div className="mx-auto max-w-4xl flex flex-col gap-2">
             {error && (
@@ -822,9 +815,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
             <button
               type="button"
               onClick={handleConfirm}
-              disabled={
-                isPending || checkoutPending || !activeAddress || !activePayment
-              }
+              disabled={isPending || checkoutPending || !activeAddress}
               className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {isPending && <Loader2 className="size-4 animate-spin" />}
@@ -832,9 +823,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
                 ? t("confirming")
                 : checkoutPending
                   ? t("confirming")
-                  : !activePayment
-                    ? "Please add a Payment method from profile"
-                    : t("confirmBooking")}
+                  : t("confirmBooking")}
             </button>
           </div>
         )}
