@@ -31,7 +31,11 @@ export interface User {
   customerId: string;
   avgRating: number;
   totalReview: number;
-  location: { type: string; coordinates: (string | number)[]; address?: string } | null;
+  location: {
+    type: string;
+    coordinates: (string | number)[];
+    address?: string;
+  } | null;
   expireAt: string | null;
   isDeleted: boolean;
   createdAt: string;
@@ -108,7 +112,7 @@ export interface RegisterRequest {
   role?: "user" | "service_provider";
   phoneNumber?: string;
   location?: Location;
-  address?:{
+  address?: {
     addressLine1: string;
     city: string;
     state: string;
@@ -116,7 +120,7 @@ export interface RegisterRequest {
     country: string;
     location: Location;
     isDefault: boolean;
-  }
+  };
 }
 
 export interface RegisterResponse {
@@ -167,27 +171,26 @@ export interface ResendOtpResponse {
   message: string;
 }
 
-
 export interface NotificationsResponse {
-  success: boolean
-  message: string
+  success: boolean;
+  message: string;
   data: Array<{
-    id: string
-    receiverId: string
-    bookingId: string
-    verificationRequestId: any
-    message: string
-    description: string
-    isRead: boolean
-    createdAt: string
-    updatedAt: string
+    id: string;
+    receiverId: string;
+    bookingId: string;
+    verificationRequestId: any;
+    message: string;
+    description: string;
+    isRead: boolean;
+    createdAt: string;
+    updatedAt: string;
     user: {
-      id: string
-      name: string
-      profile: any
-      phoneNumber: any
-    }
-  }>
+      id: string;
+      name: string;
+      profile: any;
+      phoneNumber: any;
+    };
+  }>;
 }
 
 /* ─── Review Types ─── */
@@ -195,10 +198,20 @@ export interface Review {
   id: string;
   rating: number;
   review: string;
-  reviewerId: string;
   userId: string;
+  authorId: string;
   createdAt: string;
   updatedAt: string;
+  user: ReviewPerson;
+  author: ReviewPerson;
+}
+
+export interface ReviewPerson {
+  id: string;
+  name: string;
+  email: string;
+  phoneNumber: string | null;
+  profile: unknown;
 }
 
 export interface CreateReviewRequest {
@@ -244,7 +257,6 @@ export interface Booking {
   status: string;
   createdAt: string;
   updatedAt: string;
-
 }
 
 export interface CheckoutRequest {
@@ -345,7 +357,11 @@ export interface HomepageProviderUser {
   email: string;
   phoneNumber: string | null;
   profile: string | null;
-  location: { type: string; coordinates: (string | number)[]; address?: string } | null;
+  location: {
+    type: string;
+    coordinates: (string | number)[];
+    address?: string;
+  } | null;
   totalReview: number;
   avgRating: number;
 }
