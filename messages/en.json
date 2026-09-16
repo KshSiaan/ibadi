@@ -502,7 +502,10 @@
     "filters": "Filters",
     "howDoesServiceEnd": "How does the service end?",
     "failedToLoad": "Failed to load professionals. Please try again.",
-    "noProfessionalsFound": "No professionals found for your search."
+    "noProfessionalsFound": "No professionals found for your search.",
+    "previous": "Previous",
+    "next": "Next",
+    "goToPage": "Go to page {page}"
   },
   "BookSchedule": {
     "whenDoYouNeedIt": "When do you need it?",

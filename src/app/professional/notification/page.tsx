@@ -104,16 +104,22 @@ export default function Page() {
   const markAll = useMarkNotifications();
   const clearAll = useDeleteNotifications();
 
-  const { data: currentSubscription } = useQuery({
-    queryKey: ["current_subscription"],
-    queryFn: async (): Promise<any> => {
-      return howl(`/subscriptions/current`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-    },
-  });
+  const { data: currentSubscription, isLoading: subscriptionLoading } =
+    useQuery({
+      queryKey: ["current_subscription", accessToken],
+      enabled: !!accessToken,
+      queryFn: async (): Promise<any> => {
+        return howl(`/subscriptions/current`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+      },
+    });
+  const hasActiveSubscription =
+    currentSubscription?.data?.hasActiveSubscription ??
+    currentSubscription?.hasActiveSubscription ??
+    false;
 
   const sortedNotifications = [...(notifications as any)].sort(
     (left, right) =>
@@ -148,7 +154,9 @@ export default function Page() {
 
   return (
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8 relative">
-      {!currentSubscription?.data?.hasActiveSubscription && <SubscribeBanner />}
+      {!!accessToken && !subscriptionLoading && !hasActiveSubscription && (
+        <SubscribeBanner />
+      )}
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
         <div className="flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-black/5 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-2">

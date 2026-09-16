@@ -297,18 +297,25 @@ export default function RequestPage() {
   const [activeTab, setActiveTab] = useState<Tab>("request");
   const [showComplete, setShowComplete] = useState(false);
   const searchParams = useSearchParams();
-  const [accessToken] = useCookies(["access_token"]);
+  const [{ accessToken }] = useCookies(["accessToken"]);
 
-  const { data: currentSubscription } = useQuery({
-    queryKey: ["current_subscription"],
-    queryFn: async (): Promise<any> => {
-      return howl(`/subscriptions/current`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-    },
-  });
+  const { data: currentSubscription, isLoading: subscriptionLoading } =
+    useQuery({
+      queryKey: ["current_subscription", accessToken],
+      enabled: !!accessToken,
+      queryFn: async (): Promise<any> => {
+        return howl(`/subscriptions/current`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+      },
+    });
+
+  const hasActiveSubscription =
+    currentSubscription?.data?.hasActiveSubscription ??
+    currentSubscription?.hasActiveSubscription ??
+    false;
 
   useEffect(() => {
     if (searchParams.get("completed") === "true") {
@@ -362,7 +369,9 @@ export default function RequestPage() {
 
   return (
     <div className="min-h-dvh bg-[#f5f5f5] px-4 py-8 relative">
-      {!currentSubscription?.data?.hasActiveSubscription && <SubscribeBanner />}
+      {!!accessToken && !subscriptionLoading && !hasActiveSubscription && (
+        <SubscribeBanner />
+      )}
       <div className="relative mb-6 flex items-center justify-center gap-28 w-full">
         <h1 className="text-2xl font-bold text-gray-800 inline-block">
           {t("request")}

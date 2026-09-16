@@ -123,16 +123,22 @@ export default function CalendarPage() {
   } = useProviderBookings({
     status: "ongoing",
   });
-  const { data: currentSubscription } = useQuery({
-    queryKey: ["current_subscription"],
-    queryFn: async (): Promise<any> => {
-      return howl(`/subscriptions/current`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-    },
-  });
+  const { data: currentSubscription, isLoading: subscriptionLoading } =
+    useQuery({
+      queryKey: ["current_subscription", accessToken],
+      enabled: !!accessToken,
+      queryFn: async (): Promise<any> => {
+        return howl(`/subscriptions/current`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+      },
+    });
+  const hasActiveSubscription =
+    currentSubscription?.data?.hasActiveSubscription ??
+    currentSubscription?.hasActiveSubscription ??
+    false;
   const filtered = date
     ? bookings?.filter((b) => {
         const d = new Date(b.startDate);
@@ -146,7 +152,9 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-dvh relative bg-[#f5f5f5] px-4 py-8">
-      {!currentSubscription?.data?.hasActiveSubscription && <SubscribeBanner />}
+      {!!accessToken && !subscriptionLoading && !hasActiveSubscription && (
+        <SubscribeBanner />
+      )}
       <div className="flex justify-between items-center w-min mx-auto mb-8 gap-6">
         <h1 className="text-2xl font-bold text-gray-800 w-min flex text-nowrap items-center gap-2 mx-auto">
           <TimerIcon className="text-primary" />

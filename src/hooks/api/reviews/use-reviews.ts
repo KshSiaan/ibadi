@@ -1,9 +1,19 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiClient, ApiResponse, PaginatedResponse } from "@/lib/api/client";
-import { CreateReviewRequest, Review, ReviewStatistic } from "@/lib/api/types";
+import { apiClient } from "@/lib/api/client";
+import type { ApiResponse, PaginatedResponse } from "@/lib/api/client";
+import type {
+  CreateReviewRequest,
+  Review,
+  ReviewStatistic,
+} from "@/lib/api/types";
 import { useCookies } from "react-cookie";
+
+type ReviewListResponse =
+  | ApiResponse<PaginatedResponse<Review>>
+  | Review[]
+  | { json: Review[] };
 
 export function useCreateReview() {
   const [cookies] = useCookies(["accessToken"]);
@@ -30,16 +40,19 @@ export function useCreateReview() {
   });
 }
 
-export function useGetUserReviews(userId: string) {
+export function useGetUserReviews(userId?: string) {
   const [cookies] = useCookies(["accessToken"]);
 
   return useQuery<Review[]>({
     queryKey: ["reviews", "user", userId],
     queryFn: async () => {
-      const response = await apiClient.get<ApiResponse<PaginatedResponse<Review>>>(
+      const response = await apiClient.get<ReviewListResponse>(
         `/reviews/user/${userId}`,
         cookies.accessToken,
       );
+
+      if (Array.isArray(response)) return response;
+      if ("json" in response) return response.json;
       if (!response.success) throw new Error(response.message);
       return response.data.data;
     },

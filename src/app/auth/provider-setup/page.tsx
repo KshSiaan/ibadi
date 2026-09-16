@@ -319,6 +319,7 @@ export default function ProviderSetupPage() {
       // Build service provider info payload
       const serviceProviderPayload: Record<string, any> = {
         specialistsIn: form.specialistsInIds,
+        providerSubcategories: form.providerSubcategories,
         bio: form.bio,
         perHourPrice: parseFloat(form.perHourPrice) || 0,
       };
