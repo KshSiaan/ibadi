@@ -3,7 +3,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiClient, ApiResponse, PaginatedResponse } from "@/lib/api/client";
 import { useServiceBooking } from "@/lib/store/service-booking";
-import type { AvailabilityRequest, HomepageProvider, TimeSlot } from "@/lib/api/types";
+import type {
+  AvailabilityRequest,
+  HomepageProvider,
+  TimeSlot,
+} from "@/lib/api/types";
 
 export function useHomepage() {
   const { homepageFilters } = useServiceBooking();
@@ -16,6 +20,7 @@ export function useHomepage() {
     // If days is active, don't send date.
     if (k === "date" && homepageFilters.days) return;
 
+    query.set("limit", "1000");
     query.set(k, String(v));
   });
 
