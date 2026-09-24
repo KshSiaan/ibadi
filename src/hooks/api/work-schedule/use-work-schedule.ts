@@ -29,7 +29,11 @@ export function useUpdateWorkSchedule() {
   const [cookies] = useCookies(["accessToken"]);
   const queryClient = useQueryClient();
 
-  return useMutation<WorkSchedule, Error, { id: string } & Partial<WorkScheduleEntry>>({
+  return useMutation<
+    WorkSchedule,
+    Error,
+    { id: string } & Partial<WorkScheduleEntry>
+  >({
     mutationFn: async ({ id, ...data }) => {
       const response = await apiClient.patch<ApiResponse<WorkSchedule>>(
         `/workSchedule/${id}`,

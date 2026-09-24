@@ -14,15 +14,26 @@ export function useHomepage() {
 
   const query = new URLSearchParams();
 
-  Object.entries(homepageFilters).forEach(([k, v]) => {
-    if (v === undefined || v === null) return;
+  // Availability type
+  // query.set("bookingType", weekly ? "weekly" : "one_time");
 
-    // If days is active, don't send date.
-    if (k === "date" && homepageFilters.days) return;
+  Object.entries(homepageFilters).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") return;
 
-    query.set("limit", "1000");
-    query.set(k, String(v));
+    // Don't accidentally send days for one-time requests.
+    // Weekly date + days are both allowed.
+    if (key === "days" && homepageFilters.bookingType !== "weekly") return;
+
+    query.set(key, String(value));
   });
+
+  // Explicitly tell the API how the time should be interpreted.
+  if (homepageFilters.startTime) {
+    query.set("startTimeType", homepageFilters.startTimeType ?? "exact");
+  }
+
+  // API pagination
+  query.set("limit", "1000");
 
   return useQuery<HomepageProvider[]>({
     queryKey: ["homepage", homepageFilters],
@@ -30,11 +41,11 @@ export function useHomepage() {
     queryFn: async () => {
       const qs = query.toString();
 
-      console.log("qs", qs);
+      console.log("homepage qs:", qs);
 
       const response = await apiClient.get<
         ApiResponse<PaginatedResponse<HomepageProvider>>
-      >(`/homepage${qs ? `?${qs}` : ""}`);
+      >(`/homepage?${qs}`);
 
       if (!response.success) {
         throw new Error(response.message);
