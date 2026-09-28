@@ -9,6 +9,7 @@ import type {
   ReviewStatistic,
 } from "@/lib/api/types";
 import { useCookies } from "react-cookie";
+import { toast } from "sonner";
 
 type ReviewListResponse =
   | ApiResponse<PaginatedResponse<Review>>
@@ -36,6 +37,7 @@ export function useCreateReview() {
       queryClient.invalidateQueries({
         queryKey: ["reviews", "statistic", variables.userId],
       });
+      toast.success("Review created successfully!");
     },
   });
 }
