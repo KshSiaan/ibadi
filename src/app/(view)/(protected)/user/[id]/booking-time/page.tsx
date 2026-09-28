@@ -88,13 +88,14 @@ function getDayTimeRange(
 function filterTimesInRange(
   range: { start: string; end: string } | null,
 ): string[] {
-  if (!range) return allTimeSlots;
-  const startMin = timeToMinutes(range.start);
-  const endMin = timeToMinutes(range.end);
-  return allTimeSlots.filter((t) => {
-    const mins = timeToMinutes(t);
-    return mins >= startMin && mins < endMin;
-  });
+  // if (!range)
+  return allTimeSlots;
+  // const startMin = timeToMinutes(range.start);
+  // const endMin = timeToMinutes(range.end);
+  // return allTimeSlots.filter((t) => {
+  //   const mins = timeToMinutes(t);
+  //   return mins >= startMin && mins < endMin;
+  // });
 }
 
 const allTimeSlots: string[] = [
@@ -164,12 +165,14 @@ function TimeGrid({
   return (
     <div className="grid grid-cols-3 gap-2 w-full">
       {availableTimes.map((time) => (
-        <TimeButton
-          key={time}
-          time={time}
-          selected={selectedTime === time}
-          onClick={() => onSelect(time)}
-        />
+        <>
+          <TimeButton
+            key={time}
+            time={time}
+            selected={selectedTime === time}
+            onClick={() => onSelect(time)}
+          />
+        </>
       ))}
     </div>
   );
@@ -733,20 +736,20 @@ function OnceView({
           </div>
         </div>
 
-        {availableTimes.length > 0 ? (
-          <>
-            <p className="mb-4 text-sm font-semibold text-gray-800">
-              {t("startTime")}
-            </p>
-            <TimeGrid
-              selectedTime={selectedTime}
-              onSelect={setSelectedTime}
-              availableTimes={availableTimes}
-            />
-          </>
-        ) : (
-          <p className="text-sm text-gray-400">{t("notAvailable")}</p>
-        )}
+        {/* {availableTimes.length > 0 ? ( */}
+        <>
+          <p className="mb-4 text-sm font-semibold text-gray-800">
+            {t("startTime")}
+          </p>
+          <TimeGrid
+            selectedTime={selectedTime}
+            onSelect={setSelectedTime}
+            availableTimes={availableTimes}
+          />
+        </>
+        {/* ) : (
+        //   <p className="text-sm text-gray-400">{t("notAvailable")}</p>
+        // ) */}
       </div>
 
       <div className="py-5 mt-24">
