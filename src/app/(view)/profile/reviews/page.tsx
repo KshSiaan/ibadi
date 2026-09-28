@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Star } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMyProfile } from "@/hooks/api/user/use-my-profile";
 import {
   useGetUserReviews,
@@ -34,6 +35,20 @@ export default function ReviewsPage() {
 
   const { data: reviews, isLoading } = useGetUserReviews(userId);
   const { data: stats } = useGetReviewStatistic(userId);
+  const reviewCount = reviews?.length ?? 0;
+  const calculatedAverage =
+    reviewCount > 0
+      ? (reviews ?? []).reduce((sum, review) => sum + review.rating, 0) /
+        reviewCount
+      : 0;
+  const totalReviews =
+    stats?.totalReviews && stats.totalReviews > 0
+      ? stats.totalReviews
+      : reviewCount;
+  const averageRating =
+    stats?.averageRating && stats.averageRating > 0
+      ? stats.averageRating
+      : calculatedAverage;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -49,18 +64,18 @@ export default function ReviewsPage() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-8">
-        {stats && (
+        {(stats || reviews) && (
           <div className="flex items-center justify-between border border-gray-200 rounded-lg p-4 mb-6">
             <div>
               <p className="text-2xl font-semibold text-gray-900">
-                {(stats.averageRating ?? 0).toFixed(1)}
+                {averageRating.toFixed(1)}
               </p>
-              <Stars rating={stats.averageRating ?? 0} />
+              <Stars rating={averageRating} />
             </div>
             <p className="text-sm text-gray-500">
-              {(stats.totalReviews ?? 0) === 1
-                ? t("reviewCount", { count: stats.totalReviews ?? 0 })
-                : t("reviewCountPlural", { count: stats.totalReviews ?? 0 })}
+              {totalReviews === 1
+                ? t("reviewCount", { count: totalReviews })
+                : t("reviewCountPlural", { count: totalReviews })}
             </p>
           </div>
         )}
@@ -79,6 +94,24 @@ export default function ReviewsPage() {
               key={review.id}
               className="border border-gray-200 rounded-lg p-4"
             >
+              <div className="flex items-center gap-3 mb-3 min-w-0">
+                <Avatar className="size-9">
+                  <AvatarImage
+                    src={
+                      typeof review.author?.profile === "string"
+                        ? review.author.profile
+                        : undefined
+                    }
+                    alt={review.author?.name ?? ""}
+                  />
+                  <AvatarFallback>
+                    {review.author?.name?.[0]?.toUpperCase() ?? "?"}
+                  </AvatarFallback>
+                </Avatar>
+                <p className="text-sm font-medium text-gray-800 truncate">
+                  {review.author?.name ?? "-"}
+                </p>
+              </div>
               <div className="flex items-center justify-between mb-2">
                 <Stars rating={review.rating} />
                 <span className="text-xs text-gray-400">

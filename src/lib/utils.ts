@@ -23,6 +23,7 @@ export async function howl<T>(
   endpoint: string,
   { method = "GET", body, token, content, headers = {} }: ApiClientOptions = {},
 ): Promise<T> {
+  // console.log("REQ BODY", body);
   const res = await fetch(`${base_url}${base_api}${endpoint}`, {
     method,
     headers: {

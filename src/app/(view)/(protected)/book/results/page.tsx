@@ -27,23 +27,37 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useGetFaqsByCategory } from "@/hooks/api/faq/use-faq";
 import { useHomepage } from "@/hooks/api/homepage/use-homepage";
 import { useServiceBooking } from "@/lib/store/service-booking";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+
+const RESULTS_PER_PAGE = 5;
 
 export default function ResultsPage() {
   const t = useTranslations("BookResults");
   const { selectedService, selectedCategoryId } = useServiceBooking();
 
   const { data: professionals = [], isLoading, error } = useHomepage();
-  const { homepageFilters } = useServiceBooking();
   const { data: faqs = [], isLoading: faqsLoading } =
     useGetFaqsByCategory(selectedCategoryId);
   const [faqOpen, setFaqOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageCount = Math.ceil(professionals.length / RESULTS_PER_PAGE);
+  const paginatedProfessionals = professionals.slice(
+    (currentPage - 1) * RESULTS_PER_PAGE,
+    currentPage * RESULTS_PER_PAGE,
+  );
 
   return (
     <div className="flex min-h-dvh container mx-auto flex-col">
@@ -182,7 +196,7 @@ export default function ResultsPage() {
           </p>
         ) : (
           <div className="flex flex-col gap-3">
-            {professionals.map((pro) => (
+            {paginatedProfessionals.map((pro) => (
               <Link
                 key={pro.userId}
                 href={`/user/${pro.userId}`}
@@ -257,6 +271,59 @@ export default function ResultsPage() {
                 </div>
               </Link>
             ))}
+            {pageCount > 1 && (
+              <Pagination className="pt-3">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      text={t("previous")}
+                      aria-disabled={currentPage === 1}
+                      className={cn(
+                        currentPage === 1 && "pointer-events-none opacity-50",
+                      )}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setCurrentPage((page) => Math.max(1, page - 1));
+                      }}
+                    />
+                  </PaginationItem>
+                  {Array.from(
+                    { length: pageCount },
+                    (_, index) => index + 1,
+                  ).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === page}
+                        aria-label={t("goToPage", { page })}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setCurrentPage(page);
+                        }}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      text={t("next")}
+                      aria-disabled={currentPage === pageCount}
+                      className={cn(
+                        currentPage === pageCount &&
+                          "pointer-events-none opacity-50",
+                      )}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setCurrentPage((page) => Math.min(pageCount, page + 1));
+                      }}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
           </div>
         )}
       </div>

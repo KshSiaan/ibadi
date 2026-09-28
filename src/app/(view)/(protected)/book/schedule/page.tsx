@@ -27,7 +27,7 @@ const MONTH_NAMES = [
   "December",
 ];
 
-const morningSlots = ["12-9", "9-12", "12-15"];
+const morningSlots = ["9-12", "12-15", "9-6"];
 const eveningSlots = ["15-18", "18-21", "21-00"];
 
 /** Get the Monday-based week containing `date`. */
@@ -124,7 +124,7 @@ export default function SchedulePage() {
     const taskIds =
       checkedTasks.length > 0 ? checkedTasks.join(",") : undefined;
 
-    const DAY_MAP = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const DAY_MAP = DAY_LABELS;
 
     let dateStr: string | undefined;
     let days: string | undefined;

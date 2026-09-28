@@ -131,6 +131,7 @@ export default function SchedulePage() {
         startTime: timeToISO(days[day].startTime),
         endTime: timeToISO(days[day].endTime),
       }));
+      console.log("PAYLOAD", payload);
 
       await createSchedule.mutateAsync(payload);
 

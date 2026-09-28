@@ -24,7 +24,10 @@ import {
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import { useGetMyAddresses } from "@/hooks/api/address/use-address";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateReview } from "@/hooks/api/reviews/use-reviews";
+import {
+  useCreateReview,
+  useGetUserReviews,
+} from "@/hooks/api/reviews/use-reviews";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 export default function BookingDetailPage() {
@@ -44,6 +47,8 @@ export default function BookingDetailPage() {
   const { mutate: createReview, isPending: isCreatingReview } =
     useCreateReview();
   const activeAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
+
+  const { data: reviews, isLoading } = useGetUserReviews(user?.id);
 
   const addressLabel = activeAddress
     ? `${activeAddress.addressLine1}, ${activeAddress.city}, ${activeAddress.state}`
@@ -71,6 +76,7 @@ export default function BookingDetailPage() {
   return (
     <div className="min-h-dvh bg-[#f5f5f5]">
       {/* Header */}
+
       <div className="relative flex items-center justify-center bg-[#f5f5f5] px-4 py-4">
         <button
           type="button"
@@ -258,17 +264,23 @@ export default function BookingDetailPage() {
             <button
               type="button"
               disabled={
+                isLoading ||
+                userLoading ||
+                bookingLoading ||
                 isCreatingReview ||
-                !(new Date(booking?.startDate ?? "") < new Date())
+                !(new Date(booking?.startDate ?? "") < new Date()) ||
+                reviews?.some((review) => review.userId === user?.id)
               }
-              onClick={() => {
-                setOpen(true);
-              }}
+              onClick={() => setOpen(true)}
               className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:bg-gray-300"
             >
-              {new Date(booking?.startDate ?? "") < new Date()
-                ? "Submit Review"
-                : "You can review after scheduled service date"}
+              {reviews?.some((review) => review.userId === user?.id)
+                ? "You have already reviewed"
+                : isLoading || userLoading
+                  ? "Loading..."
+                  : new Date(booking?.startDate ?? "") < new Date()
+                    ? "Submit Review"
+                    : "You can review after scheduled service date"}
             </button>
           </div>
         </div>

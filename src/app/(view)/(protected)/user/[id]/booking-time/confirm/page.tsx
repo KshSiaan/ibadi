@@ -18,7 +18,7 @@ import { useTranslations } from "next-intl";
 import { Suspense, use, useState, useMemo } from "react";
 import { AddCardForm } from "@/components/add-card-form";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useGetMyAddresses } from "@/hooks/api/address/use-address";
 import {
   useCheckout,
@@ -27,9 +27,11 @@ import {
 import { useGetPaymentMethods } from "@/hooks/api/stripe/use-stripe";
 import { useGetUserById } from "@/hooks/api/user/use-get-user-by-id";
 import type { Address, PaymentMethod } from "@/lib/api/types";
-import { cn } from "@/lib/utils";
+import { cn, howl } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
+import { useQuery } from "@tanstack/react-query";
+import { useCookies } from "react-cookie";
 
 const MONTH_NAMES = [
   "January",
@@ -376,6 +378,28 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
   const categories = info?.specialistsIn ?? [];
   const categoryLabel =
     categories.map((s) => s.category.name).join(", ") || "Service";
+
+
+    {/*Payment method functions*/}
+    const [{ accessToken }] = useCookies(["accessToken"]);
+      const [addCardOpen, setAddCardOpen] = useState(false);
+
+      const { data:profile } = useQuery({
+    queryKey: ["getCustomerId"],
+    queryFn: async (): Promise<{
+      success: boolean;
+      message: string;
+      data: string;
+    }> => {
+      const res: any = await howl("/stripe/get-customer", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      return res;
+    },
+    enabled: !!accessToken,
+  });
 
   return (
     <div className="min-h-dvh bg-[#f5f5f5]">
@@ -755,7 +779,7 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
             {/* <Link href="/profile/payments/methods"> */}
             <button
               type="button"
-              disabled
+                onClick={() => setAddCardOpen(true)}
               className="mt-3 disabled:opacity-30 flex w-full items-center justify-center rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
               {t("addPaymentMethod")}
@@ -930,6 +954,24 @@ function ConfirmPageInner({ providerId }: { providerId: string }) {
               {t("ok")}
             </button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+
+      {/* Payment method add dialog*/}
+           {/* Add Card Dialog */}
+      <Dialog open={addCardOpen} onOpenChange={setAddCardOpen}>
+        <DialogContent className="max-w-sm gap-4 p-6">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-gray-800">
+              {t("addPaymentMethod")}
+            </DialogTitle>
+          </DialogHeader>
+          <AddCardForm
+            onSuccess={() => setAddCardOpen(false)}
+            onCancel={() => setAddCardOpen(false)}
+            customerId={profile?.data ?? ""}
+          />
         </DialogContent>
       </Dialog>
     </div>

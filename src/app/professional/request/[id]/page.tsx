@@ -35,6 +35,7 @@ export default function BookingDetailPage() {
   const { data: user, isLoading: userLoading } = useGetUserById(
     booking?.userId ?? "",
   );
+
   const { mutate: completeBooking, isPending: isCompletingBooking } =
     useCompleteBooking();
   const activeAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
@@ -65,6 +66,7 @@ export default function BookingDetailPage() {
   return (
     <div className="min-h-dvh bg-[#f5f5f5]">
       {/* Header */}
+
       <div className="relative flex items-center justify-center bg-[#f5f5f5] px-4 py-4 max-w-md mx-auto">
         <button
           type="button"
