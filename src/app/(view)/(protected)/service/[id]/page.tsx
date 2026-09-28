@@ -275,7 +275,7 @@ export default function BookingDetailPage() {
               className="w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:bg-gray-300"
             >
               {reviews?.some((review) => review.userId === user?.id)
-                ? "You have already reviewed"
+                ? "You can review after scheduled service date"
                 : isLoading || userLoading
                   ? "Loading..."
                   : new Date(booking?.startDate ?? "") < new Date()
